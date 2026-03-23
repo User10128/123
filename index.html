@@ -124,9 +124,13 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
                     Play vs AI
                 </button>
-                <button onclick="showView('view-online-setup')" class="btn-primary flex items-center justify-center gap-3">
+                <button onclick="startGlobalMatch()" class="btn-primary flex items-center justify-center gap-3 shadow-[0_0_15px_rgba(45,212,191,0.15)] border-teal-400/40">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-                    Play Online
+                    Global Matchmaking
+                </button>
+                <button onclick="showView('view-online-setup')" class="btn-primary flex items-center justify-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    Play with Code
                 </button>
             </div>
 
@@ -150,28 +154,17 @@
         </div>
     </div>
 
-    <!-- ONLINE SETUP VIEW -->
-    <div id="view-online-setup" class="view-container hidden flex-col items-center justify-center h-full w-full max-w-md mx-auto p-4 sm:p-6 transition-opacity duration-300">
-        <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-6">
-            <h2 class="text-xl sm:text-2xl text-teal-400 text-center tracking-[0.2em] uppercase font-light truncate px-2">ONLINE PLAY</h2>
-
-            <div class="flex flex-col gap-4 border-b border-teal-500/20 pb-6">
-                <h3 class="text-slate-300 font-medium tracking-wide">Host a Match</h3>
-                <button id="btn-host" onclick="startHost()" class="btn-primary">Generate 6-Digit Code</button>
-                <div id="host-id-container" class="hidden flex flex-col gap-3">
-                    <span class="text-xs text-slate-400 uppercase tracking-wider text-center">Share this code with your opponent:</span>
-                    <input type="text" id="host-id-display" readonly class="glass-input w-full text-center font-mono text-teal-300 text-lg sm:text-xl font-bold cursor-default">
-                    <div class="text-sm text-teal-400 text-center mt-1 animate-pulse">Waiting for opponent to connect...</div>
-                </div>
+    <!-- GLOBAL MATCHMAKING VIEW -->
+    <div id="view-searching" class="view-container hidden flex-col items-center justify-center h-full w-full max-w-md mx-auto p-4 sm:p-6 transition-opacity duration-300">
+        <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-6 text-center">
+            <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light">Matchmaking</h2>
+            <div class="relative w-24 h-24 mx-auto flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full border-t-2 border-teal-400 animate-spin"></div>
+                <div class="absolute inset-2 rounded-full border-r-2 border-teal-300 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
             </div>
-
-            <div class="flex flex-col gap-4 pt-2">
-                <h3 class="text-slate-300 font-medium tracking-wide">Join a Match</h3>
-                <input type="text" id="join-id-input" placeholder="------" maxlength="6" class="glass-input font-mono text-center text-lg sm:text-xl font-bold uppercase">
-                <button onclick="joinGame()" class="btn-primary"><span id="join-btn-text">Connect to Game</span></button>
-            </div>
-
-            <button onclick="showView('view-main-menu')" class="glass-btn mt-2">Back</button>
+            <p class="text-slate-300 font-medium tracking-wide animate-pulse" id="matchmaking-status-text">Searching for an opponent...</p>
+            <button onclick="cancelMatchmaking()" class="glass-btn mt-4 px-6 py-2">Cancel</button>
         </div>
     </div>
 
@@ -883,6 +876,186 @@
             showView('view-main-menu');
         }
 
+        // --- EXPORT TO WINDOW FOR MATCHMAKING MODULE ---
+        window.P1 = P1;
+        window.P2 = P2;
+        window.startGame = startGame;
+        window.setupConnection = setupConnection;
+        window.showNotification = showNotification;
+        window.showView = showView;
+        window.getPeer = () => peer;
+        window.setPeer = (p) => peer = p;
+        window.getConn = () => conn;
+        window.setConn = (c) => conn = c;
+
+    </script>
+
+    <!-- --- FIREBASE GLOBAL MATCHMAKING MODULE --- -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'checkers-app';
+
+        let fbUser = null;
+        let authInitialized = false;
+
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) {
+                console.error("Firebase auth failed:", e);
+            }
+        };
+        
+        onAuthStateChanged(auth, user => {
+            fbUser = user;
+            authInitialized = true;
+        });
+        
+        initAuth();
+
+        window.currentMatchDoc = null;
+
+        window.startGlobalMatch = async () => {
+            if (!authInitialized || !fbUser) {
+                window.showNotification("Connecting to servers...");
+                await initAuth();
+                if (!fbUser) {
+                    window.showNotification("Failed to connect to matchmaking servers.");
+                    return;
+                }
+            }
+
+            window.showView('view-searching');
+            document.getElementById('matchmaking-status-text').innerText = "Looking for available players...";
+
+            try {
+                const matchRef = collection(db, 'artifacts', appId, 'public', 'data', 'matchmaking');
+                const snapshot = await getDocs(matchRef);
+                
+                let availableHost = null;
+                const now = Date.now();
+
+                // Find a waiting host and clean up stale lobbies
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data.status === 'waiting' && (now - data.timestamp < 120000)) {
+                        availableHost = data.peerId;
+                    } else if (now - data.timestamp >= 120000) {
+                        deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', docSnap.id)).catch(()=>{});
+                    }
+                });
+
+                if (availableHost) {
+                    document.getElementById('matchmaking-status-text').innerText = "Opponent found! Connecting...";
+                    joinGlobalGame(availableHost);
+                } else {
+                    document.getElementById('matchmaking-status-text').innerText = "Creating a lobby...";
+                    hostGlobalGame();
+                }
+
+            } catch (error) {
+                console.error("Matchmaking error:", error);
+                window.showNotification("Matchmaking failed.");
+                window.showView('view-main-menu');
+            }
+        };
+
+        function hostGlobalGame() {
+            let currentPeer = window.getPeer();
+            if(currentPeer) currentPeer.destroy();
+            
+            const peerId = "chk-" + Math.floor(Math.random() * 1000000000);
+            const newPeer = new Peer(peerId);
+            window.setPeer(newPeer);
+
+            newPeer.on('open', async (id) => {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', id);
+                await setDoc(docRef, {
+                    peerId: id,
+                    status: 'waiting',
+                    timestamp: Date.now()
+                });
+
+                window.currentMatchDoc = docRef;
+                document.getElementById('matchmaking-status-text').innerText = "Waiting for an opponent to join...";
+            });
+
+            newPeer.on('connection', (connection) => {
+                window.setConn(connection);
+                window.setupConnection();
+                window.startGame('online', window.P1);
+                window.showNotification("Opponent Joined!");
+                
+                if (window.currentMatchDoc) {
+                    deleteDoc(window.currentMatchDoc).catch(()=>{});
+                    window.currentMatchDoc = null;
+                }
+                window.showView('view-game');
+            });
+
+            newPeer.on('error', (err) => {
+                window.showNotification('Connection Error: ' + err.type);
+                if (window.currentMatchDoc) deleteDoc(window.currentMatchDoc).catch(()=>{});
+                window.showView('view-main-menu');
+            });
+        }
+
+        function joinGlobalGame(hostPeerId) {
+            let currentPeer = window.getPeer();
+            if(currentPeer) currentPeer.destroy();
+            
+            const newPeer = new Peer();
+            window.setPeer(newPeer);
+
+            newPeer.on('open', () => {
+                const connection = newPeer.connect(hostPeerId);
+                window.setConn(connection);
+                
+                connection.on('open', () => {
+                    window.setupConnection();
+                    window.startGame('online', window.P2);
+                    window.showNotification("Connected to Match!");
+                    window.showView('view-game');
+                });
+                
+                connection.on('error', () => {
+                    window.showNotification("Failed to connect to Host, retrying...");
+                    window.startGlobalMatch(); // Retry matchmaking
+                });
+            });
+
+            newPeer.on('error', (err) => {
+                window.showNotification('Connection Error: ' + err.type);
+                window.showView('view-main-menu');
+            });
+        }
+        
+        window.cancelMatchmaking = () => {
+            if (window.currentMatchDoc) {
+                deleteDoc(window.currentMatchDoc).catch(()=>{});
+                window.currentMatchDoc = null;
+            }
+            let currentPeer = window.getPeer();
+            if (currentPeer) currentPeer.destroy();
+            window.showView('view-main-menu');
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (window.currentMatchDoc) {
+                deleteDoc(window.currentMatchDoc).catch(()=>{});
+            }
+        });
     </script>
 </body>
 </html>
