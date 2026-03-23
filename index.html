@@ -154,6 +154,37 @@
         </div>
     </div>
 
+    <!-- ONLINE SETUP VIEW -->
+    <div id="view-online-setup" class="view-container hidden flex-col items-center justify-center h-full w-full max-w-md mx-auto p-4 sm:p-6 transition-opacity duration-300">
+        <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-6 text-center">
+            <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Play with Code</h2>
+            
+            <div class="flex flex-col gap-4">
+                <button onclick="startHost()" class="btn-primary w-full">Create Game (Host)</button>
+                <div id="host-id-container" class="hidden flex flex-col gap-2 mt-2">
+                    <span class="text-sm text-slate-400 uppercase tracking-widest">Your Code</span>
+                    <input type="text" id="host-id-display" class="glass-input text-center text-xl font-bold" readonly>
+                    <p class="text-xs text-teal-500/70 mt-1">Share this code with your friend</p>
+                </div>
+            </div>
+
+            <div class="relative py-4">
+                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-700/50"></div></div>
+                <div class="relative flex justify-center"><span class="bg-slate-800/80 px-4 text-sm text-slate-500 uppercase tracking-widest">OR</span></div>
+            </div>
+
+            <div class="flex flex-col gap-4">
+                <span class="text-sm text-slate-400 uppercase tracking-widest">Join a Game</span>
+                <input type="text" id="join-id-input" class="glass-input text-center text-xl font-bold uppercase" placeholder="ENTER CODE" maxlength="6">
+                <button onclick="joinGame()" class="btn-primary w-full border-teal-500/50 text-teal-300">
+                    <span id="join-btn-text">Connect to Game</span>
+                </button>
+            </div>
+            
+            <button onclick="showView('view-main-menu')" class="glass-btn mt-4">Back</button>
+        </div>
+    </div>
+
     <!-- GLOBAL MATCHMAKING VIEW -->
     <div id="view-searching" class="view-container hidden flex-col items-center justify-center h-full w-full max-w-md mx-auto p-4 sm:p-6 transition-opacity duration-300">
         <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-6 text-center">
