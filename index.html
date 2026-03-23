@@ -893,27 +893,37 @@
     <!-- --- FIREBASE GLOBAL MATCHMAKING MODULE --- -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        // REPLACE EVERYTHING IN THIS OBJECT WITH YOUR INFO FROM FIREBASE
+        const firebaseConfig = {
+  apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
+  authDomain: "checkers-matchmaking-5ac55.firebaseapp.com",
+  projectId: "checkers-matchmaking-5ac55",
+  storageBucket: "checkers-matchmaking-5ac55.firebasestorage.app",
+  messagingSenderId: "778086491027",
+  appId: "1:778086491027:web:c315fd9d97aebae6087e66"
+        };
+        
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'checkers-app';
+        const appId = 'checkers-app'; // You can leave this as it is
 
         let fbUser = null;
         let authInitialized = false;
 
         const initAuth = async () => {
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                await signInAnonymously(auth);
             } catch (e) {
                 console.error("Firebase auth failed:", e);
+                if (e.code === 'auth/configuration-not-found' || e.code === 'auth/operation-not-allowed') {
+                    window.showNotification("Action needed: Enable 'Anonymous' Auth in Firebase Console!");
+                } else {
+                    window.showNotification("Auth Error: " + e.message);
+                }
             }
         };
         
@@ -931,7 +941,7 @@
                 window.showNotification("Connecting to servers...");
                 await initAuth();
                 if (!fbUser) {
-                    window.showNotification("Failed to connect to matchmaking servers.");
+                    setTimeout(() => window.showView('view-main-menu'), 2500);
                     return;
                 }
             }
