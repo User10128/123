@@ -35,7 +35,7 @@
             border-radius: 0.5rem;
             outline: none;
             transition: all 0.3s ease;
-            letter-spacing: 0.2em;
+            letter-spacing: 0.05em;
         }
         .glass-input:focus {
             border-color: rgba(45, 212, 191, 0.8);
@@ -100,14 +100,25 @@
         </svg>
     </div>
 
+    <!-- Top Right Account Icon -->
+    <div class="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex gap-3">
+        <button onclick="window.showLeaderboardView()" class="glass-btn p-2 sm:px-4 flex items-center gap-2" title="Leaderboard">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+            <span class="hidden sm:inline">Leaderboard</span>
+        </button>
+        <button onclick="showView('view-account')" class="glass-btn p-2 rounded-full" title="Account & Friends">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </button>
+    </div>
+
     <!-- Toast Notification -->
-    <div id="notification-toast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-slate-800/90 backdrop-blur-md text-teal-300 px-6 py-3 rounded-full shadow-lg shadow-teal-500/10 border border-teal-500/30 z-[100] transform transition-all duration-300 translate-y-[-150%] opacity-0 flex items-center gap-2 font-medium tracking-wide">
+    <div id="notification-toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-slate-800/95 backdrop-blur-md text-teal-300 px-6 py-3 rounded-full shadow-lg shadow-teal-500/10 border border-teal-500/30 z-[100] transform transition-all duration-300 translate-y-[-150%] opacity-0 flex items-center gap-2 font-medium tracking-wide">
         <span id="notification-msg"></span>
     </div>
 
     <!-- MAIN MENU VIEW -->
     <div id="view-main-menu" class="view-container flex flex-col items-center justify-center h-full w-full max-w-md mx-auto p-4 sm:p-6 transition-opacity duration-300">
-        <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-8 text-center relative overflow-hidden">
+        <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-8 text-center relative overflow-hidden mt-8">
             <div class="absolute -top-12 -right-12 w-40 h-40 bg-teal-400/10 rounded-full blur-3xl"></div>
             <div class="absolute -bottom-12 -left-12 w-40 h-40 bg-teal-800/20 rounded-full blur-3xl"></div>
 
@@ -138,6 +149,69 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
                 Rules & Instructions
             </button>
+        </div>
+    </div>
+
+    <!-- ACCOUNT & FRIENDS VIEW -->
+    <div id="view-account" class="view-container hidden flex-col items-center justify-center h-full w-full max-w-md mx-auto p-4 sm:p-6 transition-opacity duration-300">
+        <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-6 text-center">
+            <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Account</h2>
+            
+            <!-- Logged out state -->
+            <div id="account-logged-out" class="flex flex-col gap-4">
+                <p class="text-slate-400 text-sm">Sign in to save your stats, view leaderboards, and add friends!</p>
+                <button onclick="window.signInGoogle()" class="btn-primary bg-white/5 border-white/20 text-white flex items-center justify-center gap-3 hover:bg-white/10">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                    Sign in with Google
+                </button>
+            </div>
+
+            <!-- Logged in state -->
+            <div id="account-logged-in" class="hidden flex-col gap-6">
+                <div class="bg-slate-800/50 p-4 rounded-xl border border-teal-500/20">
+                    <p class="text-white font-bold text-lg mb-1" id="account-display-name">Loading...</p>
+                    <div class="flex items-center justify-center gap-2 mt-2">
+                        <span class="text-xs text-slate-400">Account ID:</span>
+                        <code id="account-uid" class="text-xs text-teal-300 bg-slate-900 px-2 py-1 rounded select-all">...</code>
+                    </div>
+                </div>
+
+                <div class="text-left flex flex-col gap-3">
+                    <h3 class="text-sm text-slate-400 uppercase tracking-widest border-b border-slate-700 pb-1">Friends</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="add-friend-input" class="glass-input flex-1 text-sm py-2" placeholder="Enter Friend's ID">
+                        <button onclick="window.addFriend()" class="glass-btn px-4 text-sm hover:text-teal-300">Add</button>
+                    </div>
+                    <div id="friends-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
+                        <!-- Friends loaded here -->
+                        <p class="text-slate-500 text-sm italic text-center py-2">Loading friends...</p>
+                    </div>
+                </div>
+
+                <button onclick="window.signOutGoogle()" class="glass-btn text-red-400 hover:text-red-300 hover:bg-red-900/20 py-2 border-red-900/30 mt-2">Sign Out</button>
+            </div>
+
+            <button onclick="showView('view-main-menu')" class="glass-btn mt-2">Back</button>
+        </div>
+    </div>
+
+    <!-- LEADERBOARD VIEW -->
+    <div id="view-leaderboard" class="view-container hidden flex-col items-center justify-center h-full w-full max-w-lg mx-auto p-4 sm:p-6 transition-opacity duration-300">
+        <div class="glass-panel w-full p-6 sm:p-8 rounded-2xl flex flex-col gap-4 text-center">
+            <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Global Rankings</h2>
+            
+            <div class="flex gap-2 justify-center mb-2">
+                <button id="tab-btn-global" onclick="window.switchLeaderboardTab('global')" class="btn-primary py-1 px-4 text-sm bg-teal-500/20 border-teal-400">Online Wins</button>
+                <button id="tab-btn-ai" onclick="window.switchLeaderboardTab('ai')" class="glass-btn py-1 px-4 text-sm">AI Wins</button>
+            </div>
+
+            <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700 min-h-[250px] max-h-[400px] overflow-y-auto">
+                <div id="leaderboard-list" class="flex flex-col gap-2 text-left">
+                    <p class="text-slate-500 text-center py-4">Loading leaderboard...</p>
+                </div>
+            </div>
+
+            <button onclick="showView('view-main-menu')" class="glass-btn mt-4">Back</button>
         </div>
     </div>
 
@@ -200,7 +274,7 @@
     </div>
 
     <!-- GAME VIEW -->
-    <div id="view-game" class="view-container hidden flex-col h-full w-full max-w-2xl mx-auto pt-20 sm:pt-6 pb-6 px-4 sm:px-6 transition-opacity duration-300">
+    <div id="view-game" class="view-container hidden flex-col h-full w-full max-w-2xl mx-auto pt-20 sm:pt-6 pb-6 px-4 sm:px-6 transition-opacity duration-300 relative">
         <div class="flex justify-between items-end mb-6">
             <div>
                 <h1 class="text-2xl sm:text-3xl text-teal-400 tracking-widest font-bold italic uppercase">CHECKERS</h1>
@@ -218,9 +292,25 @@
             </div>
         </div>
 
-        <div class="flex-1 flex flex-col justify-center items-center mb-4 sm:mb-8">
+        <div class="flex-1 flex flex-col justify-center items-center mb-4 sm:mb-8 relative">
             <div id="board-container" class="grid grid-cols-8 grid-rows-8 w-full max-w-[95vw] sm:max-w-[550px] aspect-square rounded-xl overflow-hidden glass-panel border border-teal-500/30">
                 <!-- Squares injected dynamically -->
+            </div>
+            
+            <!-- In-Game Quick Chat -->
+            <div id="chat-container" class="absolute bottom-0 sm:-bottom-10 left-0 z-40 hidden flex-col-reverse items-start">
+                <button onclick="window.toggleChatMenu()" class="glass-btn px-4 py-2 flex items-center gap-2 bg-slate-800 shadow-lg mt-2 text-sm border-teal-500/30 text-teal-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    Chat
+                </button>
+                <div id="chat-menu" class="hidden flex-col gap-1 glass-panel p-2 rounded-xl text-sm mb-2 shadow-xl border-teal-500/50 w-40">
+                    <button onclick="window.sendChatMsg('Still there?')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Still there?</button>
+                    <button onclick="window.sendChatMsg('Play again?')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Play again?</button>
+                    <button onclick="window.sendChatMsg('Yes!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Yes!</button>
+                    <button onclick="window.sendChatMsg('No.')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">No.</button>
+                    <button onclick="window.sendChatMsg('Good move!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Good move!</button>
+                    <button onclick="window.sendChatMsg('Oops!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Oops!</button>
+                </div>
             </div>
         </div>
     </div>
@@ -300,6 +390,9 @@
         let peer = null;
         let conn = null;
 
+        // Ensure Firebase hooks exist even if module loads late
+        window.recordWin = window.recordWin || function(){}; 
+
         // --- UI UTILS ---
         function showView(id) {
             document.querySelectorAll('.view-container').forEach(v => v.classList.add('hidden'));
@@ -312,7 +405,7 @@
             notif.classList.remove('translate-y-[-150%]', 'opacity-0');
             setTimeout(() => {
                 notif.classList.add('translate-y-[-150%]', 'opacity-0');
-            }, 3000);
+            }, 3500);
         }
 
         let confirmCallback = null;
@@ -328,6 +421,21 @@
         document.getElementById('btn-confirm-yes').onclick = () => {
             if (confirmCallback) confirmCallback();
             closeConfirmModal();
+        };
+
+        // --- CHAT SYSTEM ---
+        window.toggleChatMenu = () => {
+            const menu = document.getElementById('chat-menu');
+            menu.classList.toggle('hidden');
+            menu.classList.toggle('flex');
+        };
+
+        window.sendChatMsg = (text) => {
+            if (conn && conn.open) {
+                conn.send({ type: 'chat', text: text });
+                showNotification("You: " + text);
+            }
+            window.toggleChatMenu();
         };
 
         // --- GAME LOGIC ---
@@ -358,6 +466,14 @@
             gameState.validMoves = [];
             gameState.mustJumpPiece = null;
             gameState.winner = null;
+
+            if (mode === 'online') {
+                document.getElementById('chat-container').classList.remove('hidden');
+                document.getElementById('chat-container').classList.add('flex');
+            } else {
+                document.getElementById('chat-container').classList.add('hidden');
+                document.getElementById('chat-container').classList.remove('flex');
+            }
 
             showView('view-game');
             renderBoard();
@@ -498,15 +614,31 @@
 
             if (gameState.winner) {
                 let msg = "";
+                let iWon = false;
+
                 if (gameState.mode === 'local') {
                     msg = `Player ${gameState.winner} Wins!`;
                 } else if (gameState.mode === 'ai') {
-                    msg = gameState.winner === P1 ? "You Win!" : "AI Wins!";
+                    if (gameState.winner === P1) {
+                        msg = "You Win!";
+                        iWon = true;
+                    } else {
+                        msg = "AI Wins!";
+                    }
                 } else {
-                    msg = gameState.winner === gameState.myPlayer ? "You Win!" : "Opponent Wins!";
+                    if (gameState.winner === gameState.myPlayer) {
+                        msg = "You Win!";
+                        iWon = true;
+                    } else {
+                        msg = "Opponent Wins!";
+                    }
                 }
                 document.getElementById('winner-text').innerText = msg;
                 document.getElementById('modal-gameover').classList.remove('hidden');
+
+                if (iWon) {
+                    window.recordWin(gameState.mode);
+                }
             }
         }
 
@@ -822,8 +954,8 @@
             }
         }
 
-        function joinGame() {
-            let hostId = document.getElementById('join-id-input').value.trim().toUpperCase();
+        function joinGame(overrideId = null) {
+            let hostId = overrideId || document.getElementById('join-id-input').value.trim().toUpperCase();
             if (!hostId || hostId.length !== 6) {
                 showNotification("Please enter a valid 6-digit code");
                 return;
@@ -876,6 +1008,8 @@
                     document.getElementById('modal-gameover').classList.add('hidden');
                     startGame('online', gameState.myPlayer);
                     showNotification("Match Restarted!");
+                } else if (data.type === 'chat') {
+                    showNotification("Opponent: " + data.text);
                 }
             });
             conn.on('close', () => {
@@ -907,7 +1041,7 @@
             showView('view-main-menu');
         }
 
-        // --- EXPORT TO WINDOW FOR MATCHMAKING MODULE ---
+        // --- EXPORT TO WINDOW FOR MODULES ---
         window.P1 = P1;
         window.P2 = P2;
         window.startGame = startGame;
@@ -918,52 +1052,349 @@
         window.setPeer = (p) => peer = p;
         window.getConn = () => conn;
         window.setConn = (c) => conn = c;
+        window.joinGame = joinGame;
+        window.startHost = startHost;
 
     </script>
 
-    <!-- --- FIREBASE GLOBAL MATCHMAKING MODULE --- -->
+    <!-- --- FIREBASE GLOBAL MATCHMAKING, AUTH & ACCOUNTS MODULE --- -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // REPLACE EVERYTHING IN THIS OBJECT WITH YOUR INFO FROM FIREBASE
         const firebaseConfig = {
-  apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
-  authDomain: "checkers-matchmaking-5ac55.firebaseapp.com",
-  projectId: "checkers-matchmaking-5ac55",
-  storageBucket: "checkers-matchmaking-5ac55.firebasestorage.app",
-  messagingSenderId: "778086491027",
-  appId: "1:778086491027:web:c315fd9d97aebae6087e66"
+            apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
+            authDomain: "checkers-matchmaking-5ac55.firebaseapp.com",
+            projectId: "checkers-matchmaking-5ac55",
+            storageBucket: "checkers-matchmaking-5ac55.firebasestorage.app",
+            messagingSenderId: "778086491027",
+            appId: "1:778086491027:web:c315fd9d97aebae6087e66"
         };
         
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = 'checkers-app'; // You can leave this as it is
+        const appId = 'checkers-app';
 
         let fbUser = null;
+        let isGoogleUser = false;
         let authInitialized = false;
+        let invitesUnsubscribe = null;
 
         const initAuth = async () => {
             try {
-                await signInAnonymously(auth);
+                // If not already signed in with Google by cache, fall back to anonymous
+                if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
             } catch (e) {
                 console.error("Firebase auth failed:", e);
-                if (e.code === 'auth/configuration-not-found' || e.code === 'auth/operation-not-allowed') {
-                    window.showNotification("Action needed: Enable 'Anonymous' Auth in Firebase Console!");
-                } else {
-                    window.showNotification("Auth Error: " + e.message);
-                }
+                window.showNotification("Auth Error: " + e.message);
             }
         };
         
-        onAuthStateChanged(auth, user => {
+        onAuthStateChanged(auth, async (user) => {
             fbUser = user;
             authInitialized = true;
+            if (user) {
+                isGoogleUser = !user.isAnonymous;
+                updateAccountUI();
+                
+                if (isGoogleUser) {
+                    // Update online status and setup listeners
+                    await updatePublicProfile(true);
+                    setupInvitesListener();
+                    window.renderFriendsList();
+                }
+            } else {
+                updateAccountUI();
+            }
         });
         
         initAuth();
+
+        // ------------------ ACCOUNT & FRIENDS ------------------
+
+        function updateAccountUI() {
+            if (isGoogleUser && fbUser) {
+                document.getElementById('account-logged-out').classList.add('hidden');
+                document.getElementById('account-logged-in').classList.remove('hidden');
+                document.getElementById('account-logged-in').classList.add('flex');
+                document.getElementById('account-display-name').innerText = fbUser.displayName || 'Checkers Player';
+                document.getElementById('account-uid').innerText = fbUser.uid;
+            } else {
+                document.getElementById('account-logged-out').classList.remove('hidden');
+                document.getElementById('account-logged-in').classList.add('hidden');
+                document.getElementById('account-logged-in').classList.remove('flex');
+            }
+        }
+
+        async function updatePublicProfile(isOnline) {
+            if (!fbUser || !isGoogleUser) return;
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
+            try {
+                // Merge to avoid overwriting wins
+                await setDoc(docRef, {
+                    displayName: fbUser.displayName || 'Player',
+                    isOnline: isOnline,
+                    lastSeen: Date.now()
+                }, { merge: true });
+            } catch (e) { console.error("Profile update failed", e); }
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (isGoogleUser && fbUser) {
+                // Fire and forget, best effort
+                updatePublicProfile(false);
+            }
+            if (window.currentMatchDoc) {
+                deleteDoc(window.currentMatchDoc).catch(()=>{});
+            }
+        });
+
+        window.signInGoogle = async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                window.showNotification("Opening Google Sign-In...");
+                await signInWithPopup(auth, provider);
+                window.showNotification("Signed in successfully!");
+            } catch (e) {
+                window.showNotification("Sign in failed. Try again.");
+                console.error(e);
+            }
+        };
+
+        window.signOutGoogle = async () => {
+            await updatePublicProfile(false);
+            if (invitesUnsubscribe) { invitesUnsubscribe(); invitesUnsubscribe = null; }
+            await signOut(auth);
+            await signInAnonymously(auth);
+            window.showNotification("Signed out.");
+        };
+
+        window.addFriend = async () => {
+            if (!isGoogleUser) return;
+            const input = document.getElementById('add-friend-input');
+            const friendId = input.value.trim();
+            if (!friendId || friendId === fbUser.uid) {
+                window.showNotification("Enter a valid Friend ID");
+                return;
+            }
+
+            try {
+                // Check if friend exists in public profiles
+                const friendSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', friendId));
+                if (!friendSnap.exists()) {
+                    window.showNotification("User not found.");
+                    return;
+                }
+
+                // Add to private friends list
+                const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
+                const myPrivSnap = await getDoc(myPrivRef);
+                let friends = myPrivSnap.exists() ? myPrivSnap.data().friends || [] : [];
+                
+                if (!friends.includes(friendId)) {
+                    friends.push(friendId);
+                    await setDoc(myPrivRef, { friends }, { merge: true });
+                    window.showNotification("Friend added!");
+                    input.value = "";
+                    window.renderFriendsList();
+                } else {
+                    window.showNotification("Already on your friends list.");
+                }
+            } catch(e) { console.error(e); }
+        };
+
+        window.renderFriendsList = async () => {
+            if (!isGoogleUser) return;
+            const listEl = document.getElementById('friends-list');
+            
+            try {
+                const myPrivSnap = await getDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data'));
+                if (!myPrivSnap.exists() || !myPrivSnap.data().friends || myPrivSnap.data().friends.length === 0) {
+                    listEl.innerHTML = "<p class='text-slate-500 text-sm italic py-2'>You have no friends yet.</p>";
+                    return;
+                }
+
+                let friendsHtml = "";
+                for (let fid of myPrivSnap.data().friends) {
+                    const fSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fid));
+                    if (fSnap.exists()) {
+                        let fData = fSnap.data();
+                        let isOnline = fData.isOnline && (Date.now() - (fData.lastSeen || 0) < 300000); // Online in last 5 mins
+                        
+                        friendsHtml += `
+                            <div class="flex justify-between items-center bg-slate-800/60 p-2 rounded border border-slate-700">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full ${isOnline ? 'bg-teal-400 shadow-[0_0_5px_#2dd4bf]' : 'bg-slate-500'}"></div>
+                                    <span class="text-sm font-medium ${isOnline ? 'text-white' : 'text-slate-400'}">${fData.displayName || 'Player'}</span>
+                                </div>
+                                ${isOnline ? `<button onclick="window.inviteFriend('${fid}')" class="text-xs bg-teal-500/20 text-teal-300 px-2 py-1 rounded hover:bg-teal-500/40">Invite</button>` : `<span class="text-xs text-slate-500">Offline</span>`}
+                            </div>
+                        `;
+                    }
+                }
+                listEl.innerHTML = friendsHtml;
+            } catch(e) {
+                console.error(e);
+                listEl.innerHTML = "<p class='text-red-400 text-sm'>Failed to load friends.</p>";
+            }
+        };
+
+        // ------------------ INVITE SYSTEM ------------------
+
+        function setupInvitesListener() {
+            if (!fbUser) return;
+            if (invitesUnsubscribe) invitesUnsubscribe();
+            
+            const invitesRef = collection(db, 'artifacts', appId, 'users', fbUser.uid, 'invites');
+            invitesUnsubscribe = onSnapshot(invitesRef, (snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        const invite = change.doc.data();
+                        // Ignore stale invites (older than 2 mins)
+                        if (Date.now() - invite.timestamp < 120000) {
+                            showInviteToast(invite.fromName, invite.code, change.doc.id);
+                        } else {
+                            // Cleanup stale
+                            deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'invites', change.doc.id)).catch(()=>{});
+                        }
+                    }
+                });
+            }, (error) => console.error("Invites listener error:", error));
+        }
+
+        window.inviteFriend = async (friendId) => {
+            window.showNotification("Generating code & inviting...");
+            window.showView('view-online-setup');
+            window.startHost();
+            
+            // Wait briefly for host ID to generate
+            setTimeout(async () => {
+                const code = document.getElementById('host-id-display').value;
+                if (code && code !== "Generating..." && code !== "Error") {
+                    try {
+                        const inviteRef = doc(collection(db, 'artifacts', appId, 'users', friendId, 'invites'));
+                        await setDoc(inviteRef, {
+                            fromName: fbUser.displayName || 'A Friend',
+                            code: code,
+                            timestamp: Date.now()
+                        });
+                        window.showNotification("Invite sent!");
+                    } catch(e) { console.error(e); }
+                }
+            }, 1000);
+        };
+
+        function showInviteToast(name, code, docId) {
+            const toast = document.createElement('div');
+            toast.className = "fixed top-24 left-1/2 -translate-x-1/2 bg-teal-900/90 backdrop-blur text-white px-6 py-4 rounded-xl shadow-[0_0_20px_rgba(45,212,191,0.3)] border border-teal-400 z-[110] flex flex-col gap-3 text-center animate-bounce";
+            toast.innerHTML = `
+                <span class="font-bold">Game Invite from ${name}!</span>
+                <div class="flex gap-2 justify-center">
+                    <button id="accept-${docId}" class="bg-teal-500 text-teal-900 px-4 py-1 rounded font-bold hover:bg-teal-400">Accept</button>
+                    <button id="decline-${docId}" class="bg-slate-800 text-slate-300 px-4 py-1 rounded hover:bg-slate-700">Decline</button>
+                </div>
+            `;
+            document.body.appendChild(toast);
+
+            document.getElementById(`accept-${docId}`).onclick = () => {
+                document.body.removeChild(toast);
+                deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'invites', docId)).catch(()=>{});
+                window.showView('view-online-setup');
+                document.getElementById('join-id-input').value = code;
+                window.joinGame(code);
+            };
+            document.getElementById(`decline-${docId}`).onclick = () => {
+                document.body.removeChild(toast);
+                deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'invites', docId)).catch(()=>{});
+            };
+            
+            // Auto dismiss after 30s
+            setTimeout(() => { if(document.body.contains(toast)) document.body.removeChild(toast); }, 30000);
+        }
+
+        // ------------------ LEADERBOARD & STATS ------------------
+
+        window.recordWin = async (mode) => {
+            if (!isGoogleUser || !fbUser) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
+                const docSnap = await getDoc(docRef);
+                let data = docSnap.exists() ? docSnap.data() : { displayName: fbUser.displayName };
+                
+                if (mode === 'ai') data.aiWins = (data.aiWins || 0) + 1;
+                if (mode === 'online') data.globalWins = (data.globalWins || 0) + 1;
+                
+                await setDoc(docRef, data, { merge: true });
+            } catch (e) { console.error("Failed to record win", e); }
+        };
+
+        window.showLeaderboardView = () => {
+            if (!isGoogleUser) {
+                window.showNotification("Sign in to view the Leaderboard!");
+                window.showView('view-account');
+                return;
+            }
+            window.showView('view-leaderboard');
+            window.switchLeaderboardTab('global');
+        };
+
+        window.switchLeaderboardTab = async (type) => {
+            const btnGlobal = document.getElementById('tab-btn-global');
+            const btnAI = document.getElementById('tab-btn-ai');
+            const listEl = document.getElementById('leaderboard-list');
+            
+            listEl.innerHTML = "<p class='text-slate-500 text-center py-4'>Loading...</p>";
+
+            if (type === 'global') {
+                btnGlobal.className = "btn-primary py-1 px-4 text-sm bg-teal-500/20 border-teal-400";
+                btnAI.className = "glass-btn py-1 px-4 text-sm";
+            } else {
+                btnAI.className = "btn-primary py-1 px-4 text-sm bg-teal-500/20 border-teal-400";
+                btnGlobal.className = "glass-btn py-1 px-4 text-sm";
+            }
+
+            try {
+                const profilesRef = collection(db, 'artifacts', appId, 'public', 'data', 'profiles');
+                const snapshot = await getDocs(profilesRef);
+                let profiles = [];
+                snapshot.forEach(docSnap => profiles.push(docSnap.data()));
+
+                // Sort purely in JS to comply with no complex queries rule
+                if (type === 'global') {
+                    profiles.sort((a, b) => (b.globalWins || 0) - (a.globalWins || 0));
+                    profiles = profiles.filter(p => (p.globalWins || 0) > 0);
+                } else {
+                    profiles.sort((a, b) => (b.aiWins || 0) - (a.aiWins || 0));
+                    profiles = profiles.filter(p => (p.aiWins || 0) > 0);
+                }
+
+                if (profiles.length === 0) {
+                    listEl.innerHTML = "<p class='text-slate-500 text-center py-4'>No ranking data yet.</p>";
+                    return;
+                }
+
+                let html = profiles.map((p, i) => `
+                    <div class="flex justify-between items-center border-b border-slate-700/50 py-3 px-2 ${p.displayName === fbUser.displayName ? 'bg-teal-900/20 rounded' : ''}">
+                        <div class="flex items-center gap-3">
+                            <span class="text-teal-500 font-bold w-6">${i+1}.</span>
+                            <span class="font-medium text-slate-200">${p.displayName || 'Player'}</span>
+                        </div>
+                        <span class="text-teal-300 font-bold">${type === 'global' ? (p.globalWins || 0) : (p.aiWins || 0)} Wins</span>
+                    </div>
+                `).join('');
+                
+                listEl.innerHTML = html;
+            } catch (e) {
+                console.error(e);
+                listEl.innerHTML = "<p class='text-red-400 text-center py-4'>Failed to load data.</p>";
+            }
+        };
+
+        // ------------------ GLOBAL MATCHMAKING ------------------
 
         window.currentMatchDoc = null;
 
@@ -1042,7 +1473,6 @@
                     deleteDoc(window.currentMatchDoc).catch(()=>{});
                     window.currentMatchDoc = null;
                 }
-                window.showView('view-game');
             });
 
             newPeer.on('error', (err) => {
@@ -1067,12 +1497,11 @@
                     window.setupConnection();
                     window.startGame('online', window.P2);
                     window.showNotification("Connected to Match!");
-                    window.showView('view-game');
                 });
                 
                 connection.on('error', () => {
                     window.showNotification("Failed to connect to Host, retrying...");
-                    window.startGlobalMatch(); // Retry matchmaking
+                    window.startGlobalMatch(); 
                 });
             });
 
@@ -1092,11 +1521,6 @@
             window.showView('view-main-menu');
         }
 
-        window.addEventListener('beforeunload', () => {
-            if (window.currentMatchDoc) {
-                deleteDoc(window.currentMatchDoc).catch(()=>{});
-            }
-        });
     </script>
 </body>
 </html>
