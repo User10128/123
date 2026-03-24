@@ -171,15 +171,15 @@
                 <div class="bg-slate-800/50 p-4 rounded-xl border border-teal-500/20">
                     <p class="text-white font-bold text-lg mb-1" id="account-display-name">Loading...</p>
                     <div class="flex items-center justify-center gap-2 mt-2">
-                        <span class="text-xs text-slate-400">Account ID:</span>
-                        <code id="account-uid" class="text-xs text-teal-300 bg-slate-900 px-2 py-1 rounded select-all">...</code>
+                        <span class="text-xs text-slate-400">Friend Code:</span>
+                        <code id="account-uid" class="text-lg font-bold text-teal-300 bg-slate-900 px-3 py-1 rounded select-all tracking-widest">...</code>
                     </div>
                 </div>
 
                 <div class="text-left flex flex-col gap-3">
                     <h3 class="text-sm text-slate-400 uppercase tracking-widest border-b border-slate-700 pb-1">Friends</h3>
                     <div class="flex gap-2">
-                        <input type="text" id="add-friend-input" class="glass-input flex-1 text-sm py-2" placeholder="Enter Friend's ID">
+                        <input type="text" id="add-friend-input" class="glass-input flex-1 text-sm py-2 text-center tracking-widest" placeholder="8-DIGIT CODE" maxlength="8">
                         <button onclick="window.addFriend()" class="glass-btn px-4 text-sm hover:text-teal-300">Add</button>
                     </div>
                     <div id="friends-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
@@ -200,9 +200,11 @@
         <div class="glass-panel w-full p-6 sm:p-8 rounded-2xl flex flex-col gap-4 text-center">
             <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Global Rankings</h2>
             
-            <div class="flex gap-2 justify-center mb-2">
-                <button id="tab-btn-global" onclick="window.switchLeaderboardTab('global')" class="btn-primary py-1 px-4 text-sm bg-teal-500/20 border-teal-400">Online Wins</button>
-                <button id="tab-btn-ai" onclick="window.switchLeaderboardTab('ai')" class="glass-btn py-1 px-4 text-sm">AI Wins</button>
+            <div class="flex flex-wrap gap-2 justify-center mb-2">
+                <button id="tab-btn-global" onclick="window.switchLeaderboardTab('global')" class="btn-primary py-1 px-3 text-xs sm:text-sm bg-teal-500/20 border-teal-400">Online</button>
+                <button id="tab-btn-ai-easy" onclick="window.switchLeaderboardTab('ai-easy')" class="glass-btn py-1 px-3 text-xs sm:text-sm">AI Easy</button>
+                <button id="tab-btn-ai-medium" onclick="window.switchLeaderboardTab('ai-medium')" class="glass-btn py-1 px-3 text-xs sm:text-sm">AI Medium</button>
+                <button id="tab-btn-ai-hard" onclick="window.switchLeaderboardTab('ai-hard')" class="glass-btn py-1 px-3 text-xs sm:text-sm">AI Hard</button>
             </div>
 
             <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700 min-h-[250px] max-h-[400px] overflow-y-auto">
@@ -281,6 +283,20 @@
                 <div id="turn-status" class="text-slate-300 mt-1 font-medium tracking-wide text-sm sm:text-base bg-slate-800/50 inline-block px-3 py-1 rounded-full border border-slate-700"></div>
             </div>
             <div class="flex gap-2">
+                <div class="relative inline-block">
+                    <button id="btn-chat" onclick="window.toggleChatMenu()" class="hidden glass-btn p-2 sm:px-4 text-sm flex items-center gap-2 border-teal-500/30 text-teal-300" title="Chat">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        <span class="hidden sm:inline">Chat</span>
+                    </button>
+                    <div id="chat-menu" class="hidden absolute top-full right-0 mt-2 flex-col gap-1 glass-panel p-2 rounded-xl text-sm shadow-xl border-teal-500/50 w-40 z-50">
+                        <button onclick="window.sendChatMsg('Still there?')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Still there?</button>
+                        <button onclick="window.sendChatMsg('Play again?')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Play again?</button>
+                        <button onclick="window.sendChatMsg('Yes!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Yes!</button>
+                        <button onclick="window.sendChatMsg('No.')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">No.</button>
+                        <button onclick="window.sendChatMsg('Good move!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Good move!</button>
+                        <button onclick="window.sendChatMsg('Oops!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Oops!</button>
+                    </div>
+                </div>
                 <button onclick="document.getElementById('modal-rules').classList.remove('hidden')" class="glass-btn p-2 sm:px-4 text-sm flex items-center gap-2" title="Rules">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
                     <span class="hidden sm:inline">Rules</span>
@@ -295,22 +311,6 @@
         <div class="flex-1 flex flex-col justify-center items-center mb-4 sm:mb-8 relative">
             <div id="board-container" class="grid grid-cols-8 grid-rows-8 w-full max-w-[95vw] sm:max-w-[550px] aspect-square rounded-xl overflow-hidden glass-panel border border-teal-500/30">
                 <!-- Squares injected dynamically -->
-            </div>
-            
-            <!-- In-Game Quick Chat -->
-            <div id="chat-container" class="absolute bottom-0 sm:-bottom-10 left-0 z-40 hidden flex-col-reverse items-start">
-                <button onclick="window.toggleChatMenu()" class="glass-btn px-4 py-2 flex items-center gap-2 bg-slate-800 shadow-lg mt-2 text-sm border-teal-500/30 text-teal-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                    Chat
-                </button>
-                <div id="chat-menu" class="hidden flex-col gap-1 glass-panel p-2 rounded-xl text-sm mb-2 shadow-xl border-teal-500/50 w-40">
-                    <button onclick="window.sendChatMsg('Still there?')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Still there?</button>
-                    <button onclick="window.sendChatMsg('Play again?')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Play again?</button>
-                    <button onclick="window.sendChatMsg('Yes!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Yes!</button>
-                    <button onclick="window.sendChatMsg('No.')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">No.</button>
-                    <button onclick="window.sendChatMsg('Good move!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Good move!</button>
-                    <button onclick="window.sendChatMsg('Oops!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Oops!</button>
-                </div>
             </div>
         </div>
     </div>
@@ -360,6 +360,7 @@
             <div class="absolute inset-0 bg-teal-500/5 z-0"></div>
             <h2 class="text-3xl text-teal-400 font-light tracking-widest uppercase relative z-10">Game Over</h2>
             <div id="winner-text" class="text-xl text-white font-medium relative z-10 drop-shadow-md">Player 1 Wins!</div>
+            <div id="score-text" class="text-2xl text-teal-300 font-bold relative z-10 hidden mt-2">Score: 0</div>
             <div class="flex flex-col sm:flex-row gap-3 justify-center mt-4 relative z-10">
                 <button onclick="restartGame()" class="btn-primary px-6 py-3 flex-1">Play Again</button>
                 <button onclick="quitGameFromEnd()" class="glass-btn px-6 py-3 flex-1">Main Menu</button>
@@ -384,7 +385,8 @@
             selectedPiece: null,
             validMoves: [],
             mustJumpPiece: null,
-            winner: null
+            winner: null,
+            startTime: 0
         };
 
         let peer = null;
@@ -466,13 +468,16 @@
             gameState.validMoves = [];
             gameState.mustJumpPiece = null;
             gameState.winner = null;
+            gameState.startTime = Date.now();
 
             if (mode === 'online') {
-                document.getElementById('chat-container').classList.remove('hidden');
-                document.getElementById('chat-container').classList.add('flex');
+                document.getElementById('btn-chat').classList.remove('hidden');
+                document.getElementById('btn-chat').classList.add('flex');
             } else {
-                document.getElementById('chat-container').classList.add('hidden');
-                document.getElementById('chat-container').classList.remove('flex');
+                document.getElementById('btn-chat').classList.add('hidden');
+                document.getElementById('btn-chat').classList.remove('flex');
+                document.getElementById('chat-menu').classList.add('hidden');
+                document.getElementById('chat-menu').classList.remove('flex');
             }
 
             showView('view-game');
@@ -636,8 +641,33 @@
                 document.getElementById('winner-text').innerText = msg;
                 document.getElementById('modal-gameover').classList.remove('hidden');
 
-                if (iWon) {
-                    window.recordWin(gameState.mode);
+                let score = 0;
+                if (iWon && (gameState.mode === 'online' || gameState.mode === 'ai')) {
+                    let myNormals = 0, myKings = 0, oppTotal = 0;
+                    let myP = gameState.myPlayer; 
+                    let oppP = myP === P1 ? P2 : P1;
+                    let myKingType = myP === P1 ? P1_KING : P2_KING;
+                    
+                    for(let r=0; r<8; r++){
+                        for(let c=0; c<8; c++){
+                            let p = gameState.board[r][c];
+                            if(p === myP) myNormals++;
+                            if(p === myKingType) myKings++;
+                            if(isPlayerPiece(p, oppP)) oppTotal++;
+                        }
+                    }
+                    
+                    let oppCaptured = 12 - oppTotal;
+                    let durationSeconds = Math.floor((Date.now() - (gameState.startTime || Date.now())) / 1000);
+                    let timeBonus = Math.max(0, 600 - durationSeconds) * 2;
+                    
+                    score = (oppCaptured * 50) + (myNormals * 20) + (myKings * 50) + timeBonus;
+                    
+                    document.getElementById('score-text').innerText = `Score: ${score}`;
+                    document.getElementById('score-text').classList.remove('hidden');
+                    window.recordWin(gameState.mode, score, gameState.aiDifficulty);
+                } else {
+                    document.getElementById('score-text').classList.add('hidden');
                 }
             }
         }
@@ -1082,27 +1112,22 @@
         let authInitialized = false;
         let invitesUnsubscribe = null;
 
-        const initAuth = async () => {
-            try {
-                // If not already signed in with Google by cache, fall back to anonymous
-                if (!auth.currentUser) {
-                    await signInAnonymously(auth);
-                }
-            } catch (e) {
-                console.error("Firebase auth failed:", e);
-                window.showNotification("Auth Error: " + e.message);
-            }
-        };
-        
         onAuthStateChanged(auth, async (user) => {
-            fbUser = user;
+            if (!user && !authInitialized) {
+                authInitialized = true;
+                try {
+                    await signInAnonymously(auth);
+                } catch(e) { console.error("Anon sign in failed", e); }
+                return; 
+            }
+            
             authInitialized = true;
+            fbUser = user;
             if (user) {
                 isGoogleUser = !user.isAnonymous;
                 updateAccountUI();
                 
                 if (isGoogleUser) {
-                    // Update online status and setup listeners
                     await updatePublicProfile(true);
                     setupInvitesListener();
                     window.renderFriendsList();
@@ -1111,8 +1136,6 @@
                 updateAccountUI();
             }
         });
-        
-        initAuth();
 
         // ------------------ ACCOUNT & FRIENDS ------------------
 
@@ -1134,12 +1157,23 @@
             if (!fbUser || !isGoogleUser) return;
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
             try {
-                // Merge to avoid overwriting wins
+                let friendCode = null;
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists() && docSnap.data().friendCode) {
+                    friendCode = docSnap.data().friendCode;
+                } else {
+                    friendCode = Math.floor(10000000 + Math.random() * 90000000).toString();
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'friendCodes', friendCode), { uid: fbUser.uid });
+                }
+
                 await setDoc(docRef, {
                     displayName: fbUser.displayName || 'Player',
                     isOnline: isOnline,
-                    lastSeen: Date.now()
+                    lastSeen: Date.now(),
+                    friendCode: friendCode
                 }, { merge: true });
+
+                document.getElementById('account-uid').innerText = friendCode;
             } catch (e) { console.error("Profile update failed", e); }
         }
 
@@ -1176,17 +1210,25 @@
         window.addFriend = async () => {
             if (!isGoogleUser) return;
             const input = document.getElementById('add-friend-input');
-            const friendId = input.value.trim();
-            if (!friendId || friendId === fbUser.uid) {
-                window.showNotification("Enter a valid Friend ID");
+            const friendCode = input.value.trim();
+            if (!friendCode || friendCode.length !== 8) {
+                window.showNotification("Enter a valid 8-digit Friend Code");
                 return;
             }
 
             try {
-                // Check if friend exists in public profiles
-                const friendSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', friendId));
-                if (!friendSnap.exists()) {
-                    window.showNotification("User not found.");
+                const codeRef = doc(db, 'artifacts', appId, 'public', 'data', 'friendCodes', friendCode);
+                const codeSnap = await getDoc(codeRef);
+                
+                if (!codeSnap.exists()) {
+                    window.showNotification("Friend code not found.");
+                    return;
+                }
+                
+                const friendId = codeSnap.data().uid;
+                
+                if (friendId === fbUser.uid) {
+                    window.showNotification("You can't add yourself!");
                     return;
                 }
 
@@ -1318,15 +1360,25 @@
 
         // ------------------ LEADERBOARD & STATS ------------------
 
-        window.recordWin = async (mode) => {
-            if (!isGoogleUser || !fbUser) return;
+        window.recordWin = async (mode, score, difficulty) => {
+            if (!isGoogleUser || !fbUser || !score) return;
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
                 const docSnap = await getDoc(docRef);
                 let data = docSnap.exists() ? docSnap.data() : { displayName: fbUser.displayName };
                 
-                if (mode === 'ai') data.aiWins = (data.aiWins || 0) + 1;
-                if (mode === 'online') data.globalWins = (data.globalWins || 0) + 1;
+                if (mode === 'ai') {
+                    if (difficulty === 'easy') {
+                        data.aiEasyScore = Math.max((data.aiEasyScore || 0), score);
+                    } else if (difficulty === 'medium') {
+                        data.aiMediumScore = Math.max((data.aiMediumScore || 0), score);
+                    } else if (difficulty === 'hard') {
+                        data.aiHardScore = Math.max((data.aiHardScore || 0), score);
+                    }
+                }
+                if (mode === 'online') {
+                    data.globalScore = Math.max((data.globalScore || 0), score);
+                }
                 
                 await setDoc(docRef, data, { merge: true });
             } catch (e) { console.error("Failed to record win", e); }
@@ -1343,19 +1395,14 @@
         };
 
         window.switchLeaderboardTab = async (type) => {
-            const btnGlobal = document.getElementById('tab-btn-global');
-            const btnAI = document.getElementById('tab-btn-ai');
-            const listEl = document.getElementById('leaderboard-list');
-            
-            listEl.innerHTML = "<p class='text-slate-500 text-center py-4'>Loading...</p>";
+            const tabs = ['global', 'ai-easy', 'ai-medium', 'ai-hard'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (btn) btn.className = (t === type) ? "btn-primary py-1 px-3 text-xs sm:text-sm bg-teal-500/20 border-teal-400" : "glass-btn py-1 px-3 text-xs sm:text-sm";
+            });
 
-            if (type === 'global') {
-                btnGlobal.className = "btn-primary py-1 px-4 text-sm bg-teal-500/20 border-teal-400";
-                btnAI.className = "glass-btn py-1 px-4 text-sm";
-            } else {
-                btnAI.className = "btn-primary py-1 px-4 text-sm bg-teal-500/20 border-teal-400";
-                btnGlobal.className = "glass-btn py-1 px-4 text-sm";
-            }
+            const listEl = document.getElementById('leaderboard-list');
+            listEl.innerHTML = "<p class='text-slate-500 text-center py-4'>Loading...</p>";
 
             try {
                 const profilesRef = collection(db, 'artifacts', appId, 'public', 'data', 'profiles');
@@ -1363,14 +1410,12 @@
                 let profiles = [];
                 snapshot.forEach(docSnap => profiles.push(docSnap.data()));
 
-                // Sort purely in JS to comply with no complex queries rule
-                if (type === 'global') {
-                    profiles.sort((a, b) => (b.globalWins || 0) - (a.globalWins || 0));
-                    profiles = profiles.filter(p => (p.globalWins || 0) > 0);
-                } else {
-                    profiles.sort((a, b) => (b.aiWins || 0) - (a.aiWins || 0));
-                    profiles = profiles.filter(p => (p.aiWins || 0) > 0);
-                }
+                let sortField = type === 'global' ? 'globalScore' :
+                                type === 'ai-easy' ? 'aiEasyScore' :
+                                type === 'ai-medium' ? 'aiMediumScore' : 'aiHardScore';
+
+                profiles.sort((a, b) => (b[sortField] || 0) - (a[sortField] || 0));
+                profiles = profiles.filter(p => (p[sortField] || 0) > 0);
 
                 if (profiles.length === 0) {
                     listEl.innerHTML = "<p class='text-slate-500 text-center py-4'>No ranking data yet.</p>";
@@ -1383,7 +1428,7 @@
                             <span class="text-teal-500 font-bold w-6">${i+1}.</span>
                             <span class="font-medium text-slate-200">${p.displayName || 'Player'}</span>
                         </div>
-                        <span class="text-teal-300 font-bold">${type === 'global' ? (p.globalWins || 0) : (p.aiWins || 0)} Wins</span>
+                        <span class="text-teal-300 font-bold">${p[sortField] || 0} pts</span>
                     </div>
                 `).join('');
                 
