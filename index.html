@@ -174,9 +174,8 @@
                         <button onclick="window.showEditUsername()" class="text-teal-400 hover:text-teal-300 text-xs">Edit</button>
                     </div>
                     <div id="edit-username-container" class="hidden flex gap-2 mt-2 mb-2">
-                        <input type="text" id="edit-username-input" class="glass-input flex-1 text-sm py-1" placeholder="New Username">
+                        <input type="text" id="edit-username-input" class="glass-input flex-1 text-sm py-1" placeholder="New Username" onkeydown="if(event.key==='Enter') window.saveUsername(); if(event.key==='Escape') window.cancelEditUsername()">
                         <button onclick="window.saveUsername()" class="glass-btn px-3 text-xs hover:text-teal-300">Save</button>
-                        <button onclick="window.cancelEditUsername()" class="glass-btn px-3 text-xs text-red-400 hover:text-red-300">Cancel</button>
                     </div>
                     <div class="flex items-center justify-center gap-2 mt-2">
                         <span class="text-xs text-slate-400">Friend Code:</span>
@@ -1147,7 +1146,7 @@
     <!-- --- FIREBASE GLOBAL MATCHMAKING, AUTH & ACCOUNTS MODULE --- -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -1215,22 +1214,28 @@
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
             try {
                 let friendCode = null;
+                let currentDisplayName = fbUser.displayName || 'Player';
                 const docSnap = await getDoc(docRef);
-                if (docSnap.exists() && docSnap.data().friendCode) {
-                    friendCode = docSnap.data().friendCode;
-                } else {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.friendCode) friendCode = data.friendCode;
+                    if (data.displayName) currentDisplayName = data.displayName;
+                }
+                
+                if (!friendCode) {
                     friendCode = Math.floor(10000000 + Math.random() * 90000000).toString();
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'friendCodes', friendCode), { uid: fbUser.uid });
                 }
 
                 await setDoc(docRef, {
-                    displayName: fbUser.displayName || 'Player',
+                    displayName: currentDisplayName,
                     isOnline: isOnline,
                     lastSeen: Date.now(),
                     friendCode: friendCode
                 }, { merge: true });
 
                 document.getElementById('account-uid').innerText = friendCode;
+                document.getElementById('account-display-name').innerText = currentDisplayName;
             } catch (e) { console.error("Profile update failed", e); }
         }
 
@@ -1480,9 +1485,17 @@
         };
 
         window.showEditUsername = () => {
+            const container = document.getElementById('edit-username-container');
+            if (!container.classList.contains('hidden')) {
+                window.cancelEditUsername();
+                return;
+            }
             document.getElementById('account-display-name').classList.add('hidden');
-            document.getElementById('edit-username-container').classList.remove('hidden');
-            document.getElementById('edit-username-input').value = document.getElementById('account-display-name').innerText;
+            container.classList.remove('hidden');
+            const input = document.getElementById('edit-username-input');
+            input.value = document.getElementById('account-display-name').innerText;
+            input.focus();
+            input.select();
         };
 
         window.cancelEditUsername = () => {
@@ -1497,6 +1510,10 @@
                 try {
                     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
                     await setDoc(docRef, { displayName: newName }, { merge: true });
+                    
+                    // Also update Auth profile so fbUser.displayName is current
+                    await updateProfile(fbUser, { displayName: newName });
+                    
                     document.getElementById('account-display-name').innerText = newName;
                     window.cancelEditUsername();
                     window.showNotification("Username updated!");
@@ -1748,6 +1765,5 @@
     </script>
 </body>
 </html>
-
 
 
