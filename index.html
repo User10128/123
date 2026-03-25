@@ -417,7 +417,8 @@
             validMoves: [],
             mustJumpPiece: null,
             winner: null,
-            startTime: 0
+            startTime: 0,
+            lastMove: null
         };
 
         let peer = null;
@@ -806,6 +807,9 @@
         // --- RENDERING ---
         function renderBoard() {
             const container = document.getElementById('board-container');
+            
+            const lastMove = gameState.lastMove;
+            gameState.lastMove = null;
             container.innerHTML = '';
             
             let flip = gameState.mode === 'online' && gameState.myPlayer === P2;
@@ -865,13 +869,15 @@
                             }
                         }
 
-                        if (gameState.lastMove && gameState.lastMove.toR === r && gameState.lastMove.toC === c) {
-                            let rDiff = r - gameState.lastMove.fromR;
-                            let cDiff = c - gameState.lastMove.fromC;
+                        if (lastMove && lastMove.toR === r && lastMove.toC === c) {
+                            let rDiff = r - lastMove.fromR;
+                            let cDiff = c - lastMove.fromC;
                             if (flip) {
                                 rDiff = -rDiff;
                                 cDiff = -cDiff;
                             }
+                            square.classList.add('z-50');
+                            pDiv.classList.add('z-50');
                             pDiv.animate([
                                 { transform: `translate(${-cDiff * 125}%, ${-rDiff * 125}%)` },
                                 { transform: 'translate(0, 0)' }
@@ -1258,6 +1264,26 @@
             window.showNotification("Signed out.");
         };
 
+        window.deleteFriend = async (friendId) => {
+            if (!isGoogleUser || !fbUser) return;
+            showConfirm("Are you sure you want to remove this friend?", async () => {
+                try {
+                    const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
+                    const myPrivSnap = await getDoc(myPrivRef);
+                    if (myPrivSnap.exists()) {
+                        let friends = myPrivSnap.data().friends || [];
+                        friends = friends.filter(id => id !== friendId);
+                        await setDoc(myPrivRef, { friends }, { merge: true });
+                        window.showNotification("Friend removed.");
+                        window.renderFriendsList();
+                    }
+                } catch (e) {
+                    console.error("Error removing friend:", e);
+                    window.showNotification("Failed to remove friend.");
+                }
+            });
+        };
+
         window.addFriend = async () => {
             if (!isGoogleUser) return;
             const input = document.getElementById('add-friend-input');
@@ -1385,33 +1411,46 @@
                 }
             }, 1000);
         };
-
         function showInviteToast(name, code, docId) {
             const toast = document.createElement('div');
-            toast.className = "fixed top-24 left-1/2 -translate-x-1/2 bg-teal-900/90 backdrop-blur text-white px-6 py-4 rounded-xl shadow-[0_0_20px_rgba(45,212,191,0.3)] border border-teal-400 z-[110] flex flex-col gap-3 text-center animate-bounce";
+            toast.className = "fixed top-20 left-1/2 -translate-x-1/2 bg-slate-800/95 backdrop-blur-md text-teal-300 px-6 py-3 rounded-full shadow-lg shadow-teal-500/10 border border-teal-500/30 z-[100] transform transition-all duration-300 translate-y-[-150%] opacity-0 flex items-center gap-4 font-medium tracking-wide";
             toast.innerHTML = `
-                <span class="font-bold">Game Invite from ${name}!</span>
-                <div class="flex gap-2 justify-center">
-                    <button id="accept-${docId}" class="bg-teal-500 text-teal-900 px-4 py-1 rounded font-bold hover:bg-teal-400">Accept</button>
-                    <button id="decline-${docId}" class="bg-slate-800 text-slate-300 px-4 py-1 rounded hover:bg-slate-700">Decline</button>
+                <span>Invite from ${name}</span>
+                <div class="flex gap-2">
+                    <button id="accept-${docId}" class="text-xs bg-teal-500/20 text-teal-300 px-3 py-1 rounded-full hover:bg-teal-500/40 border border-teal-500/30 transition-colors">Accept</button>
+                    <button id="decline-${docId}" class="text-xs bg-slate-700/50 text-slate-300 px-3 py-1 rounded-full hover:bg-slate-700 transition-colors">Decline</button>
                 </div>
             `;
             document.body.appendChild(toast);
 
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-[-150%]', 'opacity-0');
+            });
+
+            const removeToast = () => {
+                toast.classList.add('translate-y-[-150%]', 'opacity-0');
+                setTimeout(() => {
+                    if (toast.parentNode) document.body.removeChild(toast);
+                }, 300);
+            };
+
             document.getElementById(`accept-${docId}`).onclick = () => {
-                document.body.removeChild(toast);
+                removeToast();
                 deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'invites', docId)).catch(()=>{});
                 window.showView('view-online-setup');
                 document.getElementById('join-id-input').value = code;
                 window.joinGame(code);
             };
             document.getElementById(`decline-${docId}`).onclick = () => {
-                document.body.removeChild(toast);
+                removeToast();
                 deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'invites', docId)).catch(()=>{});
             };
             
-            // Auto dismiss after 30s
-            setTimeout(() => { if(document.body.contains(toast)) document.body.removeChild(toast); }, 30000);
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    removeToast();
+                }
+            }, 15000);
         }
 
         // ------------------ LEADERBOARD & STATS ------------------
@@ -1438,6 +1477,90 @@
                 
                 await setDoc(docRef, data, { merge: true });
             } catch (e) { console.error("Failed to record win", e); }
+        };
+
+        window.showEditUsername = () => {
+            document.getElementById('account-display-name').classList.add('hidden');
+            document.getElementById('edit-username-container').classList.remove('hidden');
+            document.getElementById('edit-username-input').value = document.getElementById('account-display-name').innerText;
+        };
+
+        window.cancelEditUsername = () => {
+            document.getElementById('account-display-name').classList.remove('hidden');
+            document.getElementById('edit-username-container').classList.add('hidden');
+        };
+
+        window.saveUsername = async () => {
+            if (!isGoogleUser || !fbUser) return;
+            const newName = document.getElementById('edit-username-input').value.trim();
+            if (newName.length > 0) {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
+                    await setDoc(docRef, { displayName: newName }, { merge: true });
+                    document.getElementById('account-display-name').innerText = newName;
+                    window.cancelEditUsername();
+                    window.showNotification("Username updated!");
+                } catch (e) {
+                    console.error("Failed to update username", e);
+                    window.showNotification("Error updating username.");
+                }
+            }
+        };
+
+        window.loadPersonalStats = async () => {
+            if (!isGoogleUser || !fbUser) return;
+            const statsContainer = document.getElementById('stats-container');
+            statsContainer.innerHTML = "<p class='text-slate-500 text-center py-4'>Loading stats...</p>";
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    statsContainer.innerHTML = `
+                        <div class="flex justify-between border-b border-slate-700 pb-2">
+                            <span class="text-slate-400">Online Score</span>
+                            <span class="text-teal-300 font-bold">${data.globalScore || 0}</span>
+                        </div>
+                        <div class="flex justify-between border-b border-slate-700 pb-2">
+                            <span class="text-slate-400">AI Easy Score</span>
+                            <span class="text-teal-300 font-bold">${data.aiEasyScore || 0}</span>
+                        </div>
+                        <div class="flex justify-between border-b border-slate-700 pb-2">
+                            <span class="text-slate-400">AI Medium Score</span>
+                            <span class="text-teal-300 font-bold">${data.aiMediumScore || 0}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">AI Hard Score</span>
+                            <span class="text-teal-300 font-bold">${data.aiHardScore || 0}</span>
+                        </div>
+                    `;
+                } else {
+                    statsContainer.innerHTML = "<p class='text-slate-500 text-center py-4'>No stats available yet.</p>";
+                }
+            } catch (e) {
+                console.error("Failed to load stats", e);
+                statsContainer.innerHTML = "<p class='text-red-400 text-center py-4'>Error loading stats.</p>";
+            }
+        };
+
+        window.deleteHighScores = async () => {
+            if (!isGoogleUser || !fbUser) return;
+            showConfirm("Are you sure you want to delete all your high scores? This cannot be undone.", async () => {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
+                    await setDoc(docRef, {
+                        globalScore: 0,
+                        aiEasyScore: 0,
+                        aiMediumScore: 0,
+                        aiHardScore: 0
+                    }, { merge: true });
+                    window.showNotification("High scores deleted.");
+                    window.loadPersonalStats();
+                } catch (e) {
+                    console.error("Failed to delete scores", e);
+                    window.showNotification("Error deleting scores.");
+                }
+            });
         };
 
         window.showLeaderboardView = () => {
@@ -1625,5 +1748,6 @@
     </script>
 </body>
 </html>
+
 
 
