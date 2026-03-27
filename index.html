@@ -160,17 +160,34 @@
             <!-- Logged out state -->
             <div id="account-logged-out" class="flex flex-col gap-4">
                 <p class="text-slate-400 text-sm">Sign in to save your stats, view leaderboards, and add friends!</p>
-                <button onclick="window.signInGoogle()" class="btn-primary bg-teal-500/10 border-teal-500/30 text-teal-300 flex items-center justify-center gap-3 hover:bg-teal-500/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                    Sign in with Google
-                </button>
+                
+                <div id="auth-google-section" class="flex flex-col gap-2">
+                    <button onclick="window.signInGoogle()" class="btn-primary bg-teal-500/10 border-teal-500/30 text-teal-300 flex items-center justify-center gap-3 hover:bg-teal-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                        Sign in with Google
+                    </button>
+                    <button onclick="window.toggleAuthMode('email')" class="text-xs text-teal-400 hover:underline">Or use Email/Password</button>
+                </div>
+
+                <div id="auth-email-section" class="hidden flex flex-col gap-3">
+                    <input type="email" id="auth-email" class="glass-input text-sm" placeholder="Email">
+                    <input type="password" id="auth-password" class="glass-input text-sm" placeholder="Password">
+                    <div class="flex gap-2">
+                        <button onclick="window.signInEmail()" class="glass-btn flex-1 py-2 text-sm text-teal-300">Login</button>
+                        <button onclick="window.signUpEmail()" class="glass-btn flex-1 py-2 text-sm text-teal-300">Sign Up</button>
+                    </div>
+                    <button onclick="window.toggleAuthMode('google')" class="text-xs text-teal-400 hover:underline">Back to Google Sign-In</button>
+                </div>
             </div>
 
             <!-- Logged in state -->
             <div id="account-logged-in" class="hidden flex-col gap-6">
                 <div class="bg-slate-800/50 p-4 rounded-xl border border-teal-500/20">
                     <div class="flex items-center justify-between mb-1">
-                        <p class="text-white font-bold text-lg" id="account-display-name">Loading...</p>
+                        <div class="flex flex-col items-start">
+                            <p class="text-white font-bold text-lg" id="account-display-name">Loading...</p>
+                            <span id="account-pro-badge" class="hidden text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full border border-yellow-500/30 uppercase tracking-widest font-bold">Pro</span>
+                        </div>
                         <button onclick="window.showEditUsername()" class="text-teal-400 hover:text-teal-300 text-xs">Edit</button>
                     </div>
                     <div id="edit-username-container" class="hidden flex gap-2 mt-2 mb-2">
@@ -181,6 +198,11 @@
                         <span class="text-xs text-slate-400">Friend Code:</span>
                         <code id="account-uid" class="text-lg font-bold text-teal-300 bg-slate-900 px-3 py-1 rounded select-all tracking-widest">...</code>
                     </div>
+                </div>
+
+                <div id="pro-upgrade-section" class="hidden bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl flex flex-col gap-2">
+                    <p class="text-xs text-yellow-200/70">Upgrade to Pro for $2 to unlock username search, friend requests from global games, and more!</p>
+                    <button onclick="window.upgradeToPro()" class="bg-yellow-500 hover:bg-yellow-400 text-slate-950 text-xs font-bold py-2 rounded-lg transition-all">Upgrade to Pro ($2)</button>
                 </div>
 
                 <div class="flex gap-2 justify-center">
@@ -295,6 +317,15 @@
     <div id="view-searching" class="view-container hidden flex-col items-center justify-center h-full w-full max-w-md mx-auto p-4 sm:p-6 transition-opacity duration-300">
         <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-6 text-center">
             <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light">Matchmaking</h2>
+            
+            <div id="worldwide-search-container" class="hidden flex flex-col gap-3 bg-slate-800/50 p-4 rounded-xl border border-yellow-500/20">
+                <p class="text-xs text-yellow-200/70 font-bold uppercase tracking-wider">Pro Feature: Targeted Matchmaking</p>
+                <div class="flex gap-2">
+                    <input type="text" id="target-username-input" class="glass-input flex-1 text-sm py-2" placeholder="Enter Username to Challenge">
+                    <button onclick="window.startGlobalMatch(document.getElementById('target-username-input').value)" class="bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold px-4 py-2 rounded-lg transition-all">Challenge</button>
+                </div>
+            </div>
+
             <div class="relative w-24 h-24 mx-auto flex items-center justify-center">
                 <div class="absolute inset-0 rounded-full border-t-2 border-teal-400 animate-spin"></div>
                 <div class="absolute inset-2 rounded-full border-r-2 border-teal-300 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
@@ -307,11 +338,16 @@
 
     <!-- GAME VIEW -->
     <div id="view-game" class="view-container hidden flex-col h-full w-full max-w-2xl mx-auto pt-20 sm:pt-6 pb-6 px-4 sm:px-6 transition-opacity duration-300 relative">
-        <div class="flex justify-between items-end mb-6">
-            <div>
-                <h1 class="text-2xl sm:text-3xl text-teal-400 tracking-widest font-bold italic uppercase">CHECKERS</h1>
-                <div id="turn-status" class="text-slate-300 mt-1 font-medium tracking-wide text-sm sm:text-base bg-slate-800/50 inline-block px-3 py-1 rounded-full border border-slate-700"></div>
-            </div>
+                <div class="flex justify-between items-center mb-2 bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                    <div class="flex items-center gap-3">
+                        <div id="opponent-avatar" class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-lg font-bold text-slate-400 border border-slate-600 shadow-inner">?</div>
+                        <div class="flex flex-col">
+                            <span id="opponent-name" class="text-sm font-bold text-white tracking-wide">Opponent</span>
+                            <button id="add-friend-btn" class="hidden text-[10px] text-teal-400 hover:text-teal-300 hover:underline text-left font-medium uppercase tracking-tighter">Add Friend</button>
+                        </div>
+                    </div>
+                    <div id="turn-status" class="text-xs font-bold px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 shadow-[0_0_10px_rgba(45,212,191,0.1)]">Your Turn</div>
+                </div>
             <div class="flex gap-2">
                 <div class="relative inline-block">
                     <button id="btn-chat" onclick="window.toggleChatMenu()" class="hidden glass-btn p-2 sm:px-4 text-sm flex items-center gap-2 border-teal-500/30 text-teal-300" title="Chat">
@@ -505,11 +541,33 @@
             if (mode === 'online') {
                 document.getElementById('btn-chat').classList.remove('hidden');
                 document.getElementById('btn-chat').classList.add('flex');
+                
+                // Handshake for usernames
+                const conn = window.getConn();
+                if (conn) {
+                    conn.on('data', (data) => {
+                        if (data.type === 'handshake') {
+                            document.getElementById('opponent-name').innerText = data.displayName || 'Opponent';
+                            document.getElementById('opponent-avatar').innerText = (data.displayName || 'O')[0].toUpperCase();
+                            
+                            // Show add friend button if Pro
+                            if (isPro && data.uid) {
+                                const addBtn = document.getElementById('add-friend-btn');
+                                addBtn.classList.remove('hidden');
+                                addBtn.onclick = () => window.addFriendById(data.uid);
+                            }
+                        }
+                    });
+                    conn.send({ type: 'handshake', uid: fbUser?.uid, displayName: fbUser?.displayName });
+                }
             } else {
                 document.getElementById('btn-chat').classList.add('hidden');
                 document.getElementById('btn-chat').classList.remove('flex');
                 document.getElementById('chat-menu').classList.add('hidden');
                 document.getElementById('chat-menu').classList.remove('flex');
+                document.getElementById('opponent-name').innerText = "AI Opponent";
+                document.getElementById('opponent-avatar').innerText = "AI";
+                document.getElementById('add-friend-btn').classList.add('hidden');
             }
 
             showView('view-game');
@@ -520,6 +578,28 @@
                 setTimeout(makeAIMove, 600);
             }
         }
+
+        window.addFriendById = async (friendId) => {
+            if (!isGoogleUser || !fbUser) return;
+            try {
+                const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
+                const myPrivSnap = await getDoc(myPrivRef);
+                let friends = myPrivSnap.exists() ? myPrivSnap.data().friends || [] : [];
+                
+                if (friends.includes(friendId)) {
+                    window.showNotification("Already friends!");
+                    return;
+                }
+                
+                friends.push(friendId);
+                await setDoc(myPrivRef, { friends }, { merge: true });
+                window.showNotification("Friend added!");
+                window.renderFriendsList();
+            } catch (e) {
+                console.error("Error adding friend:", e);
+                window.showNotification("Failed to add friend.");
+            }
+        };
 
         function isPlayerPiece(piece, player) {
             if (player === P1) return piece === P1 || piece === P1_KING;
@@ -1146,7 +1226,7 @@
     <!-- --- FIREBASE GLOBAL MATCHMAKING, AUTH & ACCOUNTS MODULE --- -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, updateProfile, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -1165,6 +1245,7 @@
 
         let fbUser = null;
         let isGoogleUser = false;
+        let isPro = false;
         let authInitialized = false;
         let invitesUnsubscribe = null;
 
@@ -1181,19 +1262,55 @@
             fbUser = user;
             if (user) {
                 isGoogleUser = !user.isAnonymous;
-                updateAccountUI();
                 
                 if (isGoogleUser) {
                     await updatePublicProfile(true);
                     setupInvitesListener();
                     window.renderFriendsList();
                 }
+                updateAccountUI();
             } else {
                 updateAccountUI();
             }
         });
 
         // ------------------ ACCOUNT & FRIENDS ------------------
+
+        window.toggleAuthMode = (mode) => {
+            if (mode === 'email') {
+                document.getElementById('auth-google-section').classList.add('hidden');
+                document.getElementById('auth-email-section').classList.remove('hidden');
+            } else {
+                document.getElementById('auth-google-section').classList.remove('hidden');
+                document.getElementById('auth-email-section').classList.add('hidden');
+            }
+        };
+
+        window.signInEmail = async () => {
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
+            if (!email || !password) return window.showNotification("Enter email and password");
+            try {
+                window.showNotification("Signing in...");
+                await signInWithEmailAndPassword(auth, email, password);
+                window.showNotification("Signed in successfully!");
+            } catch (e) {
+                window.showNotification("Sign in failed: " + e.message);
+            }
+        };
+
+        window.signUpEmail = async () => {
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
+            if (!email || !password) return window.showNotification("Enter email and password");
+            try {
+                window.showNotification("Creating account...");
+                await createUserWithEmailAndPassword(auth, email, password);
+                window.showNotification("Account created!");
+            } catch (e) {
+                window.showNotification("Sign up failed: " + e.message);
+            }
+        };
 
         function updateAccountUI() {
             if (isGoogleUser && fbUser) {
@@ -1202,6 +1319,23 @@
                 document.getElementById('account-logged-in').classList.add('flex');
                 document.getElementById('account-display-name').innerText = fbUser.displayName || 'Checkers Player';
                 document.getElementById('account-uid').innerText = fbUser.uid;
+                
+                // Check Pro status
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
+                getDoc(docRef).then(snap => {
+                    if (snap.exists()) {
+                        isPro = !!snap.data().isPro;
+                        if (isPro) {
+                            document.getElementById('account-pro-badge').classList.remove('hidden');
+                            document.getElementById('pro-upgrade-section').classList.add('hidden');
+                            document.getElementById('worldwide-search-container').classList.remove('hidden');
+                        } else {
+                            document.getElementById('account-pro-badge').classList.add('hidden');
+                            document.getElementById('pro-upgrade-section').classList.remove('hidden');
+                            document.getElementById('worldwide-search-container').classList.add('hidden');
+                        }
+                    }
+                });
             } else {
                 document.getElementById('account-logged-out').classList.remove('hidden');
                 document.getElementById('account-logged-in').classList.add('hidden');
@@ -1261,12 +1395,21 @@
             }
         };
 
-        window.signOutGoogle = async () => {
-            await updatePublicProfile(false);
-            if (invitesUnsubscribe) { invitesUnsubscribe(); invitesUnsubscribe = null; }
-            await signOut(auth);
-            await signInAnonymously(auth);
-            window.showNotification("Signed out.");
+        window.upgradeToPro = async () => {
+            if (!fbUser || !isGoogleUser) return;
+            try {
+                window.showNotification("Redirecting to checkout...");
+                const response = await fetch('/api/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid: fbUser.uid })
+                });
+                const { url } = await response.json();
+                window.location.href = url;
+            } catch (e) {
+                console.error(e);
+                window.showNotification("Checkout failed.");
+            }
         };
 
         window.deleteFriend = async (friendId) => {
@@ -1639,7 +1782,7 @@
 
         window.currentMatchDoc = null;
 
-        window.startGlobalMatch = async () => {
+        window.startGlobalMatch = async (targetUsername = null) => {
             if (!authInitialized || !fbUser) {
                 window.showNotification("Connecting to servers...");
                 await initAuth();
@@ -1650,7 +1793,7 @@
             }
 
             window.showView('view-searching');
-            document.getElementById('matchmaking-status-text').innerText = "Looking for available players...";
+            document.getElementById('matchmaking-status-text').innerText = targetUsername ? `Challenging ${targetUsername}...` : "Looking for available players...";
 
             try {
                 const matchRef = collection(db, 'artifacts', appId, 'public', 'data', 'matchmaking');
@@ -1663,7 +1806,16 @@
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
                     if (data.status === 'waiting' && (now - data.timestamp < 120000)) {
-                        availableHost = data.peerId;
+                        // Match logic
+                        if (targetUsername) {
+                            if (data.displayName === targetUsername && (!data.targetUsername || data.targetUsername === fbUser.displayName)) {
+                                availableHost = data.peerId;
+                            }
+                        } else {
+                            if (!data.targetUsername || data.targetUsername === fbUser.displayName) {
+                                availableHost = data.peerId;
+                            }
+                        }
                     } else if (now - data.timestamp >= 120000) {
                         deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', docSnap.id)).catch(()=>{});
                     }
@@ -1673,8 +1825,8 @@
                     document.getElementById('matchmaking-status-text').innerText = "Opponent found! Connecting...";
                     joinGlobalGame(availableHost);
                 } else {
-                    document.getElementById('matchmaking-status-text').innerText = "Creating a lobby...";
-                    hostGlobalGame();
+                    document.getElementById('matchmaking-status-text').innerText = targetUsername ? `Waiting for ${targetUsername} to join...` : "Creating a lobby...";
+                    hostGlobalGame(targetUsername);
                 }
 
             } catch (error) {
@@ -1684,7 +1836,7 @@
             }
         };
 
-        function hostGlobalGame() {
+        function hostGlobalGame(targetUsername = null) {
             let currentPeer = window.getPeer();
             if(currentPeer) currentPeer.destroy();
             
@@ -1696,12 +1848,15 @@
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', id);
                 await setDoc(docRef, {
                     peerId: id,
+                    uid: fbUser.uid,
+                    displayName: fbUser.displayName || 'Checkers Player',
+                    targetUsername: targetUsername,
                     status: 'waiting',
                     timestamp: Date.now()
                 });
 
                 window.currentMatchDoc = docRef;
-                document.getElementById('matchmaking-status-text').innerText = "Waiting for an opponent to join...";
+                document.getElementById('matchmaking-status-text').innerText = targetUsername ? `Waiting for ${targetUsername} to join...` : "Waiting for an opponent to join...";
             });
 
             newPeer.on('connection', (connection) => {
@@ -1765,5 +1920,4 @@
     </script>
 </body>
 </html>
-
 

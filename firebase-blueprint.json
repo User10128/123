@@ -1,0 +1,30 @@
+{
+  "entities": {
+    "profile": {
+      "title": "User Profile",
+      "description": "Public user profile information",
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name"
+        },
+        "isPro": {
+          "type": "boolean",
+          "description": "Whether the user has upgraded to Pro"
+        },
+        "lastSeen": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last time the user was active"
+        }
+      }
+    }
+  },
+  "firestore": {
+    "/artifacts/{appId}/public/data/profiles/{userId}": {
+      "schema": "profile",
+      "description": "Public profiles for all users"
+    }
+  }
+}
