@@ -160,6 +160,24 @@
             <!-- Logged out state -->
             <div id="account-logged-out" class="flex flex-col gap-4">
                 <p class="text-slate-400 text-sm">Sign in to save your stats, view leaderboards, and add friends!</p>
+                
+                <div id="auth-email-form" class="flex flex-col gap-3">
+                    <input type="email" id="auth-email" class="glass-input text-sm py-2" placeholder="Email">
+                    <input type="password" id="auth-password" class="glass-input text-sm py-2" placeholder="Password">
+                    <div id="auth-signup-name-container" class="hidden">
+                        <input type="text" id="auth-signup-name" class="glass-input text-sm py-2 w-full" placeholder="Username">
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="auth-main-btn" onclick="window.handleEmailAuth()" class="btn-primary flex-1 py-2 text-sm">Sign In</button>
+                        <button id="auth-toggle-btn" onclick="window.toggleAuthMode()" class="glass-btn px-4 py-2 text-xs">Switch to Sign Up</button>
+                    </div>
+                </div>
+
+                <div class="relative py-2">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-700/50"></div></div>
+                    <div class="relative flex justify-center"><span class="bg-slate-800/80 px-4 text-xs text-slate-500 uppercase tracking-widest">OR</span></div>
+                </div>
+
                 <button onclick="window.signInGoogle()" class="btn-primary bg-teal-500/10 border-teal-500/30 text-teal-300 flex items-center justify-center gap-3 hover:bg-teal-500/20">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                     Sign in with Google
@@ -311,6 +329,11 @@
             <div>
                 <h1 class="text-2xl sm:text-3xl text-teal-400 tracking-widest font-bold italic uppercase">CHECKERS</h1>
                 <div id="turn-status" class="text-slate-300 mt-1 font-medium tracking-wide text-sm sm:text-base bg-slate-800/50 inline-block px-3 py-1 rounded-full border border-slate-700"></div>
+                <div id="opponent-info" class="hidden flex items-center gap-2 mt-2 bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700 w-max">
+                    <span class="text-[10px] text-slate-400 uppercase tracking-widest">Opponent:</span>
+                    <span id="opponent-name" class="text-xs font-bold text-teal-300">...</span>
+                    <button id="btn-add-friend-opponent" class="hidden text-[10px] bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded hover:bg-teal-500/40 transition-colors">Add Friend</button>
+                </div>
             </div>
             <div class="flex gap-2">
                 <div class="relative inline-block">
@@ -417,7 +440,8 @@
             mustJumpPiece: null,
             winner: null,
             startTime: 0,
-            lastMove: null
+            lastMove: null,
+            opponentInfo: null // { displayName, friendCode }
         };
 
         let peer = null;
@@ -505,11 +529,19 @@
             if (mode === 'online') {
                 document.getElementById('btn-chat').classList.remove('hidden');
                 document.getElementById('btn-chat').classList.add('flex');
+                document.getElementById('opponent-info').classList.remove('hidden');
+                document.getElementById('opponent-info').classList.add('flex');
+                
+                // Reset opponent UI
+                document.getElementById('opponent-name').innerText = "...";
+                document.getElementById('btn-add-friend-opponent').classList.add('hidden');
             } else {
                 document.getElementById('btn-chat').classList.add('hidden');
                 document.getElementById('btn-chat').classList.remove('flex');
                 document.getElementById('chat-menu').classList.add('hidden');
                 document.getElementById('chat-menu').classList.remove('flex');
+                document.getElementById('opponent-info').classList.add('hidden');
+                document.getElementById('opponent-info').classList.remove('flex');
             }
 
             showView('view-game');
@@ -1023,6 +1055,13 @@
                 peer.on('connection', (connection) => {
                     conn = connection;
                     setupConnection();
+                    
+                    // Send our info to the joining player
+                    if (window.getMyInfo) {
+                        const info = window.getMyInfo();
+                        conn.send({ type: 'identity', displayName: info.displayName, friendCode: info.friendCode });
+                    }
+
                     startGame('online', P1); 
                     showNotification('Opponent Joined!');
                 });
@@ -1057,6 +1096,13 @@
                     conn.on('open', () => {
                         btnText.innerText = "Connect to Game";
                         setupConnection();
+
+                        // Send our info to the host
+                        if (window.getMyInfo) {
+                            const info = window.getMyInfo();
+                            conn.send({ type: 'identity', displayName: info.displayName, friendCode: info.friendCode });
+                        }
+
                         startGame('online', P2); 
                         showNotification('Connected to Game!');
                     });
@@ -1096,6 +1142,15 @@
                     showNotification("Match Restarted!");
                 } else if (data.type === 'chat') {
                     showNotification("Opponent: " + data.text);
+                } else if (data.type === 'identity') {
+                    gameState.opponentInfo = { displayName: data.displayName, friendCode: data.friendCode };
+                    document.getElementById('opponent-name').innerText = data.displayName || "Unknown Player";
+                    if (data.friendCode && window.isRegisteredUser && window.isRegisteredUser()) {
+                        document.getElementById('btn-add-friend-opponent').classList.remove('hidden');
+                        document.getElementById('btn-add-friend-opponent').onclick = () => {
+                            window.addFriendByCode(data.friendCode);
+                        };
+                    }
                 }
             });
             conn.on('close', () => {
@@ -1146,7 +1201,7 @@
     <!-- --- FIREBASE GLOBAL MATCHMAKING, AUTH & ACCOUNTS MODULE --- -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, updateProfile, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -1164,9 +1219,10 @@
         const appId = 'checkers-app';
 
         let fbUser = null;
-        let isGoogleUser = false;
+        let isRegisteredUser = false;
         let authInitialized = false;
         let invitesUnsubscribe = null;
+        let authMode = 'signin'; // 'signin' or 'signup'
 
         onAuthStateChanged(auth, async (user) => {
             if (!user && !authInitialized) {
@@ -1180,10 +1236,10 @@
             authInitialized = true;
             fbUser = user;
             if (user) {
-                isGoogleUser = !user.isAnonymous;
+                isRegisteredUser = !user.isAnonymous;
                 updateAccountUI();
                 
-                if (isGoogleUser) {
+                if (isRegisteredUser) {
                     await updatePublicProfile(true);
                     setupInvitesListener();
                     window.renderFriendsList();
@@ -1193,10 +1249,68 @@
             }
         });
 
+        window.isRegisteredUser = () => isRegisteredUser;
+
+        window.getMyInfo = () => {
+            if (!fbUser || !isRegisteredUser) return { displayName: "Guest", friendCode: null };
+            return {
+                displayName: fbUser.displayName || "Player",
+                friendCode: document.getElementById('account-uid').innerText
+            };
+        };
+
+        window.toggleAuthMode = () => {
+            authMode = authMode === 'signin' ? 'signup' : 'signin';
+            const mainBtn = document.getElementById('auth-main-btn');
+            const toggleBtn = document.getElementById('auth-toggle-btn');
+            const nameContainer = document.getElementById('auth-signup-name-container');
+            
+            if (authMode === 'signup') {
+                mainBtn.innerText = "Sign Up";
+                toggleBtn.innerText = "Switch to Sign In";
+                nameContainer.classList.remove('hidden');
+            } else {
+                mainBtn.innerText = "Sign In";
+                toggleBtn.innerText = "Switch to Sign Up";
+                nameContainer.classList.add('hidden');
+            }
+        };
+
+        window.handleEmailAuth = async () => {
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value;
+            const displayName = document.getElementById('auth-signup-name').value.trim();
+
+            if (!email || !password) {
+                window.showNotification("Email and password are required");
+                return;
+            }
+
+            try {
+                if (authMode === 'signup') {
+                    if (!displayName) {
+                        window.showNotification("Username is required for sign up");
+                        return;
+                    }
+                    window.showNotification("Creating account...");
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    await updateProfile(userCredential.user, { displayName: displayName });
+                    window.showNotification("Account created!");
+                } else {
+                    window.showNotification("Signing in...");
+                    await signInWithEmailAndPassword(auth, email, password);
+                    window.showNotification("Signed in successfully!");
+                }
+            } catch (e) {
+                window.showNotification("Auth failed: " + e.message);
+                console.error(e);
+            }
+        };
+
         // ------------------ ACCOUNT & FRIENDS ------------------
 
         function updateAccountUI() {
-            if (isGoogleUser && fbUser) {
+            if (isRegisteredUser && fbUser) {
                 document.getElementById('account-logged-out').classList.add('hidden');
                 document.getElementById('account-logged-in').classList.remove('hidden');
                 document.getElementById('account-logged-in').classList.add('flex');
@@ -1210,7 +1324,7 @@
         }
 
         async function updatePublicProfile(isOnline) {
-            if (!fbUser || !isGoogleUser) return;
+            if (!fbUser || !isRegisteredUser) return;
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
             try {
                 let friendCode = null;
@@ -1240,7 +1354,7 @@
         }
 
         window.addEventListener('beforeunload', () => {
-            if (isGoogleUser && fbUser) {
+            if (isRegisteredUser && fbUser) {
                 // Fire and forget, best effort
                 updatePublicProfile(false);
             }
@@ -1270,7 +1384,7 @@
         };
 
         window.deleteFriend = async (friendId) => {
-            if (!isGoogleUser || !fbUser) return;
+            if (!isRegisteredUser || !fbUser) return;
             showConfirm("Are you sure you want to remove this friend?", async () => {
                 try {
                     const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
@@ -1289,12 +1403,13 @@
             });
         };
 
-        window.addFriend = async () => {
-            if (!isGoogleUser) return;
-            const input = document.getElementById('add-friend-input');
-            const friendCode = input.value.trim();
+        window.addFriendByCode = async (friendCode) => {
+            if (!isRegisteredUser) {
+                window.showNotification("Sign in to add friends!");
+                return;
+            }
             if (!friendCode || friendCode.length !== 8) {
-                window.showNotification("Enter a valid 8-digit Friend Code");
+                window.showNotification("Invalid Friend Code");
                 return;
             }
 
@@ -1323,7 +1438,6 @@
                     friends.push(friendId);
                     await setDoc(myPrivRef, { friends }, { merge: true });
                     window.showNotification("Friend added!");
-                    input.value = "";
                     window.renderFriendsList();
                 } else {
                     window.showNotification("Already on your friends list.");
@@ -1331,8 +1445,15 @@
             } catch(e) { console.error(e); }
         };
 
+        window.addFriend = async () => {
+            const input = document.getElementById('add-friend-input');
+            const friendCode = input.value.trim();
+            await window.addFriendByCode(friendCode);
+            input.value = "";
+        };
+
         window.renderFriendsList = async () => {
-            if (!isGoogleUser) return;
+            if (!isRegisteredUser) return;
             const listEl = document.getElementById('friends-list');
             
             try {
@@ -1461,7 +1582,7 @@
         // ------------------ LEADERBOARD & STATS ------------------
 
         window.recordWin = async (mode, score, difficulty) => {
-            if (!isGoogleUser || !fbUser || !score) return;
+            if (!isRegisteredUser || !fbUser || !score) return;
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
                 const docSnap = await getDoc(docRef);
@@ -1504,7 +1625,7 @@
         };
 
         window.saveUsername = async () => {
-            if (!isGoogleUser || !fbUser) return;
+            if (!isRegisteredUser || !fbUser) return;
             const newName = document.getElementById('edit-username-input').value.trim();
             if (newName.length > 0) {
                 try {
@@ -1525,7 +1646,7 @@
         };
 
         window.loadPersonalStats = async () => {
-            if (!isGoogleUser || !fbUser) return;
+            if (!isRegisteredUser || !fbUser) return;
             const statsContainer = document.getElementById('stats-container');
             statsContainer.innerHTML = "<p class='text-slate-500 text-center py-4'>Loading stats...</p>";
             try {
@@ -1561,7 +1682,7 @@
         };
 
         window.deleteHighScores = async () => {
-            if (!isGoogleUser || !fbUser) return;
+            if (!isRegisteredUser || !fbUser) return;
             showConfirm("Are you sure you want to delete all your high scores? This cannot be undone.", async () => {
                 try {
                     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
@@ -1581,7 +1702,7 @@
         };
 
         window.showLeaderboardView = () => {
-            if (!isGoogleUser) {
+            if (!isRegisteredUser) {
                 window.showNotification("Sign in to view the Leaderboard!");
                 window.showView('view-account');
                 return;
@@ -1765,5 +1886,6 @@
     </script>
 </body>
 </html>
+
 
 
