@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Feed - Checkers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @import "tailwindcss";
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: white; overflow-x: hidden; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(45, 212, 191, 0.2); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 sm:p-8">
+    <div class="w-full max-w-2xl">
+        <header class="flex justify-between items-center mb-8">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-teal-500/20 rounded-lg flex items-center justify-center border border-teal-500/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                </div>
+                <h1 class="text-2xl font-bold tracking-tight text-teal-300 uppercase italic">Social Feed</h1>
+            </div>
+            <button onclick="window.close()" class="text-slate-400 hover:text-white transition-colors text-sm uppercase tracking-widest font-medium">Close Tab</button>
+        </header>
+
+        <div class="glass-panel rounded-2xl p-6 shadow-2xl">
+            <div id="social-feed-container" class="flex flex-col gap-4">
+                <div class="flex justify-center py-12">
+                    <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-teal-400"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-8 text-center text-slate-500 text-xs uppercase tracking-[0.2em]">
+            Checkers Social Network &bull; Real-time Activity
+        </footer>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Firebase config (matches index.html)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
+            authDomain: "checkers-matchmaking-5ac55.firebaseapp.com",
+            projectId: "checkers-matchmaking-5ac55",
+            storageBucket: "checkers-matchmaking-5ac55.firebasestorage.app",
+            messagingSenderId: "778086491027",
+            appId: "1:778086491027:web:c315fd9d97aebae6087e66"
+        };
+        const appId = 'checkers-app';
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function renderFeed() {
+            const container = document.getElementById('social-feed-container');
+            try {
+                const feedRef = collection(db, 'artifacts', appId, 'public', 'data', 'socialFeed');
+                const q = query(feedRef, orderBy('timestamp', 'desc'), limit(50));
+                const snapshot = await getDocs(q);
+
+                if (snapshot.empty) {
+                    container.innerHTML = `
+                        <div class="text-center py-12">
+                            <p class="text-slate-500 italic">No recent activity found. Be the first to win a game!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = snapshot.docs.map(doc => {
+                    const e = doc.data();
+                    const date = new Date(e.timestamp);
+                    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+                    return `
+                        <div class="flex gap-4 p-4 rounded-xl bg-slate-800/40 border border-slate-700/50 hover:border-teal-500/30 transition-all group">
+                            <div class="w-10 h-10 rounded-full bg-teal-500/10 flex items-center justify-center border border-teal-500/20 text-teal-400 group-hover:scale-110 transition-transform">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start mb-1">
+                                    <span class="text-teal-300 font-bold text-sm">${e.userName}</span>
+                                    <span class="text-[10px] text-slate-500 uppercase font-medium">${dateStr} &bull; ${timeStr}</span>
+                                </div>
+                                <p class="text-slate-300 text-sm leading-relaxed">${e.text}</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error("Feed error:", error);
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <p class="text-red-400">Failed to load social feed. Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+
+        renderFeed();
+        // Refresh every 30 seconds
+        setInterval(renderFeed, 30000);
+    </script>
+</body>
+</html>
