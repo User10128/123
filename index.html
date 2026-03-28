@@ -766,6 +766,11 @@
                 }
                 document.getElementById('winner-text').innerText = msg;
                 document.getElementById('modal-gameover').classList.remove('hidden');
+                
+                if (gameState.mode === 'online' && window.currentMatchDoc) {
+                    deleteDoc(window.currentMatchDoc).catch(()=>{});
+                    window.currentMatchDoc = null;
+                }
 
                 let score = 0;
                 if (iWon && (gameState.mode === 'online' || gameState.mode === 'ai')) {
@@ -1359,7 +1364,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, updateProfile, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, getDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, getDoc, onSnapshot, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
@@ -2036,7 +2041,14 @@
 
         window.currentMatchDoc = null;
 
+        let matchmakingUnsubscribe = null;
+
         window.startGlobalMatch = async () => {
+            if (matchmakingUnsubscribe) {
+                matchmakingUnsubscribe();
+                matchmakingUnsubscribe = null;
+            }
+
             if (!authInitialized || !fbUser) {
                 window.showNotification("Connecting to servers...");
                 await initAuth();
@@ -2050,36 +2062,48 @@
             document.getElementById('matchmaking-status-text').innerText = "Looking for available players...";
             document.getElementById('reconnect-container').classList.add('hidden');
             
+            let hasJoinedOrHosted = false;
+
             try {
                 const matchRef = collection(db, 'artifacts', appId, 'public', 'data', 'matchmaking');
-                const snapshot = await getDocs(matchRef);
-                
-                let availableHost = null;
-                const now = Date.now();
-                let activeCount = 0;
+                matchmakingUnsubscribe = onSnapshot(matchRef, (snapshot) => {
+                    let availableHost = null;
+                    const now = Date.now();
+                    let activeCount = 0;
 
-                // Find a waiting host and clean up stale lobbies
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    if (data.status === 'waiting' && (now - data.timestamp < 120000)) {
-                        availableHost = data.peerId;
-                        activeCount++;
-                    } else if (data.status === 'playing') {
-                        activeCount++;
-                    } else if (now - data.timestamp >= 120000) {
-                        deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', docSnap.id)).catch(()=>{});
+                    snapshot.forEach(docSnap => {
+                        const data = docSnap.data();
+                        const age = now - data.timestamp;
+                        
+                        if (data.status === 'waiting' && (age < 120000)) {
+                            availableHost = data.peerId;
+                            activeCount++;
+                        } else if (data.status === 'playing' && (age < 3600000)) { // Count games in progress for up to 1 hour
+                            activeCount++;
+                        } else if (age >= 120000 && data.status === 'waiting') {
+                            deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', docSnap.id)).catch(()=>{});
+                        } else if (age >= 3600000 && data.status === 'playing') {
+                            deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', docSnap.id)).catch(()=>{});
+                        }
+                    });
+
+                    document.getElementById('active-games-count').innerText = `Active Games: ${activeCount}`;
+
+                    if (!hasJoinedOrHosted) {
+                        hasJoinedOrHosted = true;
+                        if (availableHost) {
+                            document.getElementById('matchmaking-status-text').innerText = "Opponent found! Connecting...";
+                            joinGlobalGame(availableHost);
+                        } else {
+                            document.getElementById('matchmaking-status-text').innerText = "Creating a lobby...";
+                            hostGlobalGame();
+                        }
                     }
+                }, (error) => {
+                    console.error("Matchmaking error:", error);
+                    window.showNotification("Matchmaking failed.");
+                    window.showView('view-main-menu');
                 });
-
-                document.getElementById('active-games-count').innerText = `Active Games: ${activeCount}`;
-
-                if (availableHost) {
-                    document.getElementById('matchmaking-status-text').innerText = "Opponent found! Connecting...";
-                    joinGlobalGame(availableHost);
-                } else {
-                    document.getElementById('matchmaking-status-text').innerText = "Creating a lobby...";
-                    hostGlobalGame();
-                }
 
             } catch (error) {
                 console.error("Matchmaking error:", error);
@@ -2109,6 +2133,10 @@
             });
 
             newPeer.on('connection', (connection) => {
+                if (matchmakingUnsubscribe) {
+                    matchmakingUnsubscribe();
+                    matchmakingUnsubscribe = null;
+                }
                 window.setConn(connection);
                 window.setupConnection();
                 
@@ -2122,9 +2150,15 @@
                 window.showNotification("Opponent Joined!");
                 
                 if (window.currentMatchDoc) {
-                    deleteDoc(window.currentMatchDoc).catch(()=>{});
-                    window.currentMatchDoc = null;
+                    updateDoc(window.currentMatchDoc, { status: 'playing', timestamp: Date.now() }).catch(()=>{});
                 }
+
+                connection.on('close', () => {
+                    if (window.currentMatchDoc) {
+                        deleteDoc(window.currentMatchDoc).catch(()=>{});
+                        window.currentMatchDoc = null;
+                    }
+                });
             });
 
             newPeer.on('error', (err) => {
@@ -2147,6 +2181,10 @@
             }, 5000);
 
             newPeer.on('open', () => {
+                if (matchmakingUnsubscribe) {
+                    matchmakingUnsubscribe();
+                    matchmakingUnsubscribe = null;
+                }
                 const connection = newPeer.connect(hostPeerId);
                 window.setConn(connection);
                 
@@ -2179,6 +2217,10 @@
         }
         
         window.cancelMatchmaking = () => {
+            if (matchmakingUnsubscribe) {
+                matchmakingUnsubscribe();
+                matchmakingUnsubscribe = null;
+            }
             if (window.currentMatchDoc) {
                 deleteDoc(window.currentMatchDoc).catch(()=>{});
                 window.currentMatchDoc = null;
@@ -2187,6 +2229,16 @@
             if (currentPeer) currentPeer.destroy();
             window.showView('view-main-menu');
         }
+
+        window.addEventListener('beforeunload', () => {
+            if (window.currentMatchDoc) {
+                // Use a synchronous-ish attempt or just fire and forget
+                // deleteDoc returns a promise, but beforeunload might close before it finishes.
+                // However, Firestore handles some of this if we use a disconnect hook (not available in JS SDK easily).
+                // For now, this is best effort.
+                deleteDoc(window.currentMatchDoc).catch(()=>{});
+            }
+        });
 
         window.addEventListener('load', () => {
             checkLobbyLink();
