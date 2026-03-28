@@ -10,7 +10,34 @@
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         /* Touch and rendering optimizations */
-        body { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        body { 
+            touch-action: manipulation; 
+            -webkit-tap-highlight-color: transparent; 
+            background-color: #0f172a;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Subtle Background Pattern */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            background-image: 
+                radial-gradient(circle at 2px 2px, rgba(45, 212, 191, 0.05) 1px, transparent 0);
+            background-size: 40px 40px;
+            z-index: -1;
+            animation: moveBackground var(--bg-speed, 20s) linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes moveBackground {
+            from { transform: translate(0, 0); }
+            to { transform: translate(-40px, -40px); }
+        }
         
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
@@ -141,13 +168,18 @@
                 </button>
                 <button onclick="showView('view-online-setup')" class="btn-primary flex items-center justify-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                    Play with Code
+                    Play with Friends
                 </button>
             </div>
 
             <button onclick="document.getElementById('modal-rules').classList.remove('hidden')" class="glass-btn w-max mx-auto px-5 py-2 mt-4 text-sm flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
                 Rules & Instructions
+            </button>
+
+            <button onclick="window.open('about.html', '_blank')" class="glass-btn w-max mx-auto px-5 py-2 mt-2 text-sm flex items-center gap-2 border-teal-500/20 text-teal-400/80">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                About the Game
             </button>
         </div>
     </div>
@@ -206,13 +238,10 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
                         Personal Stats
                     </button>
-                </div>
-
-                <div class="text-left flex flex-col gap-3">
-                    <h3 class="text-sm text-slate-400 uppercase tracking-widest border-b border-slate-700 pb-1">Social Feed</h3>
-                    <div id="social-feed" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1 bg-slate-900/30 p-2 rounded-lg border border-teal-500/10">
-                        <p class="text-slate-500 text-xs italic text-center py-2">Loading activity...</p>
-                    </div>
+                    <button onclick="window.open('social.html', '_blank')" class="glass-btn px-4 py-2 text-sm flex items-center gap-2 border-teal-500/30 text-teal-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        Social Feed
+                    </button>
                 </div>
 
                 <div class="text-left flex flex-col gap-3">
@@ -227,7 +256,10 @@
                     </div>
                 </div>
 
-                <button onclick="window.signOutGoogle()" class="glass-btn text-red-400 hover:text-red-300 hover:bg-red-900/20 py-2 border-red-900/30 mt-2">Sign Out</button>
+                <div class="flex flex-col gap-2 mt-2">
+                    <button onclick="window.signOutGoogle()" class="glass-btn text-slate-400 hover:text-white py-2 border-slate-700">Sign Out</button>
+                    <button onclick="window.deleteAccount()" class="text-[10px] text-red-500/50 hover:text-red-400 uppercase tracking-widest font-bold mt-2">Delete Account</button>
+                </div>
             </div>
 
             <button onclick="showView('view-main-menu')" class="glass-btn mt-2">Back</button>
@@ -296,14 +328,20 @@
     <!-- ONLINE SETUP VIEW -->
     <div id="view-online-setup" class="view-container hidden flex-col items-center justify-center h-full w-full max-w-md mx-auto p-4 sm:p-6 transition-opacity duration-300">
         <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-6 text-center">
-            <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Play with Code</h2>
+            <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Play with Friends</h2>
             
             <div class="flex flex-col gap-4">
                 <button onclick="startHost()" class="btn-primary w-full">Create Game (Host)</button>
                 <div id="host-id-container" class="hidden flex flex-col gap-2 mt-2">
                     <span class="text-sm text-slate-400 uppercase tracking-widest">Your Code</span>
                     <input type="text" id="host-id-display" class="glass-input text-center text-xl font-bold" readonly>
-                    <p class="text-xs text-teal-500/70 mt-1">Share this code with your friend</p>
+                    <div class="flex gap-2 mt-1">
+                        <button onclick="copyLobbyLink()" class="glass-btn flex-1 py-2 text-xs flex items-center justify-center gap-2 border-teal-500/30 text-teal-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            Copy Lobby Link
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-teal-500/50 mt-1">Friends can join via code or link</p>
                 </div>
             </div>
 
@@ -333,7 +371,12 @@
                 <div class="absolute inset-2 rounded-full border-r-2 border-teal-300 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
             </div>
+            <div id="active-games-count" class="text-[10px] text-teal-500/60 uppercase tracking-widest font-bold">Active Games: ...</div>
             <p class="text-slate-300 font-medium tracking-wide animate-pulse" id="matchmaking-status-text">Searching for an opponent...</p>
+            <div id="reconnect-container" class="hidden flex flex-col gap-2">
+                <p class="text-xs text-slate-400 italic">Connection taking longer than expected...</p>
+                <button onclick="window.startGlobalMatch()" class="btn-primary py-2 text-sm">Attempt Reconnection</button>
+            </div>
             <button onclick="cancelMatchmaking()" class="glass-btn mt-4 px-6 py-2">Cancel</button>
         </div>
     </div>
@@ -348,6 +391,10 @@
                     <span class="text-[10px] text-slate-400 uppercase tracking-widest">Opponent:</span>
                     <span id="opponent-name" class="text-xs font-bold text-teal-300">...</span>
                     <button id="btn-add-friend-opponent" class="hidden text-[10px] bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded hover:bg-teal-500/40 transition-colors">Add Friend</button>
+                </div>
+                <div id="live-score-container" class="mt-2 text-xs font-bold text-teal-400/80 uppercase tracking-widest flex items-center gap-2">
+                    <span class="opacity-50">Live Score:</span>
+                    <span id="live-score-val" class="text-teal-300">0</span>
                 </div>
             </div>
             <div class="flex gap-2">
@@ -738,13 +785,29 @@
                     
                     let oppCaptured = 12 - oppTotal;
                     let durationSeconds = Math.floor((Date.now() - (gameState.startTime || Date.now())) / 1000);
-                    let timeBonus = Math.max(0, 600 - durationSeconds) * 2;
                     
-                    score = (oppCaptured * 50) + (myNormals * 20) + (myKings * 50) + timeBonus;
+                    // Improved Scoring System - More Accurate
+                    let baseScore = 1000; // Base for winning
+                    let pieceBonus = (myNormals * 100) + (myKings * 250); // Reward keeping pieces
+                    let timeBonus = Math.max(0, 600 - durationSeconds) * 2; // Reward speed
+                    let efficiencyBonus = Math.max(0, 100 - (gameState.moveCount || 0)) * 10; // Reward fewer moves
+                    let perfectBonus = (myNormals + myKings === 12) ? 2000 : 0; // Reward perfect game
+                    
+                    let multiplier = 1.0;
+                    if (gameState.mode === 'ai') {
+                        if (gameState.aiDifficulty === 'medium') multiplier = 1.5;
+                        if (gameState.aiDifficulty === 'hard') multiplier = 2.5;
+                    } else if (gameState.mode === 'online') {
+                        multiplier = 2.0;
+                    }
+                    
+                    score = Math.floor((baseScore + pieceBonus + timeBonus + efficiencyBonus + perfectBonus) * multiplier);
                     
                     document.getElementById('score-text').innerText = `Score: ${score}`;
                     document.getElementById('score-text').classList.remove('hidden');
-                    window.recordWin(gameState.mode, score, gameState.aiDifficulty);
+                    
+                    const isPerfect = (myNormals + myKings) === 12;
+                    window.recordWin(gameState.mode, score, gameState.aiDifficulty, isPerfect);
                 } else {
                     document.getElementById('score-text').classList.add('hidden');
                 }
@@ -754,7 +817,10 @@
         // --- INTERACTION ---
         function handleSquareClick(r, c) {
             if (gameState.winner) return;
-            if (gameState.mode === 'online' && gameState.myPlayer !== gameState.turn) return;
+            if (gameState.mode === 'online' && gameState.myPlayer !== gameState.turn) {
+                showNotification("It's not your turn!");
+                return;
+            }
             if (gameState.mode === 'ai' && gameState.turn === P2) return; 
 
             let piece = gameState.board[r][c];
@@ -763,12 +829,25 @@
                 let validMove = gameState.validMoves.find(m => m.toR === r && m.toC === c);
                 if (validMove) {
                     executeMoveLocally(validMove);
+                    document.body.style.setProperty('--bg-speed', '5s');
+                    setTimeout(() => document.body.style.setProperty('--bg-speed', '20s'), 1000);
                     return;
+                } else {
+                    // Feedback for illegal move
+                    if (isPlayableSquare(r, c)) {
+                        showNotification("Illegal Move!");
+                        const square = document.querySelector(`#board-container > div:nth-child(${(r * 8) + c + 1})`);
+                        if (square) {
+                            square.classList.add('bg-red-500/20');
+                            setTimeout(() => square.classList.remove('bg-red-500/20'), 300);
+                        }
+                    }
                 }
             }
 
             if (isPlayerPiece(piece, gameState.turn)) {
                 if (gameState.mustJumpPiece && (gameState.mustJumpPiece.r !== r || gameState.mustJumpPiece.c !== c)) {
+                    showNotification("You must jump with the highlighted piece!");
                     return; 
                 }
 
@@ -778,8 +857,10 @@
                 if (pieceMoves.length > 0) {
                     gameState.selectedPiece = {r, c};
                     gameState.validMoves = pieceMoves;
+                    document.body.style.setProperty('--bg-speed', '10s');
                     renderBoard(); 
                 } else {
+                    showNotification("This piece has no valid moves!");
                     gameState.selectedPiece = null;
                     gameState.validMoves = [];
                     renderBoard();
@@ -787,11 +868,17 @@
             } else {
                 gameState.selectedPiece = null;
                 gameState.validMoves = [];
+                document.body.style.setProperty('--bg-speed', '20s');
                 renderBoard();
             }
         }
 
+        function isPlayableSquare(r, c) {
+            return (r + c) % 2 === 1;
+        }
+
         function executeMoveLocally(move) {
+            gameState.moveCount = (gameState.moveCount || 0) + 1;
             gameState.lastMove = move;
             let result = applyMove(gameState.board, move);
             gameState.board = result.board;
@@ -859,6 +946,9 @@
             container.innerHTML = '';
             
             let flip = gameState.mode === 'online' && gameState.myPlayer === P2;
+
+            // Live Score Update
+            updateLiveScore();
 
             for (let rObj = 0; rObj < 8; rObj++) {
                 let r = flip ? 7 - rObj : rObj;
@@ -949,6 +1039,43 @@
                     container.appendChild(square);
                 }
             }
+        }
+
+        function updateLiveScore() {
+            if (!gameState.startTime) return;
+            
+            let myNormals = 0, myKings = 0, oppTotal = 0;
+            let myP = gameState.myPlayer || P1; 
+            let oppP = myP === P1 ? P2 : P1;
+            let myKingType = myP === P1 ? P1_KING : P2_KING;
+            
+            for(let r=0; r<8; r++){
+                for(let c=0; c<8; c++){
+                    let p = gameState.board[r][c];
+                    if(p === myP) myNormals++;
+                    if(p === myKingType) myKings++;
+                    if(isPlayerPiece(p, oppP)) oppTotal++;
+                }
+            }
+            
+            let oppCaptured = 12 - oppTotal;
+            let durationSeconds = Math.floor((Date.now() - gameState.startTime) / 1000);
+            
+            let baseScore = oppCaptured * 100;
+            let pieceBonus = (myNormals * 50) + (myKings * 150);
+            let timeBonus = Math.max(0, 300 - durationSeconds) * 5;
+            
+            let multiplier = 1.0;
+            if (gameState.mode === 'ai') {
+                if (gameState.aiDifficulty === 'medium') multiplier = 1.5;
+                if (gameState.aiDifficulty === 'hard') multiplier = 2.5;
+            } else if (gameState.mode === 'online') {
+                multiplier = 2.0;
+            }
+            
+            let currentScore = Math.floor((baseScore + pieceBonus + timeBonus) * multiplier);
+            const scoreValEl = document.getElementById('live-score-val');
+            if (scoreValEl) scoreValEl.innerText = currentScore;
         }
 
         // --- AI LOGIC ---
@@ -1093,6 +1220,21 @@
             }
         }
 
+        function copyLobbyLink() {
+            const code = document.getElementById('host-id-display').value;
+            if (!code || code === "Generating..." || code === "Error") return;
+            
+            const url = new URL(window.location.href);
+            url.searchParams.set('code', code);
+            const link = url.toString();
+            
+            navigator.clipboard.writeText(link).then(() => {
+                showNotification("Lobby link copied to clipboard!");
+            }).catch(() => {
+                showNotification("Failed to copy link.");
+            });
+        }
+
         function joinGame(overrideId = null) {
             let hostId = overrideId || document.getElementById('join-id-input').value.trim().toUpperCase();
             if (!hostId || hostId.length !== 6) {
@@ -1217,7 +1359,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, updateProfile, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, getDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
@@ -1258,7 +1400,7 @@
                     await updatePublicProfile(true);
                     setupInvitesListener();
                     window.renderFriendsList();
-                    window.renderSocialFeed();
+                    // window.renderSocialFeed(); // Removed - now in social.html
                 }
             } else {
                 updateAccountUI();
@@ -1509,6 +1651,13 @@
             }
         };
 
+        // Auto-refresh friends list every 5 seconds
+        setInterval(() => {
+            if (isRegisteredUser && document.getElementById('view-account').classList.contains('flex')) {
+                window.renderFriendsList();
+            }
+        }, 5000);
+
         // ------------------ INVITE SYSTEM ------------------
 
         function setupInvitesListener() {
@@ -1661,34 +1810,7 @@
             } catch (e) { console.error("Social post failed", e); }
         }
 
-        window.renderSocialFeed = async () => {
-            if (!isRegisteredUser) return;
-            const feedEl = document.getElementById('social-feed');
-            try {
-                // Fetch friends to filter feed (optional, but let's show all for now to make it lively)
-                const feedRef = collection(db, 'artifacts', appId, 'public', 'data', 'socialFeed');
-                const snapshot = await getDocs(feedRef);
-                let events = [];
-                snapshot.forEach(d => events.push(d.data()));
-                
-                // Sort by time
-                events.sort((a, b) => b.timestamp - a.timestamp);
-                events = events.slice(0, 15); // Top 15
-
-                if (events.length === 0) {
-                    feedEl.innerHTML = "<p class='text-slate-500 text-xs italic text-center py-2'>No recent activity.</p>";
-                    return;
-                }
-
-                feedEl.innerHTML = events.map(e => `
-                    <div class="text-[11px] border-b border-teal-500/5 py-1.5 leading-tight">
-                        <span class="text-teal-400 font-bold">${e.userName}</span>
-                        <span class="text-slate-400">${e.text}</span>
-                        <div class="text-[9px] text-slate-600 mt-0.5">${new Date(e.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-                    </div>
-                `).join('');
-            } catch (e) { console.error(e); }
-        };
+        // Social feed removed from here - now in social.html
 
         window.showEditUsername = () => {
             const container = document.getElementById('edit-username-container');
@@ -1763,17 +1885,19 @@
 
                     // Render Awards
                     const awardIcons = {
-                        "First Win": "🏆",
-                        "Sharpshooter": "🎯",
-                        "Perfect Victory": "💎",
-                        "AI Crusher": "🤖",
-                        "Grandmaster": "👑"
+                        "First Win": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>`,
+                        "Sharpshooter": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>`,
+                        "Perfect Victory": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"></path><path d="M11 3 8 9l3 12 3-12-3-6z"></path><path d="M2 9h20"></path></svg>`,
+                        "AI Crusher": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"></path><rect width="16" height="12" x="4" y="8" rx="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path></svg>`,
+                        "Grandmaster": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>`
                     };
 
                     if (data.awards && data.awards.length > 0) {
                         awardsContainer.innerHTML = data.awards.map(a => `
                             <div class="flex flex-col items-center justify-center bg-teal-500/10 border border-teal-500/30 rounded-lg p-2 aspect-square group relative" title="${a}">
-                                <span class="text-2xl">${awardIcons[a] || '🏅'}</span>
+                                <div class="text-teal-400 w-8 h-8 flex items-center justify-center">
+                                    ${awardIcons[a] || `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>`}
+                                </div>
                                 <span class="text-[8px] text-teal-300 mt-1 text-center font-bold uppercase leading-tight">${a}</span>
                             </div>
                         `).join('');
@@ -1817,6 +1941,50 @@
             }
             window.showView('view-leaderboard');
             window.switchLeaderboardTab('global');
+        };
+
+        window.deleteAccount = async () => {
+            if (!isRegisteredUser || !fbUser) return;
+            showConfirm("CRITICAL: This will permanently delete your account, stats, friends, and history. This cannot be undone. Proceed?", async () => {
+                try {
+                    window.showNotification("Deleting account data...");
+                    const uid = fbUser.uid;
+
+                    // 1. Delete Profile
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', uid));
+                    
+                    // 2. Delete Private Data
+                    await deleteDoc(doc(db, 'artifacts', appId, 'users', uid, 'private', 'data'));
+
+                    // 3. Delete Invites
+                    const invitesRef = collection(db, 'artifacts', appId, 'users', uid, 'invites');
+                    const invitesSnap = await getDocs(invitesRef);
+                    for (const d of invitesSnap.docs) {
+                        await deleteDoc(doc(db, 'artifacts', appId, 'users', uid, 'invites', d.id));
+                    }
+
+                    // 4. Delete Social Feed entries
+                    const feedRef = collection(db, 'artifacts', appId, 'public', 'data', 'socialFeed');
+                    const q = query(feedRef, where('uid', '==', uid));
+                    const feedSnap = await getDocs(q);
+                    for (const d of feedSnap.docs) {
+                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'socialFeed', d.id));
+                    }
+
+                    // 5. Delete Auth User
+                    await fbUser.delete();
+                    
+                    window.showNotification("Account deleted successfully.");
+                    window.location.reload();
+                } catch (e) {
+                    console.error("Account deletion failed", e);
+                    if (e.code === 'auth/requires-recent-login') {
+                        window.showNotification("Please sign out and sign back in to delete your account (security requirement).");
+                    } else {
+                        window.showNotification("Error deleting account.");
+                    }
+                }
+            });
         };
 
         window.switchLeaderboardTab = async (type) => {
@@ -1880,23 +2048,30 @@
 
             window.showView('view-searching');
             document.getElementById('matchmaking-status-text').innerText = "Looking for available players...";
-
+            document.getElementById('reconnect-container').classList.add('hidden');
+            
             try {
                 const matchRef = collection(db, 'artifacts', appId, 'public', 'data', 'matchmaking');
                 const snapshot = await getDocs(matchRef);
                 
                 let availableHost = null;
                 const now = Date.now();
+                let activeCount = 0;
 
                 // Find a waiting host and clean up stale lobbies
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
                     if (data.status === 'waiting' && (now - data.timestamp < 120000)) {
                         availableHost = data.peerId;
+                        activeCount++;
+                    } else if (data.status === 'playing') {
+                        activeCount++;
                     } else if (now - data.timestamp >= 120000) {
                         deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', docSnap.id)).catch(()=>{});
                     }
                 });
+
+                document.getElementById('active-games-count').innerText = `Active Games: ${activeCount}`;
 
                 if (availableHost) {
                     document.getElementById('matchmaking-status-text').innerText = "Opponent found! Connecting...";
@@ -1966,11 +2141,17 @@
             const newPeer = new Peer();
             window.setPeer(newPeer);
 
+            // Reconnection timer starts ONLY when we found a host and are trying to connect
+            const reconnectTimer = setTimeout(() => {
+                document.getElementById('reconnect-container').classList.remove('hidden');
+            }, 5000);
+
             newPeer.on('open', () => {
                 const connection = newPeer.connect(hostPeerId);
                 window.setConn(connection);
                 
                 connection.on('open', () => {
+                    clearTimeout(reconnectTimer);
                     window.setupConnection();
 
                     // Send our info to the host
@@ -1984,12 +2165,14 @@
                 });
                 
                 connection.on('error', () => {
+                    clearTimeout(reconnectTimer);
                     window.showNotification("Failed to connect to Host, retrying...");
                     window.startGlobalMatch(); 
                 });
             });
 
             newPeer.on('error', (err) => {
+                clearTimeout(reconnectTimer);
                 window.showNotification('Connection Error: ' + err.type);
                 window.showView('view-main-menu');
             });
@@ -2005,6 +2188,21 @@
             window.showView('view-main-menu');
         }
 
+        window.addEventListener('load', () => {
+            checkLobbyLink();
+        });
+
+        function checkLobbyLink() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if (code && code.length === 6) {
+                showView('view-online-setup');
+                document.getElementById('join-id-input').value = code.toUpperCase();
+                setTimeout(() => {
+                    joinGame();
+                }, 500);
+            }
+        }
     </script>
 </body>
 </html>
