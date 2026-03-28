@@ -209,6 +209,13 @@
                 </div>
 
                 <div class="text-left flex flex-col gap-3">
+                    <h3 class="text-sm text-slate-400 uppercase tracking-widest border-b border-slate-700 pb-1">Social Feed</h3>
+                    <div id="social-feed" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1 bg-slate-900/30 p-2 rounded-lg border border-teal-500/10">
+                        <p class="text-slate-500 text-xs italic text-center py-2">Loading activity...</p>
+                    </div>
+                </div>
+
+                <div class="text-left flex flex-col gap-3">
                     <h3 class="text-sm text-slate-400 uppercase tracking-widest border-b border-slate-700 pb-1">Friends</h3>
                     <div class="flex gap-2">
                         <input type="text" id="add-friend-input" class="glass-input flex-1 text-sm py-2 text-center tracking-widest" placeholder="8-DIGIT CODE" maxlength="8">
@@ -234,6 +241,14 @@
             
             <div id="stats-container" class="flex flex-col gap-4 text-left bg-slate-800/50 p-4 rounded-xl border border-teal-500/20">
                 <p class="text-slate-500 text-center py-4">Loading stats...</p>
+            </div>
+
+            <div class="text-left flex flex-col gap-3 mt-2">
+                <h3 class="text-sm text-teal-400 uppercase tracking-widest border-b border-teal-500/20 pb-1">Awards & Badges</h3>
+                <div id="awards-container" class="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto p-1">
+                    <!-- Awards loaded here -->
+                    <p class="text-slate-500 text-xs italic col-span-3 text-center py-2">Win games to earn awards!</p>
+                </div>
             </div>
 
             <div class="flex flex-col gap-3 mt-2">
@@ -1243,6 +1258,7 @@
                     await updatePublicProfile(true);
                     setupInvitesListener();
                     window.renderFriendsList();
+                    window.renderSocialFeed();
                 }
             } else {
                 updateAccountUI();
@@ -1590,28 +1606,88 @@
 
         // ------------------ LEADERBOARD & STATS ------------------
 
-        window.recordWin = async (mode, score, difficulty) => {
+        window.recordWin = async (mode, score, difficulty, isPerfect) => {
             if (!isRegisteredUser || !fbUser || !score) return;
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
                 const docSnap = await getDoc(docRef);
-                let data = docSnap.exists() ? docSnap.data() : { displayName: fbUser.displayName };
+                let data = docSnap.exists() ? docSnap.data() : { displayName: fbUser.displayName || 'Player' };
                 
+                let oldGlobal = data.globalScore || 0;
+                let oldEasy = data.aiEasyScore || 0;
+                let oldMed = data.aiMediumScore || 0;
+                let oldHard = data.aiHardScore || 0;
+
                 if (mode === 'ai') {
-                    if (difficulty === 'easy') {
-                        data.aiEasyScore = Math.max((data.aiEasyScore || 0), score);
-                    } else if (difficulty === 'medium') {
-                        data.aiMediumScore = Math.max((data.aiMediumScore || 0), score);
-                    } else if (difficulty === 'hard') {
-                        data.aiHardScore = Math.max((data.aiHardScore || 0), score);
-                    }
+                    if (difficulty === 'easy') data.aiEasyScore = Math.max(oldEasy, score);
+                    else if (difficulty === 'medium') data.aiMediumScore = Math.max(oldMed, score);
+                    else if (difficulty === 'hard') data.aiHardScore = Math.max(oldHard, score);
                 }
                 if (mode === 'online') {
-                    data.globalScore = Math.max((data.globalScore || 0), score);
+                    data.globalScore = Math.max(oldGlobal, score);
                 }
                 
+                // Award Logic
+                if (!data.awards) data.awards = [];
+                const addAward = (award) => {
+                    if (!data.awards.includes(award)) {
+                        data.awards.push(award);
+                        postSocialEvent(`earned the '${award}' award!`);
+                        window.showNotification(`New Award: ${award}!`);
+                    }
+                };
+
+                addAward("First Win");
+                if (score > 1500) addAward("Sharpshooter");
+                if (isPerfect) addAward("Perfect Victory");
+                if (mode === 'ai' && difficulty === 'hard') addAward("AI Crusher");
+                if ((data.globalScore || 0) > 5000) addAward("Grandmaster");
+
                 await setDoc(docRef, data, { merge: true });
+                postSocialEvent(`won a ${mode} game with a score of ${score}!`);
             } catch (e) { console.error("Failed to record win", e); }
+        };
+
+        async function postSocialEvent(text) {
+            if (!fbUser || !isRegisteredUser) return;
+            try {
+                const feedRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'socialFeed'));
+                await setDoc(feedRef, {
+                    uid: fbUser.uid,
+                    userName: fbUser.displayName || 'A Player',
+                    text: text,
+                    timestamp: Date.now()
+                });
+            } catch (e) { console.error("Social post failed", e); }
+        }
+
+        window.renderSocialFeed = async () => {
+            if (!isRegisteredUser) return;
+            const feedEl = document.getElementById('social-feed');
+            try {
+                // Fetch friends to filter feed (optional, but let's show all for now to make it lively)
+                const feedRef = collection(db, 'artifacts', appId, 'public', 'data', 'socialFeed');
+                const snapshot = await getDocs(feedRef);
+                let events = [];
+                snapshot.forEach(d => events.push(d.data()));
+                
+                // Sort by time
+                events.sort((a, b) => b.timestamp - a.timestamp);
+                events = events.slice(0, 15); // Top 15
+
+                if (events.length === 0) {
+                    feedEl.innerHTML = "<p class='text-slate-500 text-xs italic text-center py-2'>No recent activity.</p>";
+                    return;
+                }
+
+                feedEl.innerHTML = events.map(e => `
+                    <div class="text-[11px] border-b border-teal-500/5 py-1.5 leading-tight">
+                        <span class="text-teal-400 font-bold">${e.userName}</span>
+                        <span class="text-slate-400">${e.text}</span>
+                        <div class="text-[9px] text-slate-600 mt-0.5">${new Date(e.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                    </div>
+                `).join('');
+            } catch (e) { console.error(e); }
         };
 
         window.showEditUsername = () => {
@@ -1657,7 +1733,10 @@
         window.loadPersonalStats = async () => {
             if (!isRegisteredUser || !fbUser) return;
             const statsContainer = document.getElementById('stats-container');
+            const awardsContainer = document.getElementById('awards-container');
             statsContainer.innerHTML = "<p class='text-slate-500 text-center py-4'>Loading stats...</p>";
+            awardsContainer.innerHTML = "<p class='text-slate-500 text-xs italic col-span-3 text-center py-2'>Loading awards...</p>";
+            
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
                 const docSnap = await getDoc(docRef);
@@ -1681,6 +1760,26 @@
                             <span class="text-teal-300 font-bold">${data.aiHardScore || 0}</span>
                         </div>
                     `;
+
+                    // Render Awards
+                    const awardIcons = {
+                        "First Win": "🏆",
+                        "Sharpshooter": "🎯",
+                        "Perfect Victory": "💎",
+                        "AI Crusher": "🤖",
+                        "Grandmaster": "👑"
+                    };
+
+                    if (data.awards && data.awards.length > 0) {
+                        awardsContainer.innerHTML = data.awards.map(a => `
+                            <div class="flex flex-col items-center justify-center bg-teal-500/10 border border-teal-500/30 rounded-lg p-2 aspect-square group relative" title="${a}">
+                                <span class="text-2xl">${awardIcons[a] || '🏅'}</span>
+                                <span class="text-[8px] text-teal-300 mt-1 text-center font-bold uppercase leading-tight">${a}</span>
+                            </div>
+                        `).join('');
+                    } else {
+                        awardsContainer.innerHTML = "<p class='text-slate-500 text-xs italic col-span-3 text-center py-2'>No awards yet. Keep playing!</p>";
+                    }
                 } else {
                     statsContainer.innerHTML = "<p class='text-slate-500 text-center py-4'>No stats available yet.</p>";
                 }
