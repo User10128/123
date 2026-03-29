@@ -4,11 +4,16 @@
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
 
 
 <url>
   <loc>https://checkers.page/</loc>
+  <loc>https://checkers.page/service/<loc>
+  <loc>https://checkers.page/privacy/<loc>
+  <loc>https://checkers.page/email/<loc>
+  <loc>https://checkers.page/social/<loc>
+  <loc>https://checkers.page/about/<loc>
+  <loc>https://checkers.page/about/<loc>
   <lastmod>2026-03-28T22:17:57+00:00</lastmod>
 </url>
 
