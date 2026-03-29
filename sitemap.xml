@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset
-      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-
-
-<url>
-  <loc>https://checkers.page/</loc>
-  <loc>https://checkers.page/service/<loc>
-  <loc>https://checkers.page/privacy/<loc>
-  <loc>https://checkers.page/email/<loc>
-  <loc>https://checkers.page/social/<loc>
-  <loc>https://checkers.page/about/<loc>
-  <loc>https://checkers.page/about/<loc>
-  <lastmod>2026-03-28T22:17:57+00:00</lastmod>
-</url>
-
-
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://checkers.page/</loc>
+    <lastmod>2026-03-28</lastmod>
+  </url>
+  <url>
+    <loc>https://checkers.page/service/</loc>
+  </url>
+  <url>
+    <loc>https://checkers.page/privacy/</loc>
+  </url>
+  <url>
+    <loc>https://checkers.page/email/</loc>
+  </url>
+  <url>
+    <loc>https://checkers.page/social/</loc>
+  </url>
+  <url>
+    <loc>https://checkers.page/about/</loc>
+  </url>
 </urlset>
