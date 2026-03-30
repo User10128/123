@@ -154,6 +154,17 @@
                 <h1 class="text-5xl sm:text-5xl font-bold italic text-teal-300 bg-clip-text tracking-wider uppercase mb-6 drop-shadow-lg">CHECKERS</h1>
             </div>
 
+            <!-- Daily Challenge Banner -->
+            <div id="daily-challenge-banner" class="hidden relative z-10 bg-teal-500/10 border border-teal-500/30 rounded-xl p-3 text-left">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-[10px] text-teal-400 uppercase tracking-[0.2em] font-bold">Daily Challenge</span>
+                    <div id="challenge-status-icon" class="text-teal-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    </div>
+                </div>
+                <p id="daily-challenge-text" class="text-xs text-slate-200 font-medium">Loading challenge...</p>
+            </div>
+
             <div class="flex flex-col gap-4 relative z-10">
                 <button onclick="startGame('local')" class="btn-primary flex items-center justify-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -182,6 +193,15 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                 About the Game
             </button>
+        </div>
+
+        <!-- Footer Links -->
+        <div class="mt-8 flex gap-4 text-[10px] text-slate-500 uppercase tracking-widest">
+            <button onclick="window.showFooterModal('privacy')" class="hover:text-teal-400 transition-colors">Privacy Policy</button>
+            <span class="opacity-20">|</span>
+            <button onclick="window.showFooterModal('terms')" class="hover:text-teal-400 transition-colors">Terms of Service</button>
+            <span class="opacity-20">|</span>
+            <button onclick="window.showFooterModal('contact')" class="hover:text-teal-400 transition-colors">Contact</button>
         </div>
     </div>
 
@@ -306,6 +326,7 @@
             
             <div class="flex flex-wrap gap-2 justify-center mb-2">
                 <button id="tab-btn-global" onclick="window.switchLeaderboardTab('global')" class="btn-primary py-1 px-3 text-xs sm:text-sm bg-teal-500/20 border-teal-400">Online</button>
+                <button id="tab-btn-points" onclick="window.switchLeaderboardTab('points')" class="glass-btn py-1 px-3 text-xs sm:text-sm">Points</button>
                 <button id="tab-btn-ai-easy" onclick="window.switchLeaderboardTab('ai-easy')" class="glass-btn py-1 px-3 text-xs sm:text-sm">AI Easy</button>
                 <button id="tab-btn-ai-medium" onclick="window.switchLeaderboardTab('ai-medium')" class="glass-btn py-1 px-3 text-xs sm:text-sm">AI Medium</button>
                 <button id="tab-btn-ai-hard" onclick="window.switchLeaderboardTab('ai-hard')" class="glass-btn py-1 px-3 text-xs sm:text-sm">AI Hard</button>
@@ -439,7 +460,20 @@
         </div>
     </div>
 
-    <!-- MODALS -->
+    <!-- Footer Modal -->
+    <div id="modal-footer" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4 opacity-100 transition-opacity">
+        <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 border-b border-teal-500/20 pb-4">
+                <h2 id="footer-modal-title" class="text-xl text-teal-400 font-light tracking-widest uppercase">Title</h2>
+                <button onclick="document.getElementById('modal-footer').classList.add('hidden')" class="text-slate-400 hover:text-teal-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div id="footer-modal-content" class="text-slate-300 text-sm leading-relaxed space-y-4">
+                <!-- Content injected -->
+            </div>
+        </div>
+    </div>
 
     <!-- Rules Modal -->
     <div id="modal-rules" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4 opacity-100 transition-opacity">
@@ -596,6 +630,7 @@
             gameState.winner = null;
             gameState.startTime = Date.now();
             gameState.lastMove = null;
+            window.opponentPoints = 5;
 
             if (mode === 'online') {
                 document.getElementById('btn-chat').classList.remove('hidden');
@@ -824,44 +859,47 @@
                     window.recordWin(gameState.mode, score, gameState.aiDifficulty, isPerfect);
                 } else {
                     document.getElementById('score-text').classList.add('hidden');
+                    if (gameState.mode === 'online' && gameState.winner !== gameState.myPlayer) {
+                        window.recordLoss();
+                    }
                 }
             }
         }
 
         // --- INTERACTION ---
+        function playErrorSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.1);
+            } catch (e) {}
+        }
+
         function handleSquareClick(r, c) {
             if (gameState.winner) return;
             if (gameState.mode === 'online' && gameState.myPlayer !== gameState.turn) {
                 showNotification("It's not your turn!");
+                playErrorSound();
                 return;
             }
             if (gameState.mode === 'ai' && gameState.turn === P2) return; 
 
             let piece = gameState.board[r][c];
 
-            if (gameState.selectedPiece) {
-                let validMove = gameState.validMoves.find(m => m.toR === r && m.toC === c);
-                if (validMove) {
-                    executeMoveLocally(validMove);
-                    document.body.style.setProperty('--bg-speed', '5s');
-                    setTimeout(() => document.body.style.setProperty('--bg-speed', '20s'), 1000);
-                    return;
-                } else {
-                    // Feedback for illegal move
-                    if (isPlayableSquare(r, c)) {
-                        showNotification("Illegal Move!");
-                        const square = document.querySelector(`#board-container > div:nth-child(${(r * 8) + c + 1})`);
-                        if (square) {
-                            square.classList.add('bg-red-500/20');
-                            setTimeout(() => square.classList.remove('bg-red-500/20'), 300);
-                        }
-                    }
-                }
-            }
-
+            // Allow piece swapping before move
             if (isPlayerPiece(piece, gameState.turn)) {
                 if (gameState.mustJumpPiece && (gameState.mustJumpPiece.r !== r || gameState.mustJumpPiece.c !== c)) {
                     showNotification("You must jump with the highlighted piece!");
+                    playErrorSound();
                     return; 
                 }
 
@@ -875,16 +913,39 @@
                     renderBoard(); 
                 } else {
                     showNotification("This piece has no valid moves!");
+                    playErrorSound();
                     gameState.selectedPiece = null;
                     gameState.validMoves = [];
                     renderBoard();
                 }
-            } else {
-                gameState.selectedPiece = null;
-                gameState.validMoves = [];
-                document.body.style.setProperty('--bg-speed', '20s');
-                renderBoard();
+                return;
             }
+
+            if (gameState.selectedPiece) {
+                let validMove = gameState.validMoves.find(m => m.toR === r && m.toC === c);
+                if (validMove) {
+                    executeMoveLocally(validMove);
+                    document.body.style.setProperty('--bg-speed', '5s');
+                    setTimeout(() => document.body.style.setProperty('--bg-speed', '20s'), 1000);
+                    return;
+                } else {
+                    // Feedback for illegal move
+                    if (isPlayableSquare(r, c)) {
+                        showNotification("Illegal Move!");
+                        playErrorSound();
+                        const square = document.querySelector(`#board-container > div:nth-child(${(r * 8) + c + 1})`);
+                        if (square) {
+                            square.classList.add('bg-red-500/20');
+                            setTimeout(() => square.classList.remove('bg-red-500/20'), 300);
+                        }
+                    }
+                }
+            }
+
+            gameState.selectedPiece = null;
+            gameState.validMoves = [];
+            document.body.style.setProperty('--bg-speed', '20s');
+            renderBoard();
         }
 
         function isPlayableSquare(r, c) {
@@ -1315,6 +1376,7 @@
                     showNotification("Opponent: " + data.text);
                 } else if (data.type === 'identity') {
                     gameState.opponentInfo = { displayName: data.displayName, friendCode: data.friendCode };
+                    window.opponentPoints = data.playerPoints || 5;
                     document.getElementById('opponent-name').innerText = data.displayName || "Unknown Player";
                     if (data.friendCode && window.isRegisteredUser && window.isRegisteredUser()) {
                         document.getElementById('btn-add-friend-opponent').classList.remove('hidden');
@@ -1367,6 +1429,51 @@
         window.joinGame = joinGame;
         window.startHost = startHost;
 
+        window.opponentPoints = 5;
+        window.myPlayerPoints = 5;
+
+        window.showFooterModal = (type) => {
+            const title = document.getElementById('footer-modal-title');
+            const content = document.getElementById('footer-modal-content');
+            const modal = document.getElementById('modal-footer');
+            
+            if (type === 'privacy') {
+                title.innerText = "Privacy Policy";
+                content.innerHTML = `
+                    <p>Your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your personal information when you use our Checkers game.</p>
+                    <h3 class="text-teal-400 font-bold mt-4">1. Information We Collect</h3>
+                    <p>We collect information you provide directly to us, such as your username, email address (if you sign up), and game statistics. We also collect data about your interactions with the game.</p>
+                    <h3 class="text-teal-400 font-bold mt-4">2. How We Use Your Information</h3>
+                    <p>We use the information we collect to provide, maintain, and improve our game, to save your progress, and to display leaderboards.</p>
+                    <h3 class="text-teal-400 font-bold mt-4">3. Data Security</h3>
+                    <p>We take reasonable measures to protect your personal information from loss, theft, misuse, and unauthorized access.</p>
+                `;
+            } else if (type === 'terms') {
+                title.innerText = "Terms of Service";
+                content.innerHTML = `
+                    <p>By using our Checkers game, you agree to be bound by these Terms of Service. Please read them carefully.</p>
+                    <h3 class="text-teal-400 font-bold mt-4">1. Use of the Game</h3>
+                    <p>You may use the game for your personal, non-commercial use only. You agree not to use the game for any illegal or unauthorized purpose.</p>
+                    <h3 class="text-teal-400 font-bold mt-4">2. User Content</h3>
+                    <p>You are responsible for any content you post in the game, such as your username. You agree not to post any content that is offensive, defamatory, or violates the rights of others.</p>
+                    <h3 class="text-teal-400 font-bold mt-4">3. Termination</h3>
+                    <p>We reserve the right to terminate your access to the game at any time, for any reason, without notice.</p>
+                `;
+            } else if (type === 'contact') {
+                title.innerText = "Contact Us";
+                content.innerHTML = `
+                    <p>If you have any questions or concerns about our Checkers game, please feel free to contact us.</p>
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-teal-500/20 mt-4">
+                        <p class="text-teal-300 font-bold">Email:</p>
+                        <p class="text-slate-300">support@checkers.page</p>
+                    </div>
+                    <p class="mt-4">We aim to respond to all inquiries within 48 hours.</p>
+                `;
+            }
+            
+            modal.classList.remove('hidden');
+        };
+
     </script>
 
     <!-- --- FIREBASE GLOBAL MATCHMAKING, AUTH & ACCOUNTS MODULE --- -->
@@ -1415,6 +1522,16 @@
                     await updatePublicProfile(true);
                     setupInvitesListener();
                     setupResponsesListener();
+                    
+                    // Fetch profile for daily challenge UI
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        updateDailyChallengeUI(docSnap.data());
+                    } else {
+                        updateDailyChallengeUI(null);
+                    }
+                    
                     window.renderFriendsList();
                     // window.renderSocialFeed(); // Removed - now in social.html
                 }
@@ -1426,10 +1543,11 @@
         window.isRegisteredUser = () => isRegisteredUser;
 
         window.getMyInfo = () => {
-            if (!fbUser || !isRegisteredUser) return { displayName: "Guest", friendCode: null };
+            if (!fbUser || !isRegisteredUser) return { displayName: "Guest", friendCode: null, playerPoints: 5 };
             return {
                 displayName: fbUser.displayName || "Player",
-                friendCode: document.getElementById('account-uid').innerText
+                friendCode: document.getElementById('account-uid').innerText,
+                playerPoints: window.myPlayerPoints || 5
             };
         };
 
@@ -1513,6 +1631,7 @@
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     const data = docSnap.data();
+                    window.myPlayerPoints = data.playerPoints || 5;
                     if (data.friendCode) friendCode = data.friendCode;
                     if (data.displayName) currentDisplayName = data.displayName;
                 }
@@ -1855,13 +1974,49 @@
 
         // ------------------ LEADERBOARD & STATS ------------------
 
+        const DAILY_CHALLENGES = [
+            { id: 'win_under_30', text: "Win a game in under 30 moves", check: (gs) => gs.winner === gs.myPlayer && gs.moveCount < 30 },
+            { id: 'win_no_loss_5', text: "Win without losing more than 5 pieces", check: (gs) => gs.winner === gs.myPlayer && (12 - gs.board.flat().filter(p => p && p.player === gs.myPlayer).length) <= 5 },
+            { id: 'win_perfect', text: "Win a perfect game (lose 0 pieces)", check: (gs) => gs.winner === gs.myPlayer && (12 - gs.board.flat().filter(p => p && p.player === gs.myPlayer).length) === 0 },
+            { id: 'win_ai_hard', text: "Defeat the AI on Hard difficulty", check: (gs) => gs.winner === P1 && gs.mode === 'ai' && gs.aiDifficulty === 'hard' },
+            { id: 'win_online', text: "Win an online matchmaking game", check: (gs) => gs.winner === gs.myPlayer && gs.mode === 'online' }
+        ];
+
+        function getDailyChallenge() {
+            const today = new Date().toISOString().split('T')[0];
+            const seed = today.split('-').reduce((acc, val) => acc + parseInt(val), 0);
+            return DAILY_CHALLENGES[seed % DAILY_CHALLENGES.length];
+        }
+
+        function calculatePoints(myPoints, oppPoints, isWin) {
+            if (isWin) {
+                if (oppPoints > myPoints) return 3 + Math.min(2, Math.floor((oppPoints - myPoints) / 5));
+                if (oppPoints === myPoints) return 2;
+                return 1;
+            } else {
+                if (oppPoints > myPoints) return -1;
+                if (oppPoints === myPoints) return -2;
+                return -3;
+            }
+        }
+
         window.recordWin = async (mode, score, difficulty, isPerfect) => {
             if (!isRegisteredUser || !fbUser || !score) return;
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
                 const docSnap = await getDoc(docRef);
-                let data = docSnap.exists() ? docSnap.data() : { displayName: fbUser.displayName || 'Player' };
+                let data = docSnap.exists() ? docSnap.data() : { displayName: fbUser.displayName || 'Player', playerPoints: 5, wins: 0, losses: 0, dailyPoints: 0, lastPointsDate: '', badges: [], streak: 0, lastStreakDate: '' };
                 
+                // Initialize new fields for existing users
+                if (data.playerPoints === undefined) data.playerPoints = 5;
+                if (data.wins === undefined) data.wins = 0;
+                if (data.losses === undefined) data.losses = 0;
+                if (data.dailyPoints === undefined) data.dailyPoints = 0;
+                if (data.badges === undefined) data.badges = [];
+                if (data.streak === undefined) data.streak = 0;
+
+                data.wins++;
+
                 let oldGlobal = data.globalScore || 0;
                 let oldEasy = data.aiEasyScore || 0;
                 let oldMed = data.aiMediumScore || 0;
@@ -1874,8 +2029,55 @@
                 }
                 if (mode === 'online') {
                     data.globalScore = Math.max(oldGlobal, score);
+                    
+                    // Points logic
+                    const today = new Date().toISOString().split('T')[0];
+                    if (data.lastPointsDate !== today) {
+                        data.dailyPoints = 0;
+                        data.lastPointsDate = today;
+                    }
+
+                    if (data.dailyPoints < 20) {
+                        const oppPoints = window.opponentPoints || 5;
+                        const gain = calculatePoints(data.playerPoints, oppPoints, true);
+                        const actualGain = Math.min(gain, 20 - data.dailyPoints);
+                        data.playerPoints += actualGain;
+                        data.dailyPoints += actualGain;
+                        window.myPlayerPoints = data.playerPoints;
+                        window.showNotification(`+${actualGain} Player Points!`);
+                    } else {
+                        window.showNotification("Daily point cap reached (20/20)");
+                    }
                 }
                 
+                // Challenge & Badges
+                const challenge = getDailyChallenge();
+                const today = new Date().toISOString().split('T')[0];
+                if (challenge.check(gameState)) {
+                    const badgeId = `badge_${today}`;
+                    if (!data.badges.includes(badgeId)) {
+                        data.badges.push(badgeId);
+                        window.showNotification(`Challenge Complete! Badge Earned: ${today}`);
+                        
+                        // Streak logic
+                        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                        if (data.lastStreakDate === yesterday) {
+                            data.streak++;
+                        } else if (data.lastStreakDate !== today) {
+                            data.streak = 1;
+                        }
+                        data.lastStreakDate = today;
+                        
+                        if (data.streak >= 3) {
+                            const streakBadge = "Daily Streak Badge";
+                            if (!data.badges.includes(streakBadge)) {
+                                data.badges.push(streakBadge);
+                                window.showNotification("New Badge: Daily Streak!");
+                            }
+                        }
+                    }
+                }
+
                 // Award Logic
                 if (!data.awards) data.awards = [];
                 const addAward = (award) => {
@@ -1894,8 +2096,50 @@
 
                 await setDoc(docRef, data, { merge: true });
                 postSocialEvent(`won a ${mode} game with a score of ${score}!`);
+                updateDailyChallengeUI(data);
             } catch (e) { console.error("Failed to record win", e); }
         };
+
+        window.recordLoss = async () => {
+            if (!isRegisteredUser || !fbUser || gameState.mode !== 'online') return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
+                const docSnap = await getDoc(docRef);
+                if (!docSnap.exists()) return;
+                let data = docSnap.data();
+                
+                data.losses = (data.losses || 0) + 1;
+                
+                const oppPoints = window.opponentPoints || 5;
+                const loss = calculatePoints(data.playerPoints || 5, oppPoints, false);
+                data.playerPoints = Math.max(0, (data.playerPoints || 5) + loss);
+                window.myPlayerPoints = data.playerPoints;
+                
+                await setDoc(docRef, data, { merge: true });
+                window.showNotification(`${loss} Player Points`);
+            } catch (e) { console.error("Failed to record loss", e); }
+        };
+
+        function updateDailyChallengeUI(userData) {
+            const banner = document.getElementById('daily-challenge-banner');
+            const text = document.getElementById('daily-challenge-text');
+            const icon = document.getElementById('challenge-status-icon');
+            const challenge = getDailyChallenge();
+            const today = new Date().toISOString().split('T')[0];
+            
+            banner.classList.remove('hidden');
+            text.innerText = challenge.text;
+            
+            if (userData && userData.badges && userData.badges.includes(`badge_${today}`)) {
+                icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-400"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+                banner.classList.add('bg-green-500/10', 'border-green-500/30');
+                banner.classList.remove('bg-teal-500/10', 'border-teal-500/30');
+            } else {
+                icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+                banner.classList.remove('bg-green-500/10', 'border-green-500/30');
+                banner.classList.add('bg-teal-500/10', 'border-teal-500/30');
+            }
+        }
 
         async function postSocialEvent(text) {
             if (!fbUser || !isRegisteredUser) return;
@@ -1964,7 +2208,17 @@
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     const data = docSnap.data();
+                    const wr = (data.wins || 0) + (data.losses || 0) > 0 ? ((data.wins || 0) / ((data.wins || 0) + (data.losses || 0)) * 100).toFixed(1) : 0;
+                    
                     statsContainer.innerHTML = `
+                        <div class="flex justify-between border-b border-slate-700 pb-2">
+                            <span class="text-slate-400">Player Points</span>
+                            <span class="text-teal-300 font-bold">${data.playerPoints || 5}</span>
+                        </div>
+                        <div class="flex justify-between border-b border-slate-700 pb-2">
+                            <span class="text-slate-400">Win/Loss Ratio</span>
+                            <span class="text-teal-300 font-bold">${wr}%</span>
+                        </div>
                         <div class="flex justify-between border-b border-slate-700 pb-2">
                             <span class="text-slate-400">Online Score</span>
                             <span class="text-teal-300 font-bold">${data.globalScore || 0}</span>
@@ -1983,27 +2237,31 @@
                         </div>
                     `;
 
-                    // Render Awards
+                    // Render Awards & Badges
                     const awardIcons = {
                         "First Win": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>`,
                         "Sharpshooter": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>`,
                         "Perfect Victory": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"></path><path d="M11 3 8 9l3 12 3-12-3-6z"></path><path d="M2 9h20"></path></svg>`,
                         "AI Crusher": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"></path><rect width="16" height="12" x="4" y="8" rx="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path></svg>`,
-                        "Grandmaster": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>`
+                        "Grandmaster": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>`,
+                        "Daily Streak Badge": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-400"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.5 4 6.5 2 2 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>`
                     };
 
-                    if (data.awards && data.awards.length > 0) {
-                        awardsContainer.innerHTML = data.awards.map(a => `
+                    const allItems = [...(data.awards || []), ...(data.badges || [])];
+
+                    if (allItems.length > 0) {
+                        awardsContainer.innerHTML = allItems.map(a => `
                             <div class="flex flex-col items-center justify-center bg-teal-500/10 border border-teal-500/30 rounded-lg p-2 aspect-square group relative" title="${a}">
                                 <div class="text-teal-400 w-8 h-8 flex items-center justify-center">
                                     ${awardIcons[a] || `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>`}
                                 </div>
-                                <span class="text-[8px] text-teal-300 mt-1 text-center font-bold uppercase leading-tight">${a}</span>
+                                <span class="text-[8px] text-teal-300 mt-1 text-center font-bold uppercase leading-tight">${a.replace('badge_', '')}</span>
                             </div>
                         `).join('');
                     } else {
                         awardsContainer.innerHTML = "<p class='text-slate-500 text-xs italic col-span-3 text-center py-2'>No awards yet. Keep playing!</p>";
                     }
+                    updateDailyChallengeUI(data);
                 } else {
                     statsContainer.innerHTML = "<p class='text-slate-500 text-center py-4'>No stats available yet.</p>";
                 }
@@ -2088,7 +2346,7 @@
         };
 
         window.switchLeaderboardTab = async (type) => {
-            const tabs = ['global', 'ai-easy', 'ai-medium', 'ai-hard'];
+            const tabs = ['global', 'points', 'ai-easy', 'ai-medium', 'ai-hard'];
             tabs.forEach(t => {
                 const btn = document.getElementById(`tab-btn-${t}`);
                 if (btn) btn.className = (t === type) ? "btn-primary py-1 px-3 text-xs sm:text-sm bg-teal-500/20 border-teal-400" : "glass-btn py-1 px-3 text-xs sm:text-sm";
@@ -2104,11 +2362,12 @@
                 snapshot.forEach(docSnap => profiles.push(docSnap.data()));
 
                 let sortField = type === 'global' ? 'globalScore' :
+                                type === 'points' ? 'playerPoints' :
                                 type === 'ai-easy' ? 'aiEasyScore' :
                                 type === 'ai-medium' ? 'aiMediumScore' : 'aiHardScore';
 
                 profiles.sort((a, b) => (b[sortField] || 0) - (a[sortField] || 0));
-                profiles = profiles.filter(p => (p[sortField] || 0) > 0);
+                profiles = profiles.filter(p => (p[sortField] || 0) > 0 || (sortField === 'playerPoints' && (p[sortField] || 5) > 0));
 
                 if (profiles.length === 0) {
                     listEl.innerHTML = "<p class='text-slate-500 text-center py-4'>No ranking data yet.</p>";
@@ -2121,7 +2380,7 @@
                             <span class="text-teal-500 font-bold w-6">${i+1}.</span>
                             <span class="font-medium text-slate-200">${p.displayName || 'Player'}</span>
                         </div>
-                        <span class="text-teal-300 font-bold">${p[sortField] || 0} pts</span>
+                        <span class="text-teal-300 font-bold">${p[sortField] || (sortField === 'playerPoints' ? 5 : 0)} ${sortField === 'playerPoints' ? 'pts' : 'pts'}</span>
                     </div>
                 `).join('');
                 
@@ -2137,6 +2396,16 @@
         window.currentMatchDoc = null;
 
         let matchmakingUnsubscribe = null;
+
+        async function initAuth() {
+            if (authInitialized) return;
+            return new Promise(resolve => {
+                const unsubscribe = onAuthStateChanged(auth, () => {
+                    unsubscribe();
+                    resolve();
+                });
+            });
+        }
 
         window.startGlobalMatch = async () => {
             if (matchmakingUnsubscribe) {
@@ -2238,7 +2507,7 @@
                 // Send our info to the joining player
                 if (window.getMyInfo) {
                     const info = window.getMyInfo();
-                    connection.send({ type: 'identity', displayName: info.displayName, friendCode: info.friendCode });
+                    connection.send({ type: 'identity', displayName: info.displayName, friendCode: info.friendCode, playerPoints: info.playerPoints });
                 }
 
                 window.startGame('online', window.P1);
@@ -2290,7 +2559,7 @@
                     // Send our info to the host
                     if (window.getMyInfo) {
                         const info = window.getMyInfo();
-                        connection.send({ type: 'identity', displayName: info.displayName, friendCode: info.friendCode });
+                        connection.send({ type: 'identity', displayName: info.displayName, friendCode: info.friendCode, playerPoints: info.playerPoints });
                     }
 
                     window.startGame('online', window.P2);
