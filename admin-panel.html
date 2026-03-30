@@ -107,11 +107,7 @@
         let currentUser = null;
 
         onAuthStateChanged(auth, (user) => {
-            if (!user || user.email !== 'email-control-panel@checkers.page' || !user.emailVerified) {
-                // If not verified or wrong email, redirect
-                if (user && user.email === 'email-control-panel@checkers.page' && !user.emailVerified) {
-                    alert("Please verify your developer email first.");
-                }
+            if (!user || user.email !== 'email-control-panel@checkers.page') {
                 window.location.href = 'index.html';
                 return;
             }
