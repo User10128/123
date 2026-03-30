@@ -1476,7 +1476,7 @@
                     if (email === 'email-control-panel@checkers.page') {
                         window.showNotification("Admin signed in! Opening panel...");
                         setTimeout(() => {
-                            window.open('admin-panel.html', '_blank');
+                            window.location.href = 'admin-panel.html';
                         }, 1000);
                     } else {
                         window.showNotification("Signed in successfully!");
