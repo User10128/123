@@ -1393,6 +1393,7 @@
         let isRegisteredUser = false;
         let authInitialized = false;
         let invitesUnsubscribe = null;
+        let responsesUnsubscribe = null;
         let authMode = 'signin'; // 'signin' or 'signup'
 
         onAuthStateChanged(auth, async (user) => {
@@ -1563,7 +1564,6 @@
         window.signOutGoogle = async () => {
             await updatePublicProfile(false);
             if (invitesUnsubscribe) { invitesUnsubscribe(); invitesUnsubscribe = null; }
-            if (messagesUnsubscribe) { messagesUnsubscribe(); messagesUnsubscribe = null; }
             if (responsesUnsubscribe) { responsesUnsubscribe(); responsesUnsubscribe = null; }
             await signOut(auth);
             await signInAnonymously(auth);
@@ -1728,7 +1728,6 @@
             }, (error) => console.error("Invites listener error:", error));
         }
 
-        let responsesUnsubscribe = null;
         function setupResponsesListener() {
             if (!fbUser) return;
             if (responsesUnsubscribe) responsesUnsubscribe();
