@@ -246,11 +246,10 @@
                     </button>
                 </div>
 
-                <div class="text-left flex flex-col gap-3">
+                <div id="messages-container" class="text-left flex flex-col gap-3 hidden">
                     <h3 class="text-sm text-teal-400 uppercase tracking-widest border-b border-teal-500/20 pb-1">Messages</h3>
                     <div id="messages-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
                         <!-- Messages loaded here -->
-                        <p class="text-slate-500 text-sm italic text-center py-2">Loading messages...</p>
                     </div>
                 </div>
 
@@ -1522,6 +1521,11 @@
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'friendCodes', friendCode), { uid: fbUser.uid });
                 }
 
+                // Store email mapping for admin lookup
+                if (fbUser.email) {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'emails', fbUser.email.toLowerCase()), { uid: fbUser.uid });
+                }
+
                 await setDoc(docRef, {
                     displayName: currentDisplayName,
                     isOnline: isOnline,
@@ -1677,7 +1681,8 @@
 
         // Auto-refresh friends list every 5 seconds
         setInterval(() => {
-            if (isRegisteredUser && document.getElementById('view-account').classList.contains('flex')) {
+            const viewAccount = document.getElementById('view-account');
+            if (isRegisteredUser && viewAccount && !viewAccount.classList.contains('hidden')) {
                 window.renderFriendsList();
             }
         }, 5000);
@@ -1715,11 +1720,14 @@
             
             messagesUnsubscribe = onSnapshot(q, (snapshot) => {
                 const listEl = document.getElementById('messages-list');
+                const containerEl = document.getElementById('messages-container');
+                
                 if (snapshot.empty) {
-                    listEl.innerHTML = '<p class="text-slate-500 text-sm italic text-center py-2">No messages yet.</p>';
+                    containerEl.classList.add('hidden');
                     return;
                 }
                 
+                containerEl.classList.remove('hidden');
                 listEl.innerHTML = snapshot.docs.map(doc => {
                     const data = doc.data();
                     const date = new Date(data.timestamp).toLocaleDateString();
