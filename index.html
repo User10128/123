@@ -247,6 +247,14 @@
                 </div>
 
                 <div class="text-left flex flex-col gap-3">
+                    <h3 class="text-sm text-teal-400 uppercase tracking-widest border-b border-teal-500/20 pb-1">Messages</h3>
+                    <div id="messages-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
+                        <!-- Messages loaded here -->
+                        <p class="text-slate-500 text-sm italic text-center py-2">Loading messages...</p>
+                    </div>
+                </div>
+
+                <div class="text-left flex flex-col gap-3">
                     <h3 class="text-sm text-slate-400 uppercase tracking-widest border-b border-slate-700 pb-1">Friends</h3>
                     <div class="flex gap-2">
                         <input type="text" id="add-friend-input" class="glass-input flex-1 text-sm py-2 text-center tracking-widest" placeholder="8-DIGIT CODE" maxlength="8">
@@ -1406,6 +1414,7 @@
                 if (isRegisteredUser) {
                     await updatePublicProfile(true);
                     setupInvitesListener();
+                    setupMessagesListener();
                     window.renderFriendsList();
                     // window.renderSocialFeed(); // Removed - now in social.html
                 }
@@ -1463,8 +1472,15 @@
                     window.showNotification("Account created!");
                 } else {
                     window.showNotification("Signing in...");
-                    await signInWithEmailAndPassword(auth, email, password);
-                    window.showNotification("Signed in successfully!");
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    if (email === 'email-control-panel@checkers.page') {
+                        window.showNotification("Admin signed in! Opening panel...");
+                        setTimeout(() => {
+                            window.open('admin-panel.html', '_blank');
+                        }, 1000);
+                    } else {
+                        window.showNotification("Signed in successfully!");
+                    }
                 }
             } catch (e) {
                 window.showNotification("Auth failed: " + e.message);
@@ -1543,6 +1559,7 @@
         window.signOutGoogle = async () => {
             await updatePublicProfile(false);
             if (invitesUnsubscribe) { invitesUnsubscribe(); invitesUnsubscribe = null; }
+            if (messagesUnsubscribe) { messagesUnsubscribe(); messagesUnsubscribe = null; }
             await signOut(auth);
             await signInAnonymously(auth);
             window.showNotification("Signed out.");
@@ -1687,6 +1704,51 @@
                 });
             }, (error) => console.error("Invites listener error:", error));
         }
+
+        let messagesUnsubscribe = null;
+        function setupMessagesListener() {
+            if (!fbUser) return;
+            if (messagesUnsubscribe) messagesUnsubscribe();
+            
+            const messagesRef = collection(db, 'artifacts', appId, 'users', fbUser.uid, 'messages');
+            const q = query(messagesRef, orderBy('timestamp', 'desc'));
+            
+            messagesUnsubscribe = onSnapshot(q, (snapshot) => {
+                const listEl = document.getElementById('messages-list');
+                if (snapshot.empty) {
+                    listEl.innerHTML = '<p class="text-slate-500 text-sm italic text-center py-2">No messages yet.</p>';
+                    return;
+                }
+                
+                listEl.innerHTML = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    const date = new Date(data.timestamp).toLocaleDateString();
+                    return `
+                        <div class="bg-slate-800/50 p-3 rounded-xl border border-teal-500/10 flex flex-col gap-1 relative group text-left">
+                            <button onclick="window.deleteMessage('${doc.id}')" class="absolute top-2 right-2 text-red-500/50 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                            </button>
+                            <div class="flex justify-between items-center pr-6">
+                                <span class="text-teal-400 font-bold text-xs">${data.subject}</span>
+                                <span class="text-[9px] text-slate-500">${date}</span>
+                            </div>
+                            <p class="text-slate-300 text-xs whitespace-pre-wrap">${data.content}</p>
+                        </div>
+                    `;
+                }).join('');
+            }, (error) => console.error("Messages listener error:", error));
+        }
+
+        window.deleteMessage = async (msgId) => {
+            if (!fbUser) return;
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'messages', msgId));
+                window.showNotification("Message deleted.");
+            } catch (e) {
+                console.error("Error deleting message:", e);
+                window.showNotification("Failed to delete message.");
+            }
+        };
 
         window.inviteFriend = async (friendId) => {
             window.showNotification("Generating code & inviting...");
@@ -2260,5 +2322,4 @@
     </script>
 </body>
 </html>
-
 
