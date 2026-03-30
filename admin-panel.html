@@ -106,7 +106,10 @@
             loadSentMessages();
         });
 
+        let isHistoryLoading = false;
         async function loadSentMessages() {
+            if (isHistoryLoading) return;
+            isHistoryLoading = true;
             const sentList = document.getElementById('sent-list');
             try {
                 const q = query(collection(db, 'artifacts', appId, 'admin', 'sentMessages', 'history'), orderBy('timestamp', 'desc'));
@@ -136,8 +139,17 @@
             } catch (e) {
                 console.error(e);
                 sentList.innerHTML = '<p class="text-red-400 text-center py-8">Error loading messages.</p>';
+            } finally {
+                isHistoryLoading = false;
             }
         }
+
+        // Auto-refresh sent messages every 0.5 seconds
+        setInterval(() => {
+            if (currentUser) {
+                loadSentMessages();
+            }
+        }, 500);
 
         document.getElementById('send-btn').onclick = async () => {
             const recipientInput = document.getElementById('recipient-id').value.trim();
