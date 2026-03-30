@@ -51,8 +51,8 @@
                 <h2 class="text-xl text-teal-300 mb-4 font-semibold border-b border-teal-500/20 pb-2">Send Response</h2>
                 <div class="flex flex-col gap-4">
                     <div>
-                        <label class="block text-sm text-slate-400 mb-1">Recipient Friend Code</label>
-                        <input type="text" id="recipient-code" class="glass-input w-full" placeholder="8-DIGIT CODE">
+                        <label class="block text-sm text-slate-400 mb-1">Recipient (Friend Code or Email)</label>
+                        <input type="text" id="recipient-id" class="glass-input w-full" placeholder="8-DIGIT CODE or user@example.com">
                     </div>
                     <div>
                         <label class="block text-sm text-slate-400 mb-1">Subject</label>
@@ -140,26 +140,40 @@
         }
 
         document.getElementById('send-btn').onclick = async () => {
-            const code = document.getElementById('recipient-code').value.trim();
+            const recipientInput = document.getElementById('recipient-id').value.trim();
             const subject = document.getElementById('msg-subject').value.trim();
             const content = document.getElementById('msg-content').value.trim();
 
-            if (!code || !subject || !content) {
+            if (!recipientInput || !subject || !content) {
                 alert("Please fill in all fields.");
                 return;
             }
 
             try {
-                // 1. Find user by friend code
-                const codeRef = doc(db, 'artifacts', appId, 'public', 'data', 'friendCodes', code);
-                const codeSnap = await getDoc(codeRef);
-                
-                if (!codeSnap.exists()) {
-                    alert("Friend code not found.");
-                    return;
+                let recipientUid = null;
+                let toLabel = recipientInput;
+
+                if (recipientInput.includes('@')) {
+                    // Look up by email
+                    const emailRef = doc(db, 'artifacts', appId, 'public', 'data', 'emails', recipientInput.toLowerCase());
+                    const emailSnap = await getDoc(emailRef);
+                    if (emailSnap.exists()) {
+                        recipientUid = emailSnap.data().uid;
+                    } else {
+                        alert("User with this email not found.");
+                        return;
+                    }
+                } else {
+                    // Look up by friend code
+                    const codeRef = doc(db, 'artifacts', appId, 'public', 'data', 'friendCodes', recipientInput);
+                    const codeSnap = await getDoc(codeRef);
+                    if (codeSnap.exists()) {
+                        recipientUid = codeSnap.data().uid;
+                    } else {
+                        alert("Friend code not found.");
+                        return;
+                    }
                 }
-                
-                const recipientUid = codeSnap.data().uid;
 
                 // 2. Send message to user's inbox
                 const userMsgRef = collection(db, 'artifacts', appId, 'users', recipientUid, 'messages');
@@ -174,14 +188,14 @@
                 const adminHistoryRef = collection(db, 'artifacts', appId, 'admin', 'sentMessages', 'history');
                 await addDoc(adminHistoryRef, {
                     toUid: recipientUid,
-                    toCode: code,
+                    toCode: toLabel,
                     subject,
                     content,
                     timestamp: Date.now()
                 });
 
                 alert("Message sent successfully!");
-                document.getElementById('recipient-code').value = '';
+                document.getElementById('recipient-id').value = '';
                 document.getElementById('msg-subject').value = '';
                 document.getElementById('msg-content').value = '';
                 loadSentMessages();
