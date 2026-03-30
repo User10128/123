@@ -1638,8 +1638,10 @@
             input.value = "";
         };
 
+        let isRenderingFriends = false;
         window.renderFriendsList = async () => {
-            if (!isRegisteredUser) return;
+            if (isRenderingFriends || !isRegisteredUser) return;
+            isRenderingFriends = true;
             const listEl = document.getElementById('friends-list');
             
             try {
@@ -1676,16 +1678,18 @@
             } catch(e) {
                 console.error(e);
                 listEl.innerHTML = "<p class='text-red-400 text-sm'>Failed to load friends.</p>";
+            } finally {
+                isRenderingFriends = false;
             }
         };
 
-        // Auto-refresh friends list every 5 seconds
+        // Auto-refresh friends list every 0.5 seconds
         setInterval(() => {
             const viewAccount = document.getElementById('view-account');
             if (isRegisteredUser && viewAccount && !viewAccount.classList.contains('hidden')) {
                 window.renderFriendsList();
             }
-        }, 5000);
+        }, 500);
 
         // ------------------ INVITE SYSTEM ------------------
 
