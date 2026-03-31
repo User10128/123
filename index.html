@@ -134,7 +134,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
             <span class="hidden sm:inline">Leaderboard</span>
         </button>
-        <button id="btn-notifications" onclick="document.getElementById('modal-notifications').classList.remove('hidden')" class="glass-btn p-2 sm:px-4 flex items-center gap-2 relative hidden" title="Notifications">
+        <button id="btn-notifications" onclick="window.showNotificationsModal()" class="glass-btn p-2 sm:px-4 flex items-center gap-2 relative hidden" title="Notifications">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
             <span class="hidden sm:inline">Notifications</span>
             <div id="notif-dot-top" class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-slate-900 hidden"></div>
@@ -286,13 +286,6 @@
                             <input type="text" id="add-friend-input" class="glass-input flex-1 text-sm py-2 text-center tracking-widest" placeholder="8-DIGIT CODE" maxlength="8">
                             <button onclick="window.addFriend()" class="glass-btn px-4 text-sm hover:text-teal-300">Add</button>
                         </div>
-                        <div class="flex gap-2">
-                            <input type="text" id="search-friend-input" class="glass-input flex-1 text-sm py-2 text-center" placeholder="SEARCH USERNAME">
-                            <button onclick="window.searchFriends()" class="glass-btn px-4 text-sm hover:text-teal-300">Search</button>
-                        </div>
-                    </div>
-                    <div id="search-results" class="hidden flex flex-col gap-2 p-2 bg-teal-500/5 border border-teal-500/20 rounded-lg">
-                        <!-- Search results here -->
                     </div>
                     <div id="friends-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
                         <!-- Friends loaded here -->
@@ -606,7 +599,6 @@
             <div class="flex gap-2 border-b border-slate-700/50 pb-2">
                 <button onclick="window.switchSocialTab('friends')" id="social-tab-friends" class="flex-1 py-2 text-xs uppercase tracking-widest font-bold text-teal-400 border-b-2 border-teal-400">Friends</button>
                 <button onclick="window.switchSocialTab('search')" id="social-tab-search" class="flex-1 py-2 text-xs uppercase tracking-widest font-bold text-slate-500">Search</button>
-                <button onclick="window.switchSocialTab('feed')" id="social-tab-feed" class="flex-1 py-2 text-xs uppercase tracking-widest font-bold text-slate-500">Feed</button>
             </div>
 
             <div id="social-content" class="overflow-y-auto pr-2 custom-scrollbar flex-1">
@@ -737,9 +729,17 @@
                     }
                 }
 
+                // Seeded random for daily consistency
+                const getSeededRandom = (seed) => {
+                    let x = Math.sin(seed) * 10000;
+                    return x - Math.floor(x);
+                };
+                const today = new Date().toISOString().split('T')[0];
+                const baseSeed = today.split('-').reduce((acc, val) => acc + parseInt(val), 0);
+
                 // Shuffle dark squares
                 for (let i = darkSquares.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
+                    const j = Math.floor(getSeededRandom(baseSeed + i + 100) * (i + 1));
                     [darkSquares[i], darkSquares[j]] = [darkSquares[j], darkSquares[i]];
                 }
 
@@ -1930,35 +1930,6 @@
                         </div>
                     </div>
                 `;
-            } else if (tab === 'feed') {
-                try {
-                    const feedRef = collection(db, 'artifacts', appId, 'public', 'data', 'socialFeed');
-                    const q = query(feedRef, orderBy('timestamp', 'desc'), limit(20));
-                    const snapshot = await getDocs(q);
-                    if (snapshot.empty) {
-                        content.innerHTML = "<p class='text-slate-500 text-center py-8 italic'>No recent activity.</p>";
-                    } else {
-                        content.innerHTML = `
-                            <div class="flex flex-col gap-4">
-                                ${snapshot.docs.map(d => {
-                                    const data = d.data();
-                                    const time = new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                                    return `
-                                        <div class="flex gap-3 items-start border-l-2 border-teal-500/30 pl-4 py-1">
-                                            <div class="flex flex-col">
-                                                <p class="text-xs text-slate-300">
-                                                    <span class="font-bold text-teal-400">${data.displayName}</span>
-                                                    ${data.event}
-                                                </p>
-                                                <span class="text-[10px] text-slate-500 uppercase tracking-tighter">${time}</span>
-                                            </div>
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                        `;
-                    }
-                } catch (e) { console.error(e); }
             }
         };
 
@@ -2026,13 +1997,13 @@
             const messagesRef = collection(db, 'artifacts', appId, 'users', fbUser.uid, 'messages');
             const profilesRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
             
-            let hasMessages = false;
-            let hasBadges = false;
+            let hasUnreadMessages = false;
+            let hasNewBadges = false;
 
             const updateButtonVisibility = () => {
                 const btn = document.getElementById('btn-notifications');
                 if (btn) {
-                    if (hasMessages || hasBadges) {
+                    if (hasUnreadMessages || hasNewBadges) {
                         btn.classList.remove('hidden');
                     } else {
                         btn.classList.add('hidden');
@@ -2044,7 +2015,8 @@
                 const listEl = document.getElementById('notif-messages-list');
                 if (!listEl) return;
                 
-                hasMessages = !snapshot.empty;
+                const unread = snapshot.docs.filter(d => !d.data().read);
+                hasUnreadMessages = unread.length > 0;
                 updateButtonVisibility();
 
                 if (snapshot.empty) {
@@ -2054,14 +2026,17 @@
                     listEl.innerHTML = docs.map(doc => {
                         const data = doc.data();
                         return `
-                            <div class="bg-slate-800/50 p-3 rounded-xl border border-teal-500/10 text-left">
-                                <div class="text-teal-400 font-bold text-[10px] uppercase">${data.subject || 'Message'}</div>
+                            <div class="bg-slate-800/50 p-3 rounded-xl border ${data.read ? 'border-teal-500/10 opacity-60' : 'border-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.1)]'} text-left">
+                                <div class="text-teal-400 font-bold text-[10px] uppercase flex justify-between">
+                                    <span>${data.subject || 'Message'}</span>
+                                    ${!data.read ? '<span class="text-teal-300 animate-pulse">NEW</span>' : ''}
+                                </div>
                                 <div class="text-slate-200 text-xs mt-1">${data.body || ''}</div>
                                 <div class="text-[8px] text-slate-500 mt-2">${new Date(data.timestamp).toLocaleString()}</div>
                             </div>
                         `;
                     }).join('');
-                    document.getElementById('notif-dot-top').classList.remove('hidden');
+                    if (hasUnreadMessages) document.getElementById('notif-dot-top').classList.remove('hidden');
                 }
             });
 
@@ -2074,26 +2049,53 @@
                 const awards = data.awards || [];
                 const all = [...awards, ...badges];
                 
-                hasBadges = all.length > 0;
+                const lastSeenCount = parseInt(localStorage.getItem('lastSeenBadgeCount') || '0');
+                hasNewBadges = all.length > lastSeenCount;
                 updateButtonVisibility();
 
                 if (all.length === 0) {
                     listEl.innerHTML = "<p class='text-slate-500 text-xs italic'>No badges earned yet.</p>";
                 } else {
-                    listEl.innerHTML = all.slice(-5).reverse().map(b => `
-                        <div class="bg-teal-500/5 p-2 rounded-lg border border-teal-500/20 flex items-center gap-3">
-                            <div class="w-6 h-6 text-teal-400">
-                                ${getAwardIcons()[b] || `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path></svg>`}
+                    listEl.innerHTML = all.slice(-5).reverse().map((b, idx) => {
+                        const isNew = (all.length - idx) > lastSeenCount;
+                        return `
+                            <div class="bg-teal-500/5 p-2 rounded-lg border ${isNew ? 'border-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.1)]' : 'border-teal-500/20 opacity-60'} flex items-center gap-3">
+                                <div class="w-6 h-6 text-teal-400">
+                                    ${getAwardIcons()[b] || `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path></svg>`}
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-xs text-white font-bold">${isNew ? 'New Badge Earned!' : 'Badge Earned'}</span>
+                                    <span class="text-[10px] text-teal-300">${b.replace('badge_', '')}</span>
+                                </div>
                             </div>
-                            <div class="flex flex-col">
-                                <span class="text-xs text-white font-bold">New Badge Earned!</span>
-                                <span class="text-[10px] text-teal-300">${b.replace('badge_', '')}</span>
-                            </div>
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
+                    if (hasNewBadges) document.getElementById('notif-dot-top').classList.remove('hidden');
                 }
             });
         }
+
+        window.showNotificationsModal = async () => {
+            document.getElementById('modal-notifications').classList.remove('hidden');
+            if (!fbUser) return;
+            
+            // Mark messages as read
+            const messagesRef = collection(db, 'artifacts', appId, 'users', fbUser.uid, 'messages');
+            const snapshot = await getDocs(query(messagesRef, where('read', '==', false)));
+            snapshot.forEach(d => {
+                updateDoc(d.ref, { read: true });
+            });
+
+            // Mark badges as seen
+            const docSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid));
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                const allBadges = [...(data.awards || []), ...(data.badges || [])];
+                localStorage.setItem('lastSeenBadgeCount', allBadges.length.toString());
+            }
+            
+            document.getElementById('notif-dot-top').classList.add('hidden');
+        };
 
         async function updatePublicProfile(isOnline) {
             if (!fbUser || !isRegisteredUser) return;
@@ -3091,11 +3093,18 @@
                 // If wild mode, generate rules
                 let wildRules = null;
                 if (mode === 'wild') {
+                    const getSeededRandom = (seed) => {
+                        let x = Math.sin(seed) * 10000;
+                        return x - Math.floor(x);
+                    };
+                    const today = new Date().toISOString().split('T')[0];
+                    const seed = today.split('-').reduce((acc, val) => acc + parseInt(val), 0);
+                    
                     wildRules = {
-                        randomPositions: Math.random() > 0.5,
-                        allKings: Math.random() > 0.7,
-                        noKings: Math.random() > 0.8,
-                        timedMoves: Math.random() > 0.5 ? Math.floor(Math.random() * 20) + 10 : null
+                        randomPositions: getSeededRandom(seed + 1) > 0.5,
+                        allKings: getSeededRandom(seed + 2) > 0.7,
+                        noKings: getSeededRandom(seed + 3) > 0.8,
+                        timedMoves: getSeededRandom(seed + 4) > 0.5 ? Math.floor(getSeededRandom(seed + 5) * 20) + 10 : null
                     };
                 }
 
