@@ -784,7 +784,8 @@
             return b;
         }
 
-        function startGame(mode, myPlayer = P1) {
+        function startGame(mode, myPlayer = P1, wildRules = null) {
+            gameState.wildRules = wildRules;
             gameState.mode = mode;
             gameState.myPlayer = myPlayer;
             gameState.turn = P1;
@@ -1563,7 +1564,7 @@
                     updateStatusText();
                 } else if (data.type === 'restart') {
                     document.getElementById('modal-gameover').classList.add('hidden');
-                    startGame('online', gameState.myPlayer);
+                    startGame('online', gameState.myPlayer, gameState.wildRules);
                     showNotification("Match Restarted!");
                 } else if (data.type === 'chat') {
                     showNotification("Opponent: " + data.text);
@@ -1599,9 +1600,9 @@
             document.getElementById('modal-gameover').classList.add('hidden');
             if (gameState.mode === 'online') {
                 if (conn && conn.open) conn.send({type: 'restart'});
-                startGame('online', gameState.myPlayer);
+                startGame('online', gameState.myPlayer, gameState.wildRules);
             } else {
-                startGame(gameState.mode);
+                startGame(gameState.mode, P1, gameState.wildRules);
             }
         }
 
@@ -1615,6 +1616,8 @@
             document.getElementById('modal-gameover').classList.add('hidden');
             if (conn) { conn.close(); conn = null; }
             if (peer) { peer.destroy(); peer = null; }
+            gameState.wildRules = null;
+            updateWildIndicator();
             showView('view-main-menu');
         }
 
@@ -3146,8 +3149,7 @@
                         let wildRules = null;
                         if (docSnap.exists()) wildRules = docSnap.data().wildRules;
                         
-                        gameState.wildRules = wildRules;
-                        window.startGame('online', window.P1);
+                        window.startGame('online', window.P1, wildRules);
 
                         connection.send({ 
                             type: 'identity', 
@@ -3217,7 +3219,7 @@
                     } else {
                         gameState.wildRules = null;
                     }
-                    window.startGame('online', window.P2);
+                    window.startGame('online', window.P2, gameState.wildRules);
                     window.showNotification("Connected to Match!");
                 });
                 
@@ -3253,6 +3255,8 @@
                 currentPeer.destroy();
                 window.setPeer(null);
             }
+            gameState.wildRules = null;
+            updateWildIndicator();
             window.showView('view-main-menu');
         }
 
