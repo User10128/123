@@ -308,9 +308,10 @@
                     const userMsgRef = collection(db, 'artifacts', appId, 'users', recipientUid, 'messages');
                     await addDoc(userMsgRef, {
                         subject,
-                        content,
+                        body: content, // Changed content to body to match index.html
                         timestamp: Date.now(),
-                        from: 'Admin'
+                        from: 'Admin',
+                        read: false
                     });
 
                     // 3. Record in admin history
