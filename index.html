@@ -192,13 +192,18 @@
 
         <!-- Footer Links -->
         <div class="mt-8 flex flex-wrap justify-center gap-4 text-[10px] text-slate-500 uppercase tracking-widest">
-            <button onclick="window.showFooterModal('about')" class="hover:text-teal-400 transition-colors">About</button>
+            <a href="https://checkers.page/about" target="_blank" class="hover:text-teal-400 transition-colors">About</a>
             <span class="opacity-20">|</span>
-            <button onclick="window.showFooterModal('privacy')" class="hover:text-teal-400 transition-colors">Privacy Policy</button>
+            <a href="https://checkers.page/privacy" target="_blank" class="hover:text-teal-400 transition-colors">Privacy Policy</a>
             <span class="opacity-20">|</span>
-            <button onclick="window.showFooterModal('terms')" class="hover:text-teal-400 transition-colors">Terms of Service</button>
+            <a href="https://checkers.page/service" target="_blank" class="hover:text-teal-400 transition-colors">Terms of Service</a>
             <span class="opacity-20">|</span>
             <button onclick="window.showFooterModal('contact')" class="hover:text-teal-400 transition-colors">Contact</button>
+            <span class="opacity-20">|</span>
+            <button onclick="document.getElementById('modal-notifications').classList.remove('hidden')" class="hover:text-teal-400 transition-colors flex items-center gap-1">
+                Notifications
+                <span id="notif-dot" class="hidden w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+            </button>
         </div>
     </div>
 
@@ -272,9 +277,18 @@
 
                 <div class="text-left flex flex-col gap-3">
                     <h3 class="text-sm text-slate-400 uppercase tracking-widest border-b border-slate-700 pb-1">Friends</h3>
-                    <div class="flex gap-2">
-                        <input type="text" id="add-friend-input" class="glass-input flex-1 text-sm py-2 text-center tracking-widest" placeholder="8-DIGIT CODE" maxlength="8">
-                        <button onclick="window.addFriend()" class="glass-btn px-4 text-sm hover:text-teal-300">Add</button>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex gap-2">
+                            <input type="text" id="add-friend-input" class="glass-input flex-1 text-sm py-2 text-center tracking-widest" placeholder="8-DIGIT CODE" maxlength="8">
+                            <button onclick="window.addFriend()" class="glass-btn px-4 text-sm hover:text-teal-300">Add</button>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="text" id="search-friend-input" class="glass-input flex-1 text-sm py-2 text-center" placeholder="SEARCH USERNAME">
+                            <button onclick="window.searchFriends()" class="glass-btn px-4 text-sm hover:text-teal-300">Search</button>
+                        </div>
+                    </div>
+                    <div id="search-results" class="hidden flex flex-col gap-2 p-2 bg-teal-500/5 border border-teal-500/20 rounded-lg">
+                        <!-- Search results here -->
                     </div>
                     <div id="friends-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
                         <!-- Friends loaded here -->
@@ -495,6 +509,56 @@
                 </div>
             </div>
             <button onclick="document.getElementById('modal-rules').classList.add('hidden')" class="btn-primary w-full mt-6">Got it</button>
+        </div>
+    </div>
+
+    <!-- Player Profile Modal -->
+    <div id="modal-player-profile" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[110] hidden flex items-center justify-center p-4">
+        <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-sm w-full text-center flex flex-col gap-6">
+            <div class="flex justify-between items-center border-b border-teal-500/20 pb-4">
+                <h2 id="profile-modal-name" class="text-xl text-teal-400 font-light tracking-widest uppercase">Player Profile</h2>
+                <button onclick="document.getElementById('modal-player-profile').classList.add('hidden')" class="text-slate-400 hover:text-teal-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="flex flex-col gap-2">
+                <div id="profile-modal-points" class="text-2xl text-teal-300 font-bold">0 Points</div>
+                <div id="profile-modal-stats" class="text-xs text-slate-400 uppercase tracking-widest">Wins: 0 | Losses: 0</div>
+            </div>
+            <div class="flex flex-col gap-3">
+                <h3 class="text-[10px] text-slate-500 uppercase tracking-widest font-bold text-left">Badges & Awards</h3>
+                <div id="profile-modal-badges" class="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+                    <!-- Badges injected -->
+                </div>
+            </div>
+            <button id="btn-add-friend-from-profile" class="btn-primary w-full hidden">Add Friend</button>
+        </div>
+    </div>
+
+    <!-- Notifications Modal -->
+    <div id="modal-notifications" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[110] hidden flex items-center justify-center p-4">
+        <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-md w-full flex flex-col gap-6 max-h-[90vh]">
+            <div class="flex justify-between items-center border-b border-teal-500/20 pb-4">
+                <h2 class="text-xl text-teal-400 font-light tracking-widest uppercase">Notifications</h2>
+                <button onclick="document.getElementById('modal-notifications').classList.add('hidden')" class="text-slate-400 hover:text-teal-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            
+            <div class="flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar">
+                <div class="flex flex-col gap-3">
+                    <h3 class="text-[10px] text-teal-500 uppercase tracking-widest font-bold">Email responses</h3>
+                    <div id="notif-messages-list" class="flex flex-col gap-2">
+                        <p class="text-slate-500 text-xs italic">No new messages.</p>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <h3 class="text-[10px] text-teal-500 uppercase tracking-widest font-bold">Badge Alerts</h3>
+                    <div id="notif-badges-list" class="flex flex-col gap-2">
+                        <p class="text-slate-500 text-xs italic">No new badges.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1628,11 +1692,167 @@
                 document.getElementById('account-logged-in').classList.add('flex');
                 document.getElementById('account-display-name').innerText = fbUser.displayName || 'Checkers Player';
                 document.getElementById('account-uid').innerText = fbUser.uid;
+                setupNotificationsListener();
             } else {
                 document.getElementById('account-logged-out').classList.remove('hidden');
                 document.getElementById('account-logged-in').classList.add('hidden');
                 document.getElementById('account-logged-in').classList.remove('flex');
             }
+        }
+
+        window.showPlayerProfile = async (uid) => {
+            if (!uid) return;
+            const modal = document.getElementById('modal-player-profile');
+            const nameEl = document.getElementById('profile-modal-name');
+            const pointsEl = document.getElementById('profile-modal-points');
+            const statsEl = document.getElementById('profile-modal-stats');
+            const badgesEl = document.getElementById('profile-modal-badges');
+            const addBtn = document.getElementById('btn-add-friend-from-profile');
+
+            modal.classList.remove('hidden');
+            nameEl.innerText = "Loading...";
+            pointsEl.innerText = "";
+            statsEl.innerText = "";
+            badgesEl.innerHTML = "";
+            addBtn.classList.add('hidden');
+
+            try {
+                const docSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', uid));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    nameEl.innerText = data.displayName || 'Player';
+                    pointsEl.innerText = `${data.playerPoints || 5} Points`;
+                    statsEl.innerText = `Wins: ${data.wins || 0} | Losses: ${data.losses || 0}`;
+                    
+                    const awardIcons = getAwardIcons();
+                    const allItems = [...(data.awards || []), ...(data.badges || [])];
+                    
+                    if (allItems.length > 0) {
+                        badgesEl.innerHTML = allItems.map(a => `
+                            <div class="flex flex-col items-center justify-center bg-teal-500/10 border border-teal-500/30 rounded-lg p-1 aspect-square" title="${a}">
+                                <div class="text-teal-400 w-6 h-6 flex items-center justify-center">
+                                    ${awardIcons[a] || `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path></svg>`}
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        badgesEl.innerHTML = "<p class='text-[10px] text-slate-500 italic col-span-4'>No badges yet.</p>";
+                    }
+
+                    if (fbUser && fbUser.uid !== uid) {
+                        addBtn.classList.remove('hidden');
+                        addBtn.onclick = () => window.addFriendByCode(data.friendCode);
+                    }
+                }
+            } catch (e) { console.error(e); }
+        };
+
+        window.searchFriends = async () => {
+            const input = document.getElementById('search-friend-input');
+            const resultsEl = document.getElementById('search-results');
+            const query = input.value.trim();
+            if (query.length < 3) {
+                window.showNotification("Search term too short (min 3 chars)");
+                return;
+            }
+
+            resultsEl.classList.remove('hidden');
+            resultsEl.innerHTML = "<p class='text-xs text-slate-500 italic'>Searching...</p>";
+
+            try {
+                const profilesRef = collection(db, 'artifacts', appId, 'public', 'data', 'profiles');
+                const q = query.toLowerCase();
+                const snapshot = await getDocs(profilesRef);
+                const matches = [];
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if ((data.displayName || '').toLowerCase().includes(q) && docSnap.id !== fbUser.uid) {
+                        matches.push({ uid: docSnap.id, ...data });
+                    }
+                });
+
+                if (matches.length === 0) {
+                    resultsEl.innerHTML = "<p class='text-xs text-slate-500 italic'>No users found.</p>";
+                } else {
+                    resultsEl.innerHTML = matches.slice(0, 5).map(m => `
+                        <div class="flex justify-between items-center bg-slate-800/80 p-2 rounded border border-slate-700">
+                            <span class="text-xs font-medium text-white">${m.displayName}</span>
+                            <button onclick="window.addFriendByCode('${m.friendCode}')" class="text-[10px] bg-teal-500/20 text-teal-300 px-2 py-1 rounded hover:bg-teal-500/40">Add</button>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) { console.error(e); }
+        };
+
+        function getAwardIcons() {
+            return {
+                "First Win": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>`,
+                "Sharpshooter": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>`,
+                "Perfect Victory": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"></path><path d="M11 3 8 9l3 12 3-12-3-6z"></path><path d="M2 9h20"></path></svg>`,
+                "AI Crusher": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"></path><rect width="16" height="12" x="4" y="8" rx="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path></svg>`,
+                "Grandmaster": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>`,
+                "Daily Streak Badge": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-400"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.5 4 6.5 2 2 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>`,
+                "Tactician": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>`,
+                "Speedster": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-400"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>`,
+                "Endurance": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-400"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
+                "King Maker": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-400"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>`,
+                "Socialite": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-pink-400"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`
+            };
+        }
+
+        function setupNotificationsListener() {
+            if (!fbUser) return;
+            
+            const messagesRef = collection(db, 'artifacts', appId, 'users', fbUser.uid, 'messages');
+            const profilesRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
+            
+            onSnapshot(messagesRef, (snapshot) => {
+                const listEl = document.getElementById('notif-messages-list');
+                if (!listEl) return;
+                
+                if (snapshot.empty) {
+                    listEl.innerHTML = "<p class='text-slate-500 text-xs italic'>No new messages.</p>";
+                } else {
+                    const docs = snapshot.docs.sort((a, b) => (b.data().timestamp || 0) - (a.data().timestamp || 0));
+                    listEl.innerHTML = docs.map(doc => {
+                        const data = doc.data();
+                        return `
+                            <div class="bg-slate-800/50 p-3 rounded-xl border border-teal-500/10 text-left">
+                                <div class="text-teal-400 font-bold text-[10px] uppercase">${data.subject || 'Message'}</div>
+                                <div class="text-slate-200 text-xs mt-1">${data.body || ''}</div>
+                                <div class="text-[8px] text-slate-500 mt-2">${new Date(data.timestamp).toLocaleString()}</div>
+                            </div>
+                        `;
+                    }).join('');
+                    document.getElementById('notif-dot').classList.remove('hidden');
+                }
+            });
+
+            onSnapshot(profilesRef, (docSnap) => {
+                const listEl = document.getElementById('notif-badges-list');
+                if (!listEl || !docSnap.exists()) return;
+                
+                const data = docSnap.data();
+                const badges = data.badges || [];
+                const awards = data.awards || [];
+                const all = [...awards, ...badges];
+                
+                if (all.length === 0) {
+                    listEl.innerHTML = "<p class='text-slate-500 text-xs italic'>No badges earned yet.</p>";
+                } else {
+                    listEl.innerHTML = all.slice(-5).reverse().map(b => `
+                        <div class="bg-teal-500/5 p-2 rounded-lg border border-teal-500/20 flex items-center gap-3">
+                            <div class="w-6 h-6 text-teal-400">
+                                ${getAwardIcons()[b] || `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path></svg>`}
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs text-white font-bold">New Badge Earned!</span>
+                                <span class="text-[10px] text-teal-300">${b.replace('badge_', '')}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            });
         }
 
         async function updatePublicProfile(isOnline) {
@@ -2006,7 +2226,7 @@
             // Use a few initial seeds to mix it up
             nextRand(); nextRand(); nextRand();
 
-            const type = Math.floor(nextRand() * 5);
+            const type = Math.floor(nextRand() * 8); // More types
             
             if (type === 0) {
                 const moves = 45 + Math.floor(nextRand() * 31); // 45-75
@@ -2050,6 +2270,37 @@
                         const duration = (Date.now() - (gs.startTime || Date.now())) / 60000;
                         return duration <= mins;
                     }
+                };
+            } else if (type === 4) {
+                const captures = 8 + Math.floor(nextRand() * 5); // 8-12
+                return {
+                    id: `win_captures_${captures}`,
+                    text: `Win a game after capturing at least ${captures} pieces`,
+                    check: (gs) => {
+                        if (gs.winner !== gs.myPlayer) return false;
+                        let oppCount = 0;
+                        const oppP = gs.myPlayer === P1 ? P2 : P1;
+                        for(let r=0; r<8; r++) for(let c=0; c<8; c++) if(isPlayerPiece(gs.board[r][c], oppP)) oppCount++;
+                        return (12 - oppCount) >= captures;
+                    }
+                };
+            } else if (type === 5) {
+                return {
+                    id: `win_no_kings`,
+                    text: `Win a game without letting the opponent get any kings`,
+                    check: (gs) => {
+                        if (gs.winner !== gs.myPlayer) return false;
+                        const oppKing = gs.myPlayer === P1 ? P2_KING : P1_KING;
+                        for(let r=0; r<8; r++) for(let c=0; c<8; c++) if(gs.board[r][c] === oppKing) return false;
+                        return true;
+                    }
+                };
+            } else if (type === 6) {
+                const score = 1500 + Math.floor(nextRand() * 1000); // 1500-2500
+                return {
+                    id: `win_score_${score}`,
+                    text: `Win a game with a score of at least ${score}`,
+                    check: (gs) => gs.winner === gs.myPlayer && (gs.currentLiveScore || 0) >= score
                 };
             } else {
                 const modes = ['online', 'ai'];
@@ -2168,6 +2419,23 @@
                 if (isPerfect) addAward("Perfect Victory");
                 if (mode === 'ai' && difficulty === 'hard') addAward("AI Crusher");
                 if ((data.globalScore || 0) > 5000) addAward("Grandmaster");
+
+                // More Badges
+                let myPieces = 0;
+                let myKings = 0;
+                const kingType = gameState.myPlayer === P1 ? P1_KING : P2_KING;
+                for(let r=0; r<8; r++) {
+                    for(let c=0; c<8; c++) {
+                        if(isPlayerPiece(gameState.board[r][c], gameState.myPlayer)) myPieces++;
+                        if(gameState.board[r][c] === kingType) myKings++;
+                    }
+                }
+                if (myPieces >= 5) addAward("Tactician");
+                const duration = (Date.now() - (gameState.startTime || Date.now())) / 60000;
+                if (duration <= 5) addAward("Speedster");
+                if ((gameState.moveCount || 0) >= 50) addAward("Endurance");
+                if (myKings >= 3) addAward("King Maker");
+                if ((data.friends || []).length >= 5) addAward("Socialite");
 
                 await setDoc(docRef, data, { merge: true });
                 postSocialEvent(`won a ${mode} game with a score of ${score}!`);
@@ -2313,14 +2581,7 @@
                     `;
 
                     // Render Awards & Badges
-                    const awardIcons = {
-                        "First Win": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>`,
-                        "Sharpshooter": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>`,
-                        "Perfect Victory": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"></path><path d="M11 3 8 9l3 12 3-12-3-6z"></path><path d="M2 9h20"></path></svg>`,
-                        "AI Crusher": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"></path><rect width="16" height="12" x="4" y="8" rx="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path></svg>`,
-                        "Grandmaster": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>`,
-                        "Daily Streak Badge": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-400"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.5 4 6.5 2 2 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>`
-                    };
+                    const awardIcons = getAwardIcons();
 
                     const allItems = [...(data.awards || []), ...(data.badges || [])];
 
@@ -2460,7 +2721,7 @@
                 }
 
                 let html = profiles.map((p, i) => `
-                    <div class="flex justify-between items-center border-b border-slate-700/50 py-3 px-2 ${p.displayName === fbUser.displayName ? 'bg-teal-900/20 rounded' : ''}">
+                    <div onclick="window.showPlayerProfile('${p.uid || ''}')" class="flex justify-between items-center border-b border-slate-700/50 py-3 px-2 cursor-pointer hover:bg-teal-500/10 transition-colors ${p.displayName === fbUser.displayName ? 'bg-teal-900/20 rounded' : ''}">
                         <div class="flex items-center gap-3">
                             <span class="text-teal-500 font-bold w-6">${i+1}.</span>
                             <span class="font-medium text-slate-200">${p.displayName || 'Player'}</span>
