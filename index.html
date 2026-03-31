@@ -1992,18 +1992,75 @@
 
         // ------------------ LEADERBOARD & STATS ------------------
 
-        const DAILY_CHALLENGES = [
-            { id: 'win_under_30', text: "Win a game in under 30 moves", check: (gs) => gs.winner === gs.myPlayer && gs.moveCount < 30 },
-            { id: 'win_no_loss_5', text: "Win without losing more than 5 pieces", check: (gs) => gs.winner === gs.myPlayer && (12 - gs.board.flat().filter(p => p && p.player === gs.myPlayer).length) <= 5 },
-            { id: 'win_perfect', text: "Win a perfect game (lose 0 pieces)", check: (gs) => gs.winner === gs.myPlayer && (12 - gs.board.flat().filter(p => p && p.player === gs.myPlayer).length) === 0 },
-            { id: 'win_ai_hard', text: "Defeat the AI on Hard difficulty", check: (gs) => gs.winner === P1 && gs.mode === 'ai' && gs.aiDifficulty === 'hard' },
-            { id: 'win_online', text: "Win an online matchmaking game", check: (gs) => gs.winner === gs.myPlayer && gs.mode === 'online' }
-        ];
-
         function getDailyChallenge() {
             const today = new Date().toISOString().split('T')[0];
-            const seed = today.split('-').reduce((acc, val) => acc + parseInt(val), 0);
-            return DAILY_CHALLENGES[seed % DAILY_CHALLENGES.length];
+            // Simple seed from date
+            let seed = today.split('-').reduce((acc, val, idx) => acc + (parseInt(val) * (idx + 1)), 0);
+            
+            // Simple PRNG (Park-Miller)
+            const nextRand = () => {
+                seed = (seed * 48271) % 2147483647;
+                return seed / 2147483647;
+            };
+
+            // Use a few initial seeds to mix it up
+            nextRand(); nextRand(); nextRand();
+
+            const type = Math.floor(nextRand() * 5);
+            
+            if (type === 0) {
+                const moves = 45 + Math.floor(nextRand() * 31); // 45-75
+                return {
+                    id: `win_moves_${moves}`,
+                    text: `Win a game in under ${moves} moves`,
+                    check: (gs) => gs.winner === gs.myPlayer && (gs.moveCount || 0) <= moves
+                };
+            } else if (type === 1) {
+                const lost = 6 + Math.floor(nextRand() * 4); // 6-9
+                return {
+                    id: `win_lost_${lost}`,
+                    text: `Win without losing more than ${lost} pieces`,
+                    check: (gs) => {
+                        if (gs.winner !== gs.myPlayer) return false;
+                        let count = 0;
+                        for(let r=0; r<8; r++) for(let c=0; c<8; c++) if(isPlayerPiece(gs.board[r][c], gs.myPlayer)) count++;
+                        return (12 - count) <= lost;
+                    }
+                };
+            } else if (type === 2) {
+                const kings = 1 + Math.floor(nextRand() * 3); // 1-3
+                return {
+                    id: `win_kings_${kings}`,
+                    text: `Win a game with at least ${kings} kings remaining`,
+                    check: (gs) => {
+                        if (gs.winner !== gs.myPlayer) return false;
+                        let count = 0;
+                        const kingType = gs.myPlayer === P1 ? P1_KING : P2_KING;
+                        for(let r=0; r<8; r++) for(let c=0; c<8; c++) if(gs.board[r][c] === kingType) count++;
+                        return count >= kings;
+                    }
+                };
+            } else if (type === 3) {
+                const mins = 10 + Math.floor(nextRand() * 6); // 10-15
+                return {
+                    id: `win_time_${mins}`,
+                    text: `Win a game in under ${mins} minutes`,
+                    check: (gs) => {
+                        if (gs.winner !== gs.myPlayer) return false;
+                        const duration = (Date.now() - (gs.startTime || Date.now())) / 60000;
+                        return duration <= mins;
+                    }
+                };
+            } else {
+                const modes = ['online', 'ai'];
+                const modeIdx = Math.floor(nextRand() * modes.length);
+                const mode = modes[modeIdx];
+                return {
+                    id: `win_mode_${mode}`,
+                    text: `Win a ${mode === 'ai' ? 'game against AI' : 'matchmaking game'}`,
+                    check: (gs) => gs.winner === gs.myPlayer && gs.mode === mode
+                };
+            }
         }
 
         function calculatePoints(myPoints, oppPoints, isWin) {
