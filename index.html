@@ -188,15 +188,12 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
                 Rules & Instructions
             </button>
-
-            <button onclick="window.open('about.html', '_blank')" class="glass-btn w-max mx-auto px-5 py-2 mt-2 text-sm flex items-center gap-2 border-teal-500/20 text-teal-400/80">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                About the Game
-            </button>
         </div>
 
         <!-- Footer Links -->
-        <div class="mt-8 flex gap-4 text-[10px] text-slate-500 uppercase tracking-widest">
+        <div class="mt-8 flex flex-wrap justify-center gap-4 text-[10px] text-slate-500 uppercase tracking-widest">
+            <button onclick="window.showFooterModal('about')" class="hover:text-teal-400 transition-colors">About</button>
+            <span class="opacity-20">|</span>
             <button onclick="window.showFooterModal('privacy')" class="hover:text-teal-400 transition-colors">Privacy Policy</button>
             <span class="opacity-20">|</span>
             <button onclick="window.showFooterModal('terms')" class="hover:text-teal-400 transition-colors">Terms of Service</button>
@@ -1437,7 +1434,21 @@
             const content = document.getElementById('footer-modal-content');
             const modal = document.getElementById('modal-footer');
             
-            if (type === 'privacy') {
+            if (type === 'about') {
+                title.innerText = "About Checkers";
+                content.innerHTML = `
+                    <p>Checkers (also known as Draughts) is a classic strategy board game for two players. Our version brings a modern, sleek aesthetic to this timeless game, offering both local and online play, as well as challenging AI opponents.</p>
+                    <h3 class="text-teal-400 font-bold mt-4">Features</h3>
+                    <ul class="list-disc list-inside text-slate-300 space-y-1 mt-2">
+                        <li>Global Matchmaking & Private Lobbies</li>
+                        <li>Advanced AI with multiple difficulties</li>
+                        <li>Daily Challenges & Achievement Badges</li>
+                        <li>Real-time Social Feed & Friend System</li>
+                        <li>Competitive Leaderboards & Player Points</li>
+                    </ul>
+                    <p class="mt-4 italic text-slate-400 text-sm">Developed with passion for the strategy gaming community.</p>
+                `;
+            } else if (type === 'privacy') {
                 title.innerText = "Privacy Policy";
                 content.innerHTML = `
                     <p>Your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your personal information when you use our Checkers game.</p>
@@ -1634,6 +1645,11 @@
                     window.myPlayerPoints = data.playerPoints || 5;
                     if (data.friendCode) friendCode = data.friendCode;
                     if (data.displayName) currentDisplayName = data.displayName;
+                    
+                    // Reset hidden flag when user connects
+                    if (data.hiddenFromLeaderboard) {
+                        await setDoc(docRef, { hiddenFromLeaderboard: false }, { merge: true });
+                    }
                 }
                 
                 if (!friendCode) {
@@ -2367,7 +2383,17 @@
                                 type === 'ai-medium' ? 'aiMediumScore' : 'aiHardScore';
 
                 profiles.sort((a, b) => (b[sortField] || 0) - (a[sortField] || 0));
-                profiles = profiles.filter(p => (p[sortField] || 0) > 0 || (sortField === 'playerPoints' && (p[sortField] || 5) > 0));
+                
+                // Filter: 
+                // 1. Must have a score > 0 (or points > 0)
+                // 2. Must not be hidden by admin
+                // 3. If Points tab, must have more than 5 points
+                profiles = profiles.filter(p => {
+                    if (p.hiddenFromLeaderboard) return false;
+                    const val = p[sortField] || (sortField === 'playerPoints' ? 5 : 0);
+                    if (sortField === 'playerPoints' && val <= 5) return false;
+                    return val > 0;
+                });
 
                 if (profiles.length === 0) {
                     listEl.innerHTML = "<p class='text-slate-500 text-center py-4'>No ranking data yet.</p>";
