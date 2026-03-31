@@ -598,6 +598,7 @@
             <!-- Tabs -->
             <div class="flex gap-2 border-b border-slate-700/50 pb-2">
                 <button onclick="window.switchSocialTab('friends')" id="social-tab-friends" class="flex-1 py-2 text-xs uppercase tracking-widest font-bold text-teal-400 border-b-2 border-teal-400">Friends</button>
+                <button onclick="window.switchSocialTab('requests')" id="social-tab-requests" class="flex-1 py-2 text-xs uppercase tracking-widest font-bold text-slate-500">Requests</button>
                 <button onclick="window.switchSocialTab('search')" id="social-tab-search" class="flex-1 py-2 text-xs uppercase tracking-widest font-bold text-slate-500">Search</button>
             </div>
 
@@ -1906,7 +1907,7 @@
         };
 
         window.switchSocialTab = async (tab) => {
-            const tabs = ['friends', 'search', 'feed'];
+            const tabs = ['friends', 'requests', 'search', 'feed'];
             tabs.forEach(t => {
                 const btn = document.getElementById(`social-tab-${t}`);
                 if (btn) {
@@ -1963,6 +1964,44 @@
                                 </div>
                             `;
                         }
+                    }
+                } catch (e) { console.error(e); }
+            } else if (tab === 'requests') {
+                if (!isRegisteredUser || !fbUser) {
+                    content.innerHTML = "<p class='text-slate-500 text-center py-8'>Sign in to view requests.</p>";
+                    return;
+                }
+                try {
+                    const requestsRef = collection(db, 'artifacts', appId, 'users', fbUser.uid, 'friendRequests');
+                    const snapshot = await getDocs(requestsRef);
+                    
+                    if (snapshot.empty) {
+                        content.innerHTML = "<p class='text-slate-500 text-center py-8 italic'>No pending requests.</p>";
+                    } else {
+                        content.innerHTML = `
+                            <div class="flex flex-col gap-3">
+                                ${snapshot.docs.map(docSnap => {
+                                    const data = docSnap.data();
+                                    return `
+                                        <div class="flex flex-col gap-2 bg-slate-800/50 p-3 rounded-xl border border-teal-500/20">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-400 font-bold text-xs">
+                                                    ${data.fromName ? data.fromName[0].toUpperCase() : 'P'}
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <span class="text-sm font-medium text-slate-200">${data.fromName}</span>
+                                                    <span class="text-[10px] text-slate-500">wants to be friends</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex gap-2">
+                                                <button onclick="window.acceptFriendRequest('${docSnap.id}', '${data.fromUid}', '${data.fromName}')" class="flex-1 bg-teal-500/20 text-teal-300 py-1.5 rounded-lg text-xs font-bold hover:bg-teal-500/30 transition-colors">Accept</button>
+                                                <button onclick="window.declineFriendRequest('${docSnap.id}')" class="flex-1 bg-slate-700/50 text-slate-400 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-700 transition-colors">Decline</button>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `;
                     }
                 } catch (e) { console.error(e); }
             } else if (tab === 'search') {
@@ -2227,6 +2266,16 @@
                         let friends = myPrivSnap.data().friends || [];
                         friends = friends.filter(id => id !== friendId);
                         await setDoc(myPrivRef, { friends }, { merge: true });
+                        
+                        // Notify the other user to remove us
+                        const theirMessagesRef = collection(db, 'artifacts', appId, 'users', friendId, 'messages');
+                        await addDoc(theirMessagesRef, {
+                            type: 'friendship_removed',
+                            fromUid: fbUser.uid,
+                            timestamp: Date.now(),
+                            processed: false
+                        });
+
                         window.showNotification("Friend removed.");
                         window.renderFriendsList();
                     }
@@ -2270,20 +2319,85 @@
                     return;
                 }
 
-                // Add to private friends list
+                // Check if already friends
                 const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
                 const myPrivSnap = await getDoc(myPrivRef);
-                let friends = myPrivSnap.exists() ? myPrivSnap.data().friends || [] : [];
-                
-                if (!friends.includes(friendId)) {
-                    friends.push(friendId);
-                    await setDoc(myPrivRef, { friends }, { merge: true });
-                    window.showNotification("Friend added!");
-                    window.renderFriendsList();
-                } else {
+                const friends = myPrivSnap.exists() ? (myPrivSnap.data().friends || []) : [];
+                if (friends.includes(friendId)) {
                     window.showNotification("Already on your friends list.");
+                    return;
                 }
-            } catch(e) { console.error(e); }
+
+                // Check if request already sent
+                const requestRef = doc(db, 'artifacts', appId, 'users', friendId, 'friendRequests', fbUser.uid);
+                const requestSnap = await getDoc(requestRef);
+                if (requestSnap.exists()) {
+                    window.showNotification("Friend request already sent.");
+                    return;
+                }
+
+                // Send friend request
+                await setDoc(requestRef, {
+                    fromUid: fbUser.uid,
+                    fromName: fbUser.displayName || 'Player',
+                    timestamp: Date.now()
+                });
+
+                window.showNotification("Friend request sent!");
+            } catch (e) {
+                console.error("Error adding friend:", e);
+                window.showNotification("Failed to send request.");
+            }
+        };
+
+        window.acceptFriendRequest = async (requestId, fromUid, fromName) => {
+            if (!fbUser) return;
+            try {
+                // Add to my friends list
+                const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
+                const myPrivSnap = await getDoc(myPrivRef);
+                let myFriends = myPrivSnap.exists() ? (myPrivSnap.data().friends || []) : [];
+                if (!myFriends.includes(fromUid)) {
+                    myFriends.push(fromUid);
+                    await setDoc(myPrivRef, { friends: myFriends }, { merge: true });
+                }
+
+                // Add me to their friends list (using a message/notification system)
+                // Since we can't write to their private data, we'll send a "friendship_accepted" message
+                // They will listen for this and add us back.
+                const theirMessagesRef = collection(db, 'artifacts', appId, 'users', fromUid, 'messages');
+                await addDoc(theirMessagesRef, {
+                    type: 'friendship_accepted',
+                    fromUid: fbUser.uid,
+                    fromName: fbUser.displayName || 'Player',
+                    subject: 'Friend Request Accepted',
+                    content: `${fbUser.displayName || 'Player'} accepted your friend request! You are now friends.`,
+                    timestamp: Date.now(),
+                    read: false
+                });
+
+                // Delete the request
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'friendRequests', requestId));
+                
+                window.showNotification(`You are now friends with ${fromName}!`);
+                window.switchSocialTab('friends');
+                window.renderFriendsList();
+            } catch (e) {
+                console.error("Error accepting request:", e);
+                window.showNotification("Failed to accept request.");
+            }
+        };
+
+        window.declineFriendRequest = async (requestId) => {
+            if (!fbUser) return;
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'friendRequests', requestId));
+                window.showNotification("Request declined.");
+                window.switchSocialTab('requests');
+            } catch (e) {
+                console.error("Error declining request:", e);
+                window.showNotification("Failed to decline request.");
+            }
         };
 
         window.addFriend = async () => {
@@ -2393,7 +2507,41 @@
             const responsesRef = collection(db, 'artifacts', appId, 'users', fbUser.uid, 'messages');
             // Remove orderBy to avoid index issues and handle sorting client-side
             
-            responsesUnsubscribe = onSnapshot(responsesRef, (snapshot) => {
+            responsesUnsubscribe = onSnapshot(responsesRef, async (snapshot) => {
+                snapshot.docChanges().forEach(async (change) => {
+                    if (change.type === 'added') {
+                        const data = change.doc.data();
+                        if (data.type === 'friendship_accepted' && !data.processed) {
+                            // Add them to my friends list
+                            const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
+                            const myPrivSnap = await getDoc(myPrivRef);
+                            let myFriends = myPrivSnap.exists() ? (myPrivSnap.data().friends || []) : [];
+                            if (!myFriends.includes(data.fromUid)) {
+                                myFriends.push(data.fromUid);
+                                await setDoc(myPrivRef, { friends: myFriends }, { merge: true });
+                                window.showNotification(`New Friend: ${data.fromName}`);
+                                window.renderFriendsList();
+                            }
+                            // Mark as processed
+                            await updateDoc(change.doc.ref, { processed: true, read: true });
+                        } else if (data.type === 'friendship_removed' && !data.processed) {
+                            // Remove them from my friends list
+                            const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
+                            const myPrivSnap = await getDoc(myPrivRef);
+                            if (myPrivSnap.exists()) {
+                                let myFriends = myPrivSnap.data().friends || [];
+                                if (myFriends.includes(data.fromUid)) {
+                                    myFriends = myFriends.filter(id => id !== data.fromUid);
+                                    await setDoc(myPrivRef, { friends: myFriends }, { merge: true });
+                                    window.renderFriendsList();
+                                }
+                            }
+                            // Mark as processed
+                            await updateDoc(change.doc.ref, { processed: true, read: true });
+                        }
+                    }
+                });
+
                 const listEl = document.getElementById('responses-list');
                 const containerEl = document.getElementById('responses-container');
                 
