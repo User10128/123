@@ -1863,6 +1863,14 @@
                 const docSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', uid));
                 if (docSnap.exists()) {
                     const data = docSnap.data();
+                    
+                    // Check if user is hidden from social features
+                    if (data.hiddenFromLeaderboard && uid !== fbUser?.uid) {
+                        nameEl.innerText = "Profile Hidden";
+                        statsEl.innerText = "This user is currently inactive.";
+                        return;
+                    }
+
                     nameEl.innerText = data.displayName || 'Player';
                     pointsEl.innerText = `${data.playerPoints || 5} Points`;
                     statsEl.innerText = `Wins: ${data.wins || 0} | Losses: ${data.losses || 0}`;
@@ -1886,6 +1894,8 @@
                         addBtn.classList.remove('hidden');
                         addBtn.onclick = () => window.addFriendByCode(data.friendCode);
                     }
+                } else {
+                    nameEl.innerText = "User not found";
                 }
             } catch (e) { console.error(e); }
         };
@@ -1915,9 +1925,10 @@
                     return;
                 }
                 try {
-                    const docSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid));
-                    const friends = docSnap.exists() ? (docSnap.data().friends || []) : [];
-                    if (friends.length === 0) {
+                    const myPrivSnap = await getDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data'));
+                    const friendIds = myPrivSnap.exists() ? (myPrivSnap.data().friends || []) : [];
+                    
+                    if (friendIds.length === 0) {
                         content.innerHTML = `
                             <div class="flex flex-col items-center gap-4 py-8">
                                 <p class="text-slate-500 text-center italic">No friends yet.</p>
@@ -1925,21 +1936,33 @@
                             </div>
                         `;
                     } else {
-                        content.innerHTML = `
-                            <div class="flex flex-col gap-3">
-                                ${friends.map(f => `
-                                    <div class="flex justify-between items-center bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-400 font-bold text-xs">
-                                                ${f.displayName ? f.displayName[0].toUpperCase() : 'P'}
+                        // Fetch profiles
+                        const friendPromises = friendIds.map(fid => getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fid)));
+                        const friendSnaps = await Promise.all(friendPromises);
+                        const friends = friendSnaps
+                            .filter(s => s.exists())
+                            .map(s => ({ uid: s.id, ...s.data() }))
+                            .filter(f => !f.hiddenFromLeaderboard); // Filter hidden friends
+
+                        if (friends.length === 0) {
+                            content.innerHTML = `<p class="text-slate-500 text-center py-8 italic">No active friends found.</p>`;
+                        } else {
+                            content.innerHTML = `
+                                <div class="flex flex-col gap-3">
+                                    ${friends.map(f => `
+                                        <div class="flex justify-between items-center bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-400 font-bold text-xs">
+                                                    ${f.displayName ? f.displayName[0].toUpperCase() : 'P'}
+                                                </div>
+                                                <span class="text-sm font-medium text-slate-200">${f.displayName}</span>
                                             </div>
-                                            <span class="text-sm font-medium text-slate-200">${f.displayName}</span>
+                                            <button onclick="window.showPlayerProfile('${f.uid}')" class="text-[10px] text-teal-400 hover:underline">View Profile</button>
                                         </div>
-                                        <button onclick="window.showPlayerProfile('${f.uid}')" class="text-[10px] text-teal-400 hover:underline">View Profile</button>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `;
+                                    `).join('')}
+                                </div>
+                            `;
+                        }
                     }
                 } catch (e) { console.error(e); }
             } else if (tab === 'search') {
@@ -1972,7 +1995,7 @@
                 const matches = [];
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
-                    if ((data.displayName || '').toLowerCase().includes(q) && docSnap.id !== fbUser?.uid) {
+                    if ((data.displayName || '').toLowerCase().includes(q) && docSnap.id !== fbUser?.uid && !data.hiddenFromLeaderboard) {
                         matches.push({ uid: docSnap.id, ...data });
                     }
                 });
@@ -2240,6 +2263,13 @@
                     return;
                 }
 
+                // Check if user is hidden
+                const friendSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', friendId));
+                if (friendSnap.exists() && friendSnap.data().hiddenFromLeaderboard) {
+                    window.showNotification("User not found.");
+                    return;
+                }
+
                 // Add to private friends list
                 const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
                 const myPrivSnap = await getDoc(myPrivRef);
@@ -2285,6 +2315,10 @@
                 for (let fSnap of friendSnaps) {
                     if (fSnap.exists()) {
                         let fData = fSnap.data();
+                        
+                        // Filter out hidden friends
+                        if (fData.hiddenFromLeaderboard) continue;
+
                         let fid = fSnap.id;
                         let isOnline = fData.isOnline && (Date.now() - (fData.lastSeen || 0) < 300000); // Online in last 5 mins
                         
