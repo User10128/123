@@ -627,6 +627,7 @@
             gameState.winner = null;
             gameState.startTime = Date.now();
             gameState.lastMove = null;
+            gameState.currentLiveScore = 0;
             window.opponentPoints = 5;
 
             if (mode === 'online') {
@@ -648,6 +649,7 @@
             }
 
             showView('view-game');
+            updateLiveScore();
             renderBoard();
             updateStatusText();
 
@@ -973,6 +975,7 @@
             }
 
             checkWinCondition();
+            updateLiveScore();
             renderBoard();
             updateStatusText();
 
@@ -1019,8 +1022,9 @@
             
             let flip = gameState.mode === 'online' && gameState.myPlayer === P2;
 
-            // Live Score Update
-            updateLiveScore();
+            // Display current live score
+            const scoreValEl = document.getElementById('live-score-val');
+            if (scoreValEl) scoreValEl.innerText = gameState.currentLiveScore || 0;
 
             for (let rObj = 0; rObj < 8; rObj++) {
                 let r = flip ? 7 - rObj : rObj;
@@ -1145,9 +1149,7 @@
                 multiplier = 2.0;
             }
             
-            let currentScore = Math.floor((baseScore + pieceBonus + timeBonus) * multiplier);
-            const scoreValEl = document.getElementById('live-score-val');
-            if (scoreValEl) scoreValEl.innerText = currentScore;
+            gameState.currentLiveScore = Math.floor((baseScore + pieceBonus + timeBonus) * multiplier);
         }
 
         // --- AI LOGIC ---
