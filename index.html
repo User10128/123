@@ -707,6 +707,22 @@
         };
 
         // --- GAME LOGIC ---
+        function getDailyWildRules() {
+            const getSeededRandom = (seed) => {
+                let x = Math.sin(seed) * 10000;
+                return x - Math.floor(x);
+            };
+            const today = new Date().toISOString().split('T')[0];
+            const seed = today.split('-').reduce((acc, val) => acc + parseInt(val), 0);
+            
+            return {
+                randomPositions: getSeededRandom(seed + 1) > 0.5,
+                allKings: getSeededRandom(seed + 2) > 0.7,
+                noKings: getSeededRandom(seed + 3) > 0.8,
+                timedMoves: getSeededRandom(seed + 4) > 0.5 ? Math.floor(getSeededRandom(seed + 5) * 20) + 10 : null
+            };
+        }
+
         function initBoard() {
             let b = [];
             const isWild = gameState.wildRules;
@@ -782,22 +798,7 @@
             gameState.currentLiveScore = 0;
             window.opponentPoints = 5;
 
-            const wildIndicator = document.getElementById('wild-rules-indicator');
-            if (wildIndicator) {
-                if (gameState.wildRules) {
-                    wildIndicator.classList.remove('hidden');
-                    wildIndicator.classList.add('flex');
-                    let rules = [];
-                    if (gameState.wildRules.randomPositions) rules.push("Random Board");
-                    if (gameState.wildRules.allKings) rules.push("All Kings");
-                    if (gameState.wildRules.noKings) rules.push("No Kings");
-                    if (gameState.wildRules.timedMoves) rules.push(`${gameState.wildRules.timedMoves}s Moves`);
-                    wildIndicator.innerHTML = rules.map(r => `<span>${r}</span>`).join('<span class="opacity-30">|</span>');
-                } else {
-                    wildIndicator.classList.add('hidden');
-                    wildIndicator.classList.remove('flex');
-                }
-            }
+            updateWildIndicator();
 
             if (mode === 'online') {
                 document.getElementById('btn-chat').classList.remove('hidden');
@@ -824,6 +825,25 @@
 
             if (mode === 'ai' && gameState.turn === P2) {
                 setTimeout(makeAIMove, 600);
+            }
+        }
+
+        function updateWildIndicator() {
+            const wildIndicator = document.getElementById('wild-rules-indicator');
+            if (wildIndicator) {
+                if (gameState.wildRules) {
+                    wildIndicator.classList.remove('hidden');
+                    wildIndicator.classList.add('flex');
+                    let rules = [];
+                    if (gameState.wildRules.randomPositions) rules.push("Random Board");
+                    if (gameState.wildRules.allKings) rules.push("All Kings");
+                    if (gameState.wildRules.noKings) rules.push("No Kings");
+                    if (gameState.wildRules.timedMoves) rules.push(`${gameState.wildRules.timedMoves}s Moves`);
+                    wildIndicator.innerHTML = rules.map(r => `<span>${r}</span>`).join('<span class="opacity-30">|</span>');
+                } else {
+                    wildIndicator.classList.add('hidden');
+                    wildIndicator.classList.remove('flex');
+                }
             }
         }
 
@@ -1554,6 +1574,7 @@
                     
                     if (data.wildRules) {
                         gameState.wildRules = data.wildRules;
+                        updateWildIndicator();
                     }
                     if (data.board) {
                         gameState.board = data.board;
@@ -2002,11 +2023,14 @@
 
             const updateButtonVisibility = () => {
                 const btn = document.getElementById('btn-notifications');
+                const dot = document.getElementById('notif-dot-top');
                 if (btn) {
                     if (hasUnreadMessages || hasNewBadges) {
                         btn.classList.remove('hidden');
+                        if (dot) dot.classList.remove('hidden');
                     } else {
                         btn.classList.add('hidden');
+                        if (dot) dot.classList.add('hidden');
                     }
                 }
             };
@@ -2036,7 +2060,6 @@
                             </div>
                         `;
                     }).join('');
-                    if (hasUnreadMessages) document.getElementById('notif-dot-top').classList.remove('hidden');
                 }
             });
 
@@ -2070,7 +2093,6 @@
                             </div>
                         `;
                     }).join('');
-                    if (hasNewBadges) document.getElementById('notif-dot-top').classList.remove('hidden');
                 }
             });
         }
@@ -3093,19 +3115,7 @@
                 // If wild mode, generate rules
                 let wildRules = null;
                 if (mode === 'wild') {
-                    const getSeededRandom = (seed) => {
-                        let x = Math.sin(seed) * 10000;
-                        return x - Math.floor(x);
-                    };
-                    const today = new Date().toISOString().split('T')[0];
-                    const seed = today.split('-').reduce((acc, val) => acc + parseInt(val), 0);
-                    
-                    wildRules = {
-                        randomPositions: getSeededRandom(seed + 1) > 0.5,
-                        allKings: getSeededRandom(seed + 2) > 0.7,
-                        noKings: getSeededRandom(seed + 3) > 0.8,
-                        timedMoves: getSeededRandom(seed + 4) > 0.5 ? Math.floor(getSeededRandom(seed + 5) * 20) + 10 : null
-                    };
+                    wildRules = getDailyWildRules();
                 }
 
                 await setDoc(docRef, {
@@ -3202,6 +3212,11 @@
                     }
 
                     // We'll get wildRules from the host's identity message
+                    if (mode === 'wild') {
+                        gameState.wildRules = getDailyWildRules();
+                    } else {
+                        gameState.wildRules = null;
+                    }
                     window.startGame('online', window.P2);
                     window.showNotification("Connected to Match!");
                 });
@@ -3229,8 +3244,15 @@
                 deleteDoc(window.currentMatchDoc).catch(()=>{});
                 window.currentMatchDoc = null;
             }
+            if (conn) {
+                conn.close();
+                conn = null;
+            }
             let currentPeer = window.getPeer();
-            if (currentPeer) currentPeer.destroy();
+            if (currentPeer) {
+                currentPeer.destroy();
+                window.setPeer(null);
+            }
             window.showView('view-main-menu');
         }
 
