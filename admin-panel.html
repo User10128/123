@@ -75,6 +75,34 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Player Management Section -->
+            <div class="glass-panel p-6 rounded-2xl mt-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-b border-teal-500/20 pb-2">
+                    <h2 class="text-xl text-teal-300 font-semibold">Player Management</h2>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <input type="text" id="player-search" class="glass-input text-xs py-2 flex-1 sm:w-64" placeholder="Search by name or code...">
+                        <button id="refresh-players-btn" class="btn-primary text-xs py-2 px-4">Refresh</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="text-slate-400 border-b border-slate-700/50">
+                                <th class="pb-2 font-medium">Player</th>
+                                <th class="pb-2 font-medium">Friend Code</th>
+                                <th class="pb-2 font-medium">Points</th>
+                                <th class="pb-2 font-medium text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="player-list" class="divide-y divide-slate-700/30">
+                            <tr>
+                                <td colspan="4" class="py-8 text-center text-slate-500 italic">Loading players...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -88,7 +116,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, query, orderBy, getDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, query, orderBy, getDoc, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
@@ -105,6 +133,7 @@
         const appId = 'checkers-app';
 
         let currentUser = null;
+        let allPlayers = [];
 
         onAuthStateChanged(auth, (user) => {
             if (!user || user.email !== 'email-control-panel@checkers.page') {
@@ -116,14 +145,82 @@
             document.getElementById('admin-content').classList.remove('hidden');
             loadSentMessages();
             setupSendButton();
+            loadPlayers();
             
-            // Auto-refresh sent messages every 0.5 seconds only when logged in
+            // Auto-refresh sent messages every 5 seconds
             setInterval(() => {
                 if (currentUser) {
                     loadSentMessages();
                 }
-            }, 500);
+            }, 5000);
         });
+
+        document.getElementById('refresh-players-btn').onclick = () => loadPlayers();
+        document.getElementById('player-search').oninput = (e) => renderPlayers(e.target.value);
+
+        async function loadPlayers() {
+            const listEl = document.getElementById('player-list');
+            try {
+                const q = collection(db, 'artifacts', appId, 'public', 'data', 'profiles');
+                const snap = await getDocs(q);
+                allPlayers = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+                renderPlayers();
+            } catch (e) {
+                console.error(e);
+                listEl.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-red-400">Error loading players: ${e.message}</td></tr>`;
+            }
+        }
+
+        function renderPlayers(search = '') {
+            const listEl = document.getElementById('player-list');
+            const filtered = allPlayers.filter(p => {
+                const s = search.toLowerCase();
+                return (p.displayName || '').toLowerCase().includes(s) || 
+                       (p.friendCode || '').toLowerCase().includes(s);
+            });
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-slate-500 italic">No players found.</td></tr>`;
+                return;
+            }
+
+            listEl.innerHTML = '';
+            filtered.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-slate-700/30 hover:bg-slate-800/30 transition-colors';
+                tr.innerHTML = `
+                    <td class="py-3">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-teal-100">${p.displayName || 'Anonymous'}</span>
+                            <span class="text-[10px] text-slate-500 uppercase tracking-tighter">${p.uid.substring(0, 8)}...</span>
+                        </div>
+                    </td>
+                    <td class="py-3 font-mono text-teal-400/80">${p.friendCode || '---'}</td>
+                    <td class="py-3 text-slate-300 font-medium">${p.playerPoints || 5}</td>
+                    <td class="py-3 text-right">
+                        <button onclick="window.deletePlayer('${p.uid}', '${p.displayName || 'this player'}')" 
+                                class="text-xs bg-red-500/10 text-red-400 border border-red-500/30 px-3 py-1 rounded-lg hover:bg-red-500/20 transition-all">
+                            Delete
+                        </button>
+                    </td>
+                `;
+                listEl.appendChild(tr);
+            });
+        }
+
+        window.deletePlayer = async (uid, name) => {
+            if (!confirm(`Are you sure you want to delete ${name}? They will be hidden from leaderboards until they reconnect.`)) return;
+            
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', uid);
+                await updateDoc(docRef, { hiddenFromLeaderboard: true });
+                alert(`${name} has been hidden from leaderboards.`);
+                loadPlayers();
+            } catch (e) {
+                console.error(e);
+                alert("Failed to delete player: " + e.message);
+            }
+        };
 
         let isHistoryLoading = false;
         async function loadSentMessages() {
