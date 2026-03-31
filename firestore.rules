@@ -38,13 +38,23 @@ service cloud.firestore {
         match /private/{document=**} {
           allow read, write: if isOwner(userId) || isAdmin();
         }
+
+        // Friend Requests
+        match /friendRequests/{requestId} {
+          allow read, delete: if isOwner(userId) || isAdmin();
+          allow create: if isAuthenticated() && request.resource.data.fromUid == request.auth.uid;
+        }
         
         // Messages/Responses inbox
         match /messages/{messageId} {
           // Users can read their own messages, Admin can write to them
-          allow read: if isOwner(userId) || isAdmin();
-          allow create: if isAdmin();
-          allow delete: if isOwner(userId) || isAdmin();
+          // Also allow users to send friendship_accepted and friendship_removed notifications
+          allow read, delete: if isOwner(userId) || isAdmin();
+          allow create: if isAdmin() || (
+            isAuthenticated() && 
+            request.resource.data.fromUid == request.auth.uid &&
+            (request.resource.data.type == 'friendship_accepted' || request.resource.data.type == 'friendship_removed')
+          );
         }
         
         // Stats
