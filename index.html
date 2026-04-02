@@ -709,19 +709,40 @@
 
         // --- GAME LOGIC ---
         function getDailyWildRules() {
-            const getSeededRandom = (seed) => {
-                let x = Math.sin(seed) * 10000;
-                return x - Math.floor(x);
-            };
             const today = new Date().toISOString().split('T')[0];
-            const seed = parseInt(today.replace(/-/g, ''));
+            let seed = 0;
+            for (let i = 0; i < today.length; i++) {
+                seed = ((seed << 5) - seed) + today.charCodeAt(i);
+                seed |= 0;
+            }
+            seed = Math.abs(seed);
             
-            return {
-                randomPositions: getSeededRandom(seed + 1) > 0.5,
-                allKings: getSeededRandom(seed + 2) > 0.7,
-                noKings: getSeededRandom(seed + 3) > 0.8,
-                timedMoves: getSeededRandom(seed + 4) > 0.5 ? Math.floor(getSeededRandom(seed + 5) * 20) + 10 : null
+            const nextRand = () => {
+                seed = (seed * 48271) % 2147483647;
+                return seed / 2147483647;
             };
+
+            // Warm up
+            nextRand(); nextRand(); nextRand();
+
+            let rules = {
+                randomPositions: nextRand() > 0.5,
+                allKings: nextRand() > 0.7,
+                noKings: nextRand() > 0.8,
+                timedMoves: nextRand() > 0.5 ? Math.floor(nextRand() * 20) + 10 : null
+            };
+
+            // Ensure at least one rule is active for Wild Mode
+            if (!rules.randomPositions && !rules.allKings && !rules.noKings && !rules.timedMoves) {
+                rules.randomPositions = true;
+            }
+            
+            // Mutually exclusive kings rules
+            if (rules.allKings && rules.noKings) {
+                rules.noKings = false;
+            }
+
+            return rules;
         }
 
         function initBoard() {
@@ -747,12 +768,18 @@
                 }
 
                 // Seeded random for daily consistency
-                const getSeededRandom = (seed) => {
-                    let x = Math.sin(seed) * 10000;
+                const today = new Date().toISOString().split('T')[0];
+                let baseSeed = 0;
+                for (let i = 0; i < today.length; i++) {
+                    baseSeed = ((baseSeed << 5) - baseSeed) + today.charCodeAt(i);
+                    baseSeed |= 0;
+                }
+                baseSeed = Math.abs(baseSeed);
+
+                const getSeededRandom = (s) => {
+                    let x = Math.sin(s) * 10000;
                     return x - Math.floor(x);
                 };
-                const today = new Date().toISOString().split('T')[0];
-                const baseSeed = parseInt(today.replace(/-/g, ''));
 
                 // Shuffle dark squares
                 for (let i = darkSquares.length - 1; i > 0; i--) {
@@ -2633,8 +2660,12 @@
 
         function getDailyChallenge() {
             const today = new Date().toISOString().split('T')[0];
-            // Better seed from date
-            let seed = parseInt(today.replace(/-/g, ''));
+            let seed = 0;
+            for (let i = 0; i < today.length; i++) {
+                seed = ((seed << 5) - seed) + today.charCodeAt(i);
+                seed |= 0;
+            }
+            seed = Math.abs(seed);
             
             // Simple PRNG (Park-Miller)
             const nextRand = () => {
