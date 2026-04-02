@@ -1701,7 +1701,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, updateProfile, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, getDoc, onSnapshot, query, where, updateDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, getDoc, onSnapshot, query, where, updateDoc, orderBy, limit, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
@@ -2223,35 +2223,32 @@
             if (!isRegisteredUser || !fbUser) return;
             showConfirm("Are you sure you want to remove this friend?", async () => {
                 try {
-                    const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
-                    const myPrivSnap = await getDoc(myPrivRef);
-                    if (myPrivSnap.exists()) {
-                        let friends = myPrivSnap.data().friends || [];
-                        if (!friends.includes(friendId)) {
-                            window.showNotification("Friend already removed.");
-                            return;
-                        }
-                        friends = friends.filter(id => id !== friendId);
-                        await setDoc(myPrivRef, { friends }, { merge: true });
-                        
-                        // Notify the other user to remove us
-                        const theirMessagesRef = collection(db, 'artifacts', appId, 'users', friendId, 'messages');
-                        await addDoc(theirMessagesRef, {
-                            type: 'friendship_removed',
-                            fromUid: fbUser.uid,
-                            fromName: fbUser.displayName || 'Player',
-                            subject: 'Friendship Ended',
-                            content: `${fbUser.displayName || 'Player'} has removed you from their friends list.`,
-                            timestamp: Date.now(),
-                            processed: false,
-                            read: false
-                        });
+                    // 1. Immediately notify the other user (prioritize speed)
+                    const theirMessagesRef = collection(db, 'artifacts', appId, 'users', friendId, 'messages');
+                    const notifyPromise = addDoc(theirMessagesRef, {
+                        type: 'friendship_removed',
+                        fromUid: fbUser.uid,
+                        fromName: fbUser.displayName || 'Player',
+                        subject: 'Friendship Ended',
+                        content: `${fbUser.displayName || 'Player'} has removed you from their friends list.`,
+                        timestamp: Date.now(),
+                        processed: false,
+                        read: false
+                    });
 
-                        window.showNotification("Friend removed successfully.");
-                        window.renderFriendsList();
-                        if (document.getElementById('modal-social').classList.contains('hidden') === false) {
-                            window.switchSocialTab('friends');
-                        }
+                    // 2. Remove from my friends list locally
+                    const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
+                    const updatePromise = updateDoc(myPrivRef, {
+                        friends: arrayRemove(friendId)
+                    });
+
+                    // Wait for both but show success quickly
+                    await Promise.all([notifyPromise, updatePromise]);
+
+                    window.showNotification("Friend removed successfully.");
+                    window.renderFriendsList();
+                    if (document.getElementById('modal-social').classList.contains('hidden') === false) {
+                        window.switchSocialTab('friends');
                     }
                 } catch (e) {
                     console.error("Error removing friend:", e);
@@ -2327,18 +2324,9 @@
         window.acceptFriendRequest = async (requestId, fromUid, fromName) => {
             if (!fbUser) return;
             try {
-                // 1. Add to my friends list
-                const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
-                const myPrivSnap = await getDoc(myPrivRef);
-                let myFriends = myPrivSnap.exists() ? (myPrivSnap.data().friends || []) : [];
-                if (!myFriends.includes(fromUid)) {
-                    myFriends.push(fromUid);
-                    await setDoc(myPrivRef, { friends: myFriends }, { merge: true });
-                }
-
-                // 2. Add me to their friends list (using a message/notification system)
+                // 1. IMMEDIATELY notify the requester (Zero delay)
                 const theirMessagesRef = collection(db, 'artifacts', appId, 'users', fromUid, 'messages');
-                await addDoc(theirMessagesRef, {
+                const notifyPromise = addDoc(theirMessagesRef, {
                     type: 'friendship_accepted',
                     fromUid: fbUser.uid,
                     fromName: fbUser.displayName || 'Player',
@@ -2349,14 +2337,24 @@
                     read: false
                 });
 
+                // 2. Update my friends list locally
+                const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
+                const updatePromise = updateDoc(myPrivRef, {
+                    friends: arrayUnion(fromUid)
+                });
+
                 // 3. Delete the request
-                await deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'friendRequests', requestId));
+                const deletePromise = deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'friendRequests', requestId));
+                
+                // Fire all operations in parallel for maximum speed
+                await Promise.all([notifyPromise, updatePromise, deletePromise]);
                 
                 window.showNotification(`Success! You are now friends with ${fromName}.`);
                 window.switchSocialTab('friends');
                 window.renderFriendsList();
             } catch (e) {
                 console.error("CRITICAL ERROR accepting request:", e);
+                // Only show error if it's a real failure, and don't make it the first thing
                 if (e.code === 'permission-denied') {
                     window.showNotification("Permission Denied: You are not authorized to accept this request.");
                 } else {
@@ -2487,32 +2485,24 @@
                         try {
                             if (data.type === 'friendship_accepted' && !data.processed) {
                                 console.log("Processing friendship_accepted from:", data.fromUid);
-                                // Add them to my friends list
+                                // Add them to my friends list using arrayUnion for speed
                                 const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
-                                const myPrivSnap = await getDoc(myPrivRef);
-                                let myFriends = myPrivSnap.exists() ? (myPrivSnap.data().friends || []) : [];
-                                if (!myFriends.includes(data.fromUid)) {
-                                    myFriends.push(data.fromUid);
-                                    await setDoc(myPrivRef, { friends: myFriends }, { merge: true });
-                                    window.showNotification(`New Friend: ${data.fromName || 'Player'}`);
-                                    window.renderFriendsList();
-                                }
+                                await updateDoc(myPrivRef, {
+                                    friends: arrayUnion(data.fromUid)
+                                });
+                                window.showNotification(`New Friend: ${data.fromName || 'Player'}`);
+                                window.renderFriendsList();
                                 // Mark as processed
                                 await updateDoc(change.doc.ref, { processed: true, read: true });
                             } else if (data.type === 'friendship_removed' && !data.processed) {
                                 console.log("Processing friendship_removed from:", data.fromUid);
-                                // Remove them from my friends list
+                                // Remove them from my friends list using arrayRemove for speed
                                 const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
-                                const myPrivSnap = await getDoc(myPrivRef);
-                                if (myPrivSnap.exists()) {
-                                    let myFriends = myPrivSnap.data().friends || [];
-                                    if (myFriends.includes(data.fromUid)) {
-                                        myFriends = myFriends.filter(id => id !== data.fromUid);
-                                        await setDoc(myPrivRef, { friends: myFriends }, { merge: true });
-                                        window.showNotification(`Friendship ended with ${data.fromName || 'a player'}`);
-                                        window.renderFriendsList();
-                                    }
-                                }
+                                await updateDoc(myPrivRef, {
+                                    friends: arrayRemove(data.fromUid)
+                                });
+                                window.showNotification(`Friendship ended with ${data.fromName || 'a player'}`);
+                                window.renderFriendsList();
                                 // Mark as processed
                                 await updateDoc(change.doc.ref, { processed: true, read: true });
                             }
