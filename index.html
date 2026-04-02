@@ -1724,43 +1724,6 @@
         let responsesUnsubscribe = null;
         let authMode = 'signin'; // 'signin' or 'signup'
 
-        onAuthStateChanged(auth, async (user) => {
-            if (!user && !authInitialized) {
-                authInitialized = true;
-                try {
-                    await signInAnonymously(auth);
-                } catch(e) { console.error("Anon sign in failed", e); }
-                return; 
-            }
-            
-            authInitialized = true;
-            fbUser = user;
-            if (user) {
-                isRegisteredUser = !user.isAnonymous;
-                updateAccountUI();
-                
-                if (isRegisteredUser) {
-                    await updatePublicProfile(true);
-                    setupInvitesListener();
-                    setupResponsesListener();
-                    
-                    // Fetch profile for daily challenge UI
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
-                    const docSnap = await getDoc(docRef);
-                    if (docSnap.exists()) {
-                        updateDailyChallengeUI(docSnap.data());
-                    } else {
-                        updateDailyChallengeUI(null);
-                    }
-                    
-                    window.renderFriendsList();
-                    // window.renderSocialFeed(); // Removed - now in social.html
-                }
-            } else {
-                updateAccountUI();
-            }
-        });
-
         window.isRegisteredUser = () => isRegisteredUser;
 
         window.getMyInfo = () => {
@@ -1994,8 +1957,8 @@
                                                 </div>
                                             </div>
                                             <div class="flex gap-2">
-                                                <button onclick="window.acceptFriendRequest('${docSnap.id}', '${data.fromUid}', '${data.fromName}')" class="flex-1 bg-teal-500/20 text-teal-300 py-1.5 rounded-lg text-xs font-bold hover:bg-teal-500/30 transition-colors">Accept</button>
-                                                <button onclick="window.declineFriendRequest('${docSnap.id}')" class="flex-1 bg-slate-700/50 text-slate-400 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-700 transition-colors">Decline</button>
+                                                <button onclick="window.acceptFriendRequest('${docSnap.id}', '${data.fromUid}', '${data.fromName}')" class="flex-1 bg-teal-500/20 text-teal-300 py-3 rounded-lg text-xs font-bold hover:bg-teal-500/30 transition-colors">Accept</button>
+                                                <button onclick="window.declineFriendRequest('${docSnap.id}')" class="flex-1 bg-slate-700/50 text-slate-400 py-3 rounded-lg text-xs font-bold hover:bg-slate-700 transition-colors">Decline</button>
                                             </div>
                                         </div>
                                     `;
@@ -2264,6 +2227,10 @@
                     const myPrivSnap = await getDoc(myPrivRef);
                     if (myPrivSnap.exists()) {
                         let friends = myPrivSnap.data().friends || [];
+                        if (!friends.includes(friendId)) {
+                            window.showNotification("Friend already removed.");
+                            return;
+                        }
                         friends = friends.filter(id => id !== friendId);
                         await setDoc(myPrivRef, { friends }, { merge: true });
                         
@@ -2272,16 +2239,23 @@
                         await addDoc(theirMessagesRef, {
                             type: 'friendship_removed',
                             fromUid: fbUser.uid,
+                            fromName: fbUser.displayName || 'Player',
+                            subject: 'Friendship Ended',
+                            content: `${fbUser.displayName || 'Player'} has removed you from their friends list.`,
                             timestamp: Date.now(),
-                            processed: false
+                            processed: false,
+                            read: false
                         });
 
-                        window.showNotification("Friend removed.");
+                        window.showNotification("Friend removed successfully.");
                         window.renderFriendsList();
+                        if (document.getElementById('modal-social').classList.contains('hidden') === false) {
+                            window.switchSocialTab('friends');
+                        }
                     }
                 } catch (e) {
                     console.error("Error removing friend:", e);
-                    window.showNotification("Failed to remove friend.");
+                    window.showNotification("Failed to remove friend. Please try again.");
                 }
             });
         };
@@ -2353,7 +2327,7 @@
         window.acceptFriendRequest = async (requestId, fromUid, fromName) => {
             if (!fbUser) return;
             try {
-                // Add to my friends list
+                // 1. Add to my friends list
                 const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
                 const myPrivSnap = await getDoc(myPrivRef);
                 let myFriends = myPrivSnap.exists() ? (myPrivSnap.data().friends || []) : [];
@@ -2362,9 +2336,7 @@
                     await setDoc(myPrivRef, { friends: myFriends }, { merge: true });
                 }
 
-                // Add me to their friends list (using a message/notification system)
-                // Since we can't write to their private data, we'll send a "friendship_accepted" message
-                // They will listen for this and add us back.
+                // 2. Add me to their friends list (using a message/notification system)
                 const theirMessagesRef = collection(db, 'artifacts', appId, 'users', fromUid, 'messages');
                 await addDoc(theirMessagesRef, {
                     type: 'friendship_accepted',
@@ -2373,18 +2345,19 @@
                     subject: 'Friend Request Accepted',
                     content: `${fbUser.displayName || 'Player'} accepted your friend request! You are now friends.`,
                     timestamp: Date.now(),
+                    processed: false,
                     read: false
                 });
 
-                // Delete the request
+                // 3. Delete the request
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'friendRequests', requestId));
                 
-                window.showNotification(`You are now friends with ${fromName}!`);
+                window.showNotification(`Success! You are now friends with ${fromName}.`);
                 window.switchSocialTab('friends');
                 window.renderFriendsList();
             } catch (e) {
                 console.error("Error accepting request:", e);
-                window.showNotification("Failed to accept request.");
+                window.showNotification("Error: Could not accept request. Please check your connection.");
             }
         };
 
@@ -2443,9 +2416,9 @@
                                     <span class="text-sm font-medium ${isOnline ? 'text-white' : 'text-slate-400'}">${fData.displayName || 'Player'}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    ${isOnline ? `<button onclick="window.inviteFriend('${fid}')" class="text-xs bg-teal-500/20 text-teal-300 px-2 py-1 rounded hover:bg-teal-500/40">Invite</button>` : `<span class="text-xs text-slate-500">Offline</span>`}
-                                    <button onclick="window.deleteFriend('${fid}')" class="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded hover:bg-red-500/40" title="Remove Friend">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                                    ${isOnline ? `<button onclick="window.inviteFriend('${fid}')" class="text-xs bg-teal-500/20 text-teal-300 px-3 py-2 rounded hover:bg-teal-500/40">Invite</button>` : `<span class="text-xs text-slate-500">Offline</span>`}
+                                    <button onclick="window.deleteFriend('${fid}')" class="p-2 bg-red-500/20 text-red-400 rounded hover:bg-red-500/40" title="Remove Friend">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
                                     </button>
                                 </div>
                             </div>
@@ -2461,21 +2434,18 @@
             }
         };
 
-        // Auto-refresh friends list and responses every 0.5 seconds
+        // Auto-refresh friends list and responses every 5 seconds (reduced frequency)
         setInterval(() => {
             const viewAccount = document.getElementById('view-account');
             if (isRegisteredUser && viewAccount && !viewAccount.classList.contains('hidden')) {
                 window.renderFriendsList();
                 
-                // Also ensure responses listener is active or force a refresh if empty
-                const listEl = document.getElementById('responses-list');
-                if (!listEl || listEl.children.length === 0) {
-                    if (!responsesUnsubscribe) {
-                        setupResponsesListener();
-                    }
+                // Only ensure responses listener is active
+                if (!responsesUnsubscribe) {
+                    setupResponsesListener();
                 }
             }
-        }, 500);
+        }, 5000);
 
         // ------------------ INVITE SYSTEM ------------------
 
@@ -2533,6 +2503,7 @@
                                 if (myFriends.includes(data.fromUid)) {
                                     myFriends = myFriends.filter(id => id !== data.fromUid);
                                     await setDoc(myPrivRef, { friends: myFriends }, { merge: true });
+                                    window.showNotification(`Friendship ended with ${data.fromName || 'a player'}`);
                                     window.renderFriendsList();
                                 }
                             }
@@ -3467,6 +3438,42 @@
                 }, 500);
             }
         }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user && !authInitialized) {
+                authInitialized = true;
+                try {
+                    await signInAnonymously(auth);
+                } catch(e) { console.error("Anon sign in failed", e); }
+                return; 
+            }
+            
+            authInitialized = true;
+            fbUser = user;
+            if (user) {
+                isRegisteredUser = !user.isAnonymous;
+                updateAccountUI();
+                
+                if (isRegisteredUser) {
+                    await updatePublicProfile(true);
+                    setupInvitesListener();
+                    setupResponsesListener();
+                    
+                    // Fetch profile for daily challenge UI
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        updateDailyChallengeUI(docSnap.data());
+                    } else {
+                        updateDailyChallengeUI(null);
+                    }
+                    
+                    window.renderFriendsList();
+                }
+            } else {
+                updateAccountUI();
+            }
+        });
     </script>
 </body>
 </html>
