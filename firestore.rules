@@ -25,10 +25,31 @@ service cloud.firestore {
         allow read, write: if isAdmin();
       }
       
-      // Public data - readable by anyone, writable by admin
+      // Public data - readable by anyone
       match /public/{allPaths=**} {
         allow read: if true;
         allow write: if isAdmin();
+      }
+
+      // Specific public collections that users need to write to
+      match /public/data/matchmaking/{matchId} {
+        allow write: if isAuthenticated();
+      }
+
+      match /public/data/friendCodes/{code} {
+        allow write: if isAuthenticated();
+      }
+
+      match /public/data/emails/{email} {
+        allow write: if isAuthenticated();
+      }
+
+      match /public/data/profiles/{profileId} {
+        allow write: if isOwner(profileId) || isAdmin();
+      }
+
+      match /public/data/socialFeed/{feedId} {
+        allow write: if isAuthenticated();
       }
       
       // User specific data
