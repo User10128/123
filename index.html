@@ -1982,7 +1982,6 @@
                             <div class="flex flex-col gap-3">
                                 ${snapshot.docs.map(docSnap => {
                                     const data = docSnap.data();
-                                    const escapedName = (data.fromName || 'Player').replace(/'/g, "\\'");
                                     return `
                                         <div class="flex flex-col gap-2 bg-slate-800/50 p-3 rounded-xl border border-teal-500/20">
                                             <div class="flex items-center gap-3">
@@ -1995,7 +1994,7 @@
                                                 </div>
                                             </div>
                                             <div class="flex gap-2">
-                                                <button onclick="window.acceptFriendRequest('${docSnap.id}', '${data.fromUid}', '${escapedName}')" class="flex-1 bg-teal-500/20 text-teal-300 py-1.5 rounded-lg text-xs font-bold hover:bg-teal-500/30 transition-colors">Accept</button>
+                                                <button onclick="window.acceptFriendRequest('${docSnap.id}', '${data.fromUid}', '${data.fromName}')" class="flex-1 bg-teal-500/20 text-teal-300 py-1.5 rounded-lg text-xs font-bold hover:bg-teal-500/30 transition-colors">Accept</button>
                                                 <button onclick="window.declineFriendRequest('${docSnap.id}')" class="flex-1 bg-slate-700/50 text-slate-400 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-700 transition-colors">Decline</button>
                                             </div>
                                         </div>
@@ -2257,38 +2256,6 @@
             window.showNotification("Signed out.");
         };
 
-        const OperationType = {
-            CREATE: 'create',
-            UPDATE: 'update',
-            DELETE: 'delete',
-            LIST: 'list',
-            GET: 'get',
-            WRITE: 'write',
-        };
-
-        function handleFirestoreError(error, operationType, path) {
-            const errInfo = {
-                error: error instanceof Error ? error.message : String(error),
-                authInfo: {
-                    userId: auth.currentUser?.uid,
-                    email: auth.currentUser?.email,
-                    emailVerified: auth.currentUser?.emailVerified,
-                    isAnonymous: auth.currentUser?.isAnonymous,
-                    tenantId: auth.currentUser?.tenantId,
-                    providerInfo: auth.currentUser?.providerData.map(provider => ({
-                        providerId: provider.providerId,
-                        displayName: provider.displayName,
-                        email: provider.email,
-                        photoUrl: provider.photoURL
-                    })) || []
-                },
-                operationType,
-                path
-            };
-            console.error('Firestore Error: ', JSON.stringify(errInfo));
-            throw new Error(JSON.stringify(errInfo));
-        }
-
         window.deleteFriend = async (friendId) => {
             if (!isRegisteredUser || !fbUser) return;
             showConfirm("Are you sure you want to remove this friend?", async () => {
@@ -2305,7 +2272,6 @@
                         await addDoc(theirMessagesRef, {
                             type: 'friendship_removed',
                             fromUid: fbUser.uid,
-                            fromName: fbUser.displayName || 'Player',
                             timestamp: Date.now(),
                             processed: false
                         });
@@ -2316,7 +2282,6 @@
                 } catch (e) {
                     console.error("Error removing friend:", e);
                     window.showNotification("Failed to remove friend.");
-                    handleFirestoreError(e, OperationType.WRITE, `users/${fbUser.uid}/private/data`);
                 }
             });
         };
@@ -2382,13 +2347,11 @@
             } catch (e) {
                 console.error("Error adding friend:", e);
                 window.showNotification("Failed to send request.");
-                handleFirestoreError(e, OperationType.WRITE, `users/${friendId}/friendRequests/${fbUser.uid}`);
             }
         };
 
         window.acceptFriendRequest = async (requestId, fromUid, fromName) => {
             if (!fbUser) return;
-            window.showNotification("Processing acceptance...");
             try {
                 // Add to my friends list
                 const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
@@ -2400,6 +2363,8 @@
                 }
 
                 // Add me to their friends list (using a message/notification system)
+                // Since we can't write to their private data, we'll send a "friendship_accepted" message
+                // They will listen for this and add us back.
                 const theirMessagesRef = collection(db, 'artifacts', appId, 'users', fromUid, 'messages');
                 await addDoc(theirMessagesRef, {
                     type: 'friendship_accepted',
@@ -2408,8 +2373,7 @@
                     subject: 'Friend Request Accepted',
                     content: `${fbUser.displayName || 'Player'} accepted your friend request! You are now friends.`,
                     timestamp: Date.now(),
-                    read: false,
-                    processed: false
+                    read: false
                 });
 
                 // Delete the request
@@ -2421,13 +2385,11 @@
             } catch (e) {
                 console.error("Error accepting request:", e);
                 window.showNotification("Failed to accept request.");
-                handleFirestoreError(e, OperationType.WRITE, `users/${fbUser.uid}/friendRequests/${requestId}`);
             }
         };
 
         window.declineFriendRequest = async (requestId) => {
             if (!fbUser) return;
-            window.showNotification("Processing decline...");
             try {
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'friendRequests', requestId));
                 window.showNotification("Request declined.");
@@ -2435,7 +2397,6 @@
             } catch (e) {
                 console.error("Error declining request:", e);
                 window.showNotification("Failed to decline request.");
-                handleFirestoreError(e, OperationType.DELETE, `users/${fbUser.uid}/friendRequests/${requestId}`);
             }
         };
 
@@ -2572,7 +2533,6 @@
                                 if (myFriends.includes(data.fromUid)) {
                                     myFriends = myFriends.filter(id => id !== data.fromUid);
                                     await setDoc(myPrivRef, { friends: myFriends }, { merge: true });
-                                    window.showNotification(`Friendship ended with ${data.fromName || 'a player'}`);
                                     window.renderFriendsList();
                                 }
                             }
@@ -3317,7 +3277,6 @@
                     console.error("Matchmaking error:", error);
                     window.showNotification("Matchmaking failed.");
                     window.showView('view-main-menu');
-                    handleFirestoreError(error, OperationType.LIST, 'public/data/matchmaking');
                 });
 
             } catch (error) {
@@ -3336,31 +3295,24 @@
             window.setPeer(newPeer);
 
             newPeer.on('open', async (id) => {
-                try {
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', id);
-                    
-                    // If wild mode, generate rules
-                    let wildRules = null;
-                    if (mode === 'wild') {
-                        wildRules = getDailyWildRules();
-                    }
-
-                    await setDoc(docRef, {
-                        peerId: id,
-                        status: 'waiting',
-                        timestamp: Date.now(),
-                        mode: mode,
-                        wildRules: wildRules
-                    });
-
-                    window.currentMatchDoc = docRef;
-                    document.getElementById('matchmaking-status-text').innerText = "Waiting for an opponent to join...";
-                } catch (e) {
-                    console.error("Error hosting game:", e);
-                    window.showNotification("Failed to create lobby.");
-                    handleFirestoreError(e, OperationType.WRITE, `public/data/matchmaking/${id}`);
-                    window.showView('view-main-menu');
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', id);
+                
+                // If wild mode, generate rules
+                let wildRules = null;
+                if (mode === 'wild') {
+                    wildRules = getDailyWildRules();
                 }
+
+                await setDoc(docRef, {
+                    peerId: id,
+                    status: 'waiting',
+                    timestamp: Date.now(),
+                    mode: mode,
+                    wildRules: wildRules
+                });
+
+                window.currentMatchDoc = docRef;
+                document.getElementById('matchmaking-status-text').innerText = "Waiting for an opponent to join...";
             });
 
             newPeer.on('connection', (connection) => {
