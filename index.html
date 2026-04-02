@@ -1703,18 +1703,20 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, updateProfile, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, getDoc, onSnapshot, query, where, updateDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Load Firebase config from the provisioned file
         const firebaseConfig = {
-            apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
-            authDomain: "auth.checkers.page",
-            projectId: "checkers-matchmaking-5ac55",
-            storageBucket: "checkers-matchmaking-5ac55.firebasestorage.app",
-            messagingSenderId: "778086491027",
-            appId: "1:778086491027:web:c315fd9d97aebae6087e66"
+            apiKey: "AIzaSyBsQwWy7VvUVKpzt7dwHhEJf60ze01HGdI",
+            authDomain: "gen-lang-client-0045227220.firebaseapp.com",
+            projectId: "gen-lang-client-0045227220",
+            storageBucket: "gen-lang-client-0045227220.firebasestorage.app",
+            messagingSenderId: "688944824025",
+            appId: "1:688944824025:web:a09e05512d7884a18808c8"
         };
+        const firestoreDatabaseId = "ai-studio-6d99ba94-dfa3-4627-adde-eb5fcd3cb801";
         
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
+        const db = getFirestore(app, firestoreDatabaseId);
         const appId = 'checkers-app';
 
         let fbUser = null;
@@ -2256,6 +2258,38 @@
             window.showNotification("Signed out.");
         };
 
+        const OperationType = {
+            CREATE: 'create',
+            UPDATE: 'update',
+            DELETE: 'delete',
+            LIST: 'list',
+            GET: 'get',
+            WRITE: 'write',
+        };
+
+        function handleFirestoreError(error, operationType, path) {
+            const errInfo = {
+                error: error instanceof Error ? error.message : String(error),
+                authInfo: {
+                    userId: auth.currentUser?.uid,
+                    email: auth.currentUser?.email,
+                    emailVerified: auth.currentUser?.emailVerified,
+                    isAnonymous: auth.currentUser?.isAnonymous,
+                    tenantId: auth.currentUser?.tenantId,
+                    providerInfo: auth.currentUser?.providerData.map(provider => ({
+                        providerId: provider.providerId,
+                        displayName: provider.displayName,
+                        email: provider.email,
+                        photoUrl: provider.photoURL
+                    })) || []
+                },
+                operationType,
+                path
+            };
+            console.error('Firestore Error: ', JSON.stringify(errInfo));
+            throw new Error(JSON.stringify(errInfo));
+        }
+
         window.deleteFriend = async (friendId) => {
             if (!isRegisteredUser || !fbUser) return;
             showConfirm("Are you sure you want to remove this friend?", async () => {
@@ -2272,6 +2306,7 @@
                         await addDoc(theirMessagesRef, {
                             type: 'friendship_removed',
                             fromUid: fbUser.uid,
+                            fromName: fbUser.displayName || 'Player',
                             timestamp: Date.now(),
                             processed: false
                         });
@@ -2282,6 +2317,7 @@
                 } catch (e) {
                     console.error("Error removing friend:", e);
                     window.showNotification("Failed to remove friend.");
+                    handleFirestoreError(e, OperationType.WRITE, `users/${fbUser.uid}/private/data`);
                 }
             });
         };
@@ -2363,8 +2399,6 @@
                 }
 
                 // Add me to their friends list (using a message/notification system)
-                // Since we can't write to their private data, we'll send a "friendship_accepted" message
-                // They will listen for this and add us back.
                 const theirMessagesRef = collection(db, 'artifacts', appId, 'users', fromUid, 'messages');
                 await addDoc(theirMessagesRef, {
                     type: 'friendship_accepted',
@@ -2373,7 +2407,8 @@
                     subject: 'Friend Request Accepted',
                     content: `${fbUser.displayName || 'Player'} accepted your friend request! You are now friends.`,
                     timestamp: Date.now(),
-                    read: false
+                    read: false,
+                    processed: false
                 });
 
                 // Delete the request
@@ -2385,6 +2420,7 @@
             } catch (e) {
                 console.error("Error accepting request:", e);
                 window.showNotification("Failed to accept request.");
+                handleFirestoreError(e, OperationType.WRITE, `users/${fbUser.uid}/friendRequests/${requestId}`);
             }
         };
 
@@ -2397,6 +2433,7 @@
             } catch (e) {
                 console.error("Error declining request:", e);
                 window.showNotification("Failed to decline request.");
+                handleFirestoreError(e, OperationType.DELETE, `users/${fbUser.uid}/friendRequests/${requestId}`);
             }
         };
 
@@ -2533,6 +2570,21 @@
                                 if (myFriends.includes(data.fromUid)) {
                                     myFriends = myFriends.filter(id => id !== data.fromUid);
                                     await setDoc(myPrivRef, { friends: myFriends }, { merge: true });
+                                    window.renderFriendsList();
+                                }
+                            }
+                            // Mark as processed
+                            await updateDoc(change.doc.ref, { processed: true, read: true });
+                        } else if (data.type === 'friendship_removed' && !data.processed) {
+                            // Remove them from my friends list
+                            const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
+                            const myPrivSnap = await getDoc(myPrivRef);
+                            if (myPrivSnap.exists()) {
+                                let myFriends = myPrivSnap.data().friends || [];
+                                if (myFriends.includes(data.fromUid)) {
+                                    myFriends = myFriends.filter(id => id !== data.fromUid);
+                                    await setDoc(myPrivRef, { friends: myFriends }, { merge: true });
+                                    window.showNotification(`Friendship ended with ${data.fromName || 'a player'}`);
                                     window.renderFriendsList();
                                 }
                             }
