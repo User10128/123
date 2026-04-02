@@ -41,7 +41,7 @@ service cloud.firestore {
 
         // Friend Requests
         match /friendRequests/{requestId} {
-          allow read, delete: if isOwner(userId) || isAdmin();
+          allow read, delete, update: if isOwner(userId) || isAdmin();
           allow create: if isAuthenticated() && request.resource.data.fromUid == request.auth.uid;
         }
         
@@ -49,7 +49,7 @@ service cloud.firestore {
         match /messages/{messageId} {
           // Users can read their own messages, Admin can write to them
           // Also allow users to send friendship_accepted and friendship_removed notifications
-          allow read, delete: if isOwner(userId) || isAdmin();
+          allow read, delete, update: if isOwner(userId) || isAdmin();
           allow create: if isAdmin() || (
             isAuthenticated() && 
             request.resource.data.fromUid == request.auth.uid &&
