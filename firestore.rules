@@ -25,31 +25,10 @@ service cloud.firestore {
         allow read, write: if isAdmin();
       }
       
-      // Public data - readable by anyone
+      // Public data - readable by anyone, writable by admin
       match /public/{allPaths=**} {
         allow read: if true;
         allow write: if isAdmin();
-      }
-
-      // Specific public collections that users need to write to
-      match /public/data/matchmaking/{matchId} {
-        allow write: if isAuthenticated();
-      }
-
-      match /public/data/friendCodes/{code} {
-        allow write: if isAuthenticated();
-      }
-
-      match /public/data/emails/{email} {
-        allow write: if isAuthenticated();
-      }
-
-      match /public/data/profiles/{profileId} {
-        allow write: if isOwner(profileId) || isAdmin();
-      }
-
-      match /public/data/socialFeed/{feedId} {
-        allow write: if isAuthenticated();
       }
       
       // User specific data
@@ -62,7 +41,7 @@ service cloud.firestore {
 
         // Friend Requests
         match /friendRequests/{requestId} {
-          allow read, delete, update: if isOwner(userId) || isAdmin();
+          allow read, delete: if isOwner(userId) || isAdmin();
           allow create: if isAuthenticated() && request.resource.data.fromUid == request.auth.uid;
         }
         
@@ -70,7 +49,7 @@ service cloud.firestore {
         match /messages/{messageId} {
           // Users can read their own messages, Admin can write to them
           // Also allow users to send friendship_accepted and friendship_removed notifications
-          allow read, delete, update: if isOwner(userId) || isAdmin();
+          allow read, delete: if isOwner(userId) || isAdmin();
           allow create: if isAdmin() || (
             isAuthenticated() && 
             request.resource.data.fromUid == request.auth.uid &&
