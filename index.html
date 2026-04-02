@@ -2382,6 +2382,7 @@
             } catch (e) {
                 console.error("Error adding friend:", e);
                 window.showNotification("Failed to send request.");
+                handleFirestoreError(e, OperationType.WRITE, `users/${friendId}/friendRequests/${fbUser.uid}`);
             }
         };
 
@@ -3316,6 +3317,7 @@
                     console.error("Matchmaking error:", error);
                     window.showNotification("Matchmaking failed.");
                     window.showView('view-main-menu');
+                    handleFirestoreError(error, OperationType.LIST, 'public/data/matchmaking');
                 });
 
             } catch (error) {
@@ -3334,24 +3336,31 @@
             window.setPeer(newPeer);
 
             newPeer.on('open', async (id) => {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', id);
-                
-                // If wild mode, generate rules
-                let wildRules = null;
-                if (mode === 'wild') {
-                    wildRules = getDailyWildRules();
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', id);
+                    
+                    // If wild mode, generate rules
+                    let wildRules = null;
+                    if (mode === 'wild') {
+                        wildRules = getDailyWildRules();
+                    }
+
+                    await setDoc(docRef, {
+                        peerId: id,
+                        status: 'waiting',
+                        timestamp: Date.now(),
+                        mode: mode,
+                        wildRules: wildRules
+                    });
+
+                    window.currentMatchDoc = docRef;
+                    document.getElementById('matchmaking-status-text').innerText = "Waiting for an opponent to join...";
+                } catch (e) {
+                    console.error("Error hosting game:", e);
+                    window.showNotification("Failed to create lobby.");
+                    handleFirestoreError(e, OperationType.WRITE, `public/data/matchmaking/${id}`);
+                    window.showView('view-main-menu');
                 }
-
-                await setDoc(docRef, {
-                    peerId: id,
-                    status: 'waiting',
-                    timestamp: Date.now(),
-                    mode: mode,
-                    wildRules: wildRules
-                });
-
-                window.currentMatchDoc = docRef;
-                document.getElementById('matchmaking-status-text').innerText = "Waiting for an opponent to join...";
             });
 
             newPeer.on('connection', (connection) => {
