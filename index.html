@@ -1982,6 +1982,7 @@
                             <div class="flex flex-col gap-3">
                                 ${snapshot.docs.map(docSnap => {
                                     const data = docSnap.data();
+                                    const escapedName = (data.fromName || 'Player').replace(/'/g, "\\'");
                                     return `
                                         <div class="flex flex-col gap-2 bg-slate-800/50 p-3 rounded-xl border border-teal-500/20">
                                             <div class="flex items-center gap-3">
@@ -1994,7 +1995,7 @@
                                                 </div>
                                             </div>
                                             <div class="flex gap-2">
-                                                <button onclick="window.acceptFriendRequest('${docSnap.id}', '${data.fromUid}', '${data.fromName}')" class="flex-1 bg-teal-500/20 text-teal-300 py-1.5 rounded-lg text-xs font-bold hover:bg-teal-500/30 transition-colors">Accept</button>
+                                                <button onclick="window.acceptFriendRequest('${docSnap.id}', '${data.fromUid}', '${escapedName}')" class="flex-1 bg-teal-500/20 text-teal-300 py-1.5 rounded-lg text-xs font-bold hover:bg-teal-500/30 transition-colors">Accept</button>
                                                 <button onclick="window.declineFriendRequest('${docSnap.id}')" class="flex-1 bg-slate-700/50 text-slate-400 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-700 transition-colors">Decline</button>
                                             </div>
                                         </div>
@@ -2386,6 +2387,7 @@
 
         window.acceptFriendRequest = async (requestId, fromUid, fromName) => {
             if (!fbUser) return;
+            window.showNotification("Processing acceptance...");
             try {
                 // Add to my friends list
                 const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
@@ -2424,6 +2426,7 @@
 
         window.declineFriendRequest = async (requestId) => {
             if (!fbUser) return;
+            window.showNotification("Processing decline...");
             try {
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'friendRequests', requestId));
                 window.showNotification("Request declined.");
@@ -2556,20 +2559,6 @@
                                 await setDoc(myPrivRef, { friends: myFriends }, { merge: true });
                                 window.showNotification(`New Friend: ${data.fromName}`);
                                 window.renderFriendsList();
-                            }
-                            // Mark as processed
-                            await updateDoc(change.doc.ref, { processed: true, read: true });
-                        } else if (data.type === 'friendship_removed' && !data.processed) {
-                            // Remove them from my friends list
-                            const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
-                            const myPrivSnap = await getDoc(myPrivRef);
-                            if (myPrivSnap.exists()) {
-                                let myFriends = myPrivSnap.data().friends || [];
-                                if (myFriends.includes(data.fromUid)) {
-                                    myFriends = myFriends.filter(id => id !== data.fromUid);
-                                    await setDoc(myPrivRef, { friends: myFriends }, { merge: true });
-                                    window.renderFriendsList();
-                                }
                             }
                             // Mark as processed
                             await updateDoc(change.doc.ref, { processed: true, read: true });
