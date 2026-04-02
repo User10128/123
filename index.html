@@ -2356,8 +2356,12 @@
                 window.switchSocialTab('friends');
                 window.renderFriendsList();
             } catch (e) {
-                console.error("Error accepting request:", e);
-                window.showNotification("Error: Could not accept request. Please check your connection.");
+                console.error("CRITICAL ERROR accepting request:", e);
+                if (e.code === 'permission-denied') {
+                    window.showNotification("Permission Denied: You are not authorized to accept this request.");
+                } else {
+                    window.showNotification(`Error: ${e.message || "Could not accept request."}`);
+                }
             }
         };
 
@@ -2475,40 +2479,45 @@
             if (responsesUnsubscribe) responsesUnsubscribe();
             
             const responsesRef = collection(db, 'artifacts', appId, 'users', fbUser.uid, 'messages');
-            // Remove orderBy to avoid index issues and handle sorting client-side
             
             responsesUnsubscribe = onSnapshot(responsesRef, async (snapshot) => {
                 snapshot.docChanges().forEach(async (change) => {
-                    if (change.type === 'added') {
+                    if (change.type === 'added' || change.type === 'modified') {
                         const data = change.doc.data();
-                        if (data.type === 'friendship_accepted' && !data.processed) {
-                            // Add them to my friends list
-                            const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
-                            const myPrivSnap = await getDoc(myPrivRef);
-                            let myFriends = myPrivSnap.exists() ? (myPrivSnap.data().friends || []) : [];
-                            if (!myFriends.includes(data.fromUid)) {
-                                myFriends.push(data.fromUid);
-                                await setDoc(myPrivRef, { friends: myFriends }, { merge: true });
-                                window.showNotification(`New Friend: ${data.fromName}`);
-                                window.renderFriendsList();
-                            }
-                            // Mark as processed
-                            await updateDoc(change.doc.ref, { processed: true, read: true });
-                        } else if (data.type === 'friendship_removed' && !data.processed) {
-                            // Remove them from my friends list
-                            const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
-                            const myPrivSnap = await getDoc(myPrivRef);
-                            if (myPrivSnap.exists()) {
-                                let myFriends = myPrivSnap.data().friends || [];
-                                if (myFriends.includes(data.fromUid)) {
-                                    myFriends = myFriends.filter(id => id !== data.fromUid);
+                        try {
+                            if (data.type === 'friendship_accepted' && !data.processed) {
+                                console.log("Processing friendship_accepted from:", data.fromUid);
+                                // Add them to my friends list
+                                const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
+                                const myPrivSnap = await getDoc(myPrivRef);
+                                let myFriends = myPrivSnap.exists() ? (myPrivSnap.data().friends || []) : [];
+                                if (!myFriends.includes(data.fromUid)) {
+                                    myFriends.push(data.fromUid);
                                     await setDoc(myPrivRef, { friends: myFriends }, { merge: true });
-                                    window.showNotification(`Friendship ended with ${data.fromName || 'a player'}`);
+                                    window.showNotification(`New Friend: ${data.fromName || 'Player'}`);
                                     window.renderFriendsList();
                                 }
+                                // Mark as processed
+                                await updateDoc(change.doc.ref, { processed: true, read: true });
+                            } else if (data.type === 'friendship_removed' && !data.processed) {
+                                console.log("Processing friendship_removed from:", data.fromUid);
+                                // Remove them from my friends list
+                                const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
+                                const myPrivSnap = await getDoc(myPrivRef);
+                                if (myPrivSnap.exists()) {
+                                    let myFriends = myPrivSnap.data().friends || [];
+                                    if (myFriends.includes(data.fromUid)) {
+                                        myFriends = myFriends.filter(id => id !== data.fromUid);
+                                        await setDoc(myPrivRef, { friends: myFriends }, { merge: true });
+                                        window.showNotification(`Friendship ended with ${data.fromName || 'a player'}`);
+                                        window.renderFriendsList();
+                                    }
+                                }
+                                // Mark as processed
+                                await updateDoc(change.doc.ref, { processed: true, read: true });
                             }
-                            // Mark as processed
-                            await updateDoc(change.doc.ref, { processed: true, read: true });
+                        } catch (err) {
+                            console.error("Error processing message:", err);
                         }
                     }
                 });
