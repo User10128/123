@@ -690,14 +690,21 @@
                 return;
             }
 
-            // 2. Special logic for matchmaking
+            // 2. Special logic for game
+            const gameView = document.getElementById('view-game');
+            if (!gameView.classList.contains('hidden')) {
+                quitGame();
+                return;
+            }
+
+            // 3. Special logic for matchmaking
             const searchingView = document.getElementById('view-searching');
             if (!searchingView.classList.contains('hidden')) {
                 cancelMatchmaking();
                 return;
             }
 
-            // 3. Navigate back in stack
+            // 4. Navigate back in stack
             if (navigationStack.length > 1) {
                 navigationStack.pop();
                 const prevView = navigationStack[navigationStack.length - 1];
