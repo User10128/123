@@ -148,6 +148,11 @@
         </button>
     </div>
 
+    <!-- Universal Back Button -->
+    <button id="universal-back-btn" onclick="window.handleUniversalBack()" class="fixed top-4 left-4 z-[150] glass-btn p-3 rounded-full shadow-xl border-teal-500/30 text-teal-300 hidden hover:scale-110 transition-transform active:scale-95">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    </button>
+
     <!-- Toast Notification -->
     <div id="notification-toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-slate-800/95 backdrop-blur-md text-teal-300 px-6 py-3 rounded-full shadow-lg shadow-teal-500/10 border border-teal-500/30 z-[100] transform transition-all duration-300 translate-y-[-150%] opacity-0 flex items-center gap-2 font-medium tracking-wide">
         <span id="notification-msg"></span>
@@ -193,7 +198,7 @@
                 </button>
             </div>
 
-            <button onclick="document.getElementById('modal-rules').classList.remove('hidden')" class="glass-btn w-max mx-auto px-5 py-2 mt-4 text-sm flex items-center gap-2">
+            <button onclick="openModal('modal-rules')" class="glass-btn w-max mx-auto px-5 py-2 mt-4 text-sm flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
                 Rules & Instructions
             </button>
@@ -256,7 +261,7 @@
                         <button onclick="window.saveUsername()" class="glass-btn px-3 text-xs hover:text-teal-300">Save</button>
                     </div>
                     <div class="flex items-center justify-center gap-2 mt-2">
-                        <span class="text-xs text-slate-400">Friend Code:</span>
+                        <span class="text-xs text-slate-400">User ID:</span>
                         <code id="account-uid" class="text-lg font-bold text-teal-300 bg-slate-900 px-3 py-1 rounded select-all tracking-widest">...</code>
                     </div>
                 </div>
@@ -266,31 +271,10 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
                         Personal Stats
                     </button>
-                    <button onclick="window.open('social.html', '_blank')" class="glass-btn px-4 py-2 text-sm flex items-center gap-2 border-teal-500/30 text-teal-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                        Social Feed
+                    <button onclick="openModal('modal-social'); window.switchSocialTab('friends')" class="glass-btn px-4 py-2 text-sm flex items-center gap-2 border-teal-500/30 text-teal-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        Social Hub
                     </button>
-                </div>
-
-                <div id="responses-container" class="text-left flex flex-col gap-3 hidden">
-                    <h3 class="text-sm text-teal-400 uppercase tracking-widest border-b border-teal-500/20 pb-1">Responses</h3>
-                    <div id="responses-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
-                        <!-- Responses loaded here -->
-                    </div>
-                </div>
-
-                <div class="text-left flex flex-col gap-3">
-                    <h3 class="text-sm text-slate-400 uppercase tracking-widest border-b border-slate-700 pb-1">Friends</h3>
-                    <div class="flex flex-col gap-2">
-                        <div class="flex gap-2">
-                            <input type="text" id="add-friend-input" class="glass-input flex-1 text-sm py-2 text-center tracking-widest" placeholder="8-DIGIT CODE" maxlength="8">
-                            <button onclick="window.addFriend()" class="glass-btn px-4 text-sm hover:text-teal-300">Add</button>
-                        </div>
-                    </div>
-                    <div id="friends-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
-                        <!-- Friends loaded here -->
-                        <p class="text-slate-500 text-sm italic text-center py-2">Loading friends...</p>
-                    </div>
                 </div>
 
                 <div class="flex flex-col gap-2 mt-2">
@@ -473,7 +457,7 @@
                         <button onclick="window.sendChatMsg('Oops!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Oops!</button>
                     </div>
                 </div>
-                <button onclick="document.getElementById('modal-rules').classList.remove('hidden')" class="glass-btn p-2 sm:px-4 text-sm flex items-center gap-2" title="Rules">
+                <button onclick="openModal('modal-rules')" class="glass-btn p-2 sm:px-4 text-sm flex items-center gap-2" title="Rules">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
                     <span class="hidden sm:inline">Rules</span>
                 </button>
@@ -499,7 +483,7 @@
         <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4 border-b border-teal-500/20 pb-4">
                 <h2 id="footer-modal-title" class="text-xl text-teal-400 font-light tracking-widest uppercase">Title</h2>
-                <button onclick="document.getElementById('modal-footer').classList.add('hidden')" class="text-slate-400 hover:text-teal-300">
+                <button onclick="closeModal('modal-footer')" class="text-slate-400 hover:text-teal-300">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
@@ -514,7 +498,7 @@
         <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4 border-b border-teal-500/20 pb-4">
                 <h2 class="text-2xl text-teal-400 font-light tracking-widest uppercase">How to Play</h2>
-                <button onclick="document.getElementById('modal-rules').classList.add('hidden')" class="text-slate-400 hover:text-teal-300">
+                <button onclick="closeModal('modal-rules')" class="text-slate-400 hover:text-teal-300">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
@@ -531,7 +515,7 @@
                     <div class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-teal-800"></div> Dark Teal (Player 2)</div>
                 </div>
             </div>
-            <button onclick="document.getElementById('modal-rules').classList.add('hidden')" class="btn-primary w-full mt-6">Got it</button>
+            <button onclick="closeModal('modal-rules')" class="btn-primary w-full mt-6">Got it</button>
         </div>
     </div>
 
@@ -540,7 +524,7 @@
         <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-sm w-full text-center flex flex-col gap-6">
             <div class="flex justify-between items-center border-b border-teal-500/20 pb-4">
                 <h2 id="profile-modal-name" class="text-xl text-teal-400 font-light tracking-widest uppercase">Player Profile</h2>
-                <button onclick="document.getElementById('modal-player-profile').classList.add('hidden')" class="text-slate-400 hover:text-teal-300">
+                <button onclick="closeModal('modal-player-profile')" class="text-slate-400 hover:text-teal-300">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
@@ -563,12 +547,18 @@
         <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-md w-full flex flex-col gap-6 max-h-[90vh]">
             <div class="flex justify-between items-center border-b border-teal-500/20 pb-4">
                 <h2 class="text-xl text-teal-400 font-light tracking-widest uppercase">Notifications</h2>
-                <button onclick="document.getElementById('modal-notifications').classList.add('hidden')" class="text-slate-400 hover:text-teal-300">
+                <button onclick="closeModal('modal-notifications')" class="text-slate-400 hover:text-teal-300">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
             
             <div class="flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar">
+                <div id="responses-container" class="flex flex-col gap-3 hidden">
+                    <h3 class="text-[10px] text-teal-500 uppercase tracking-widest font-bold">Responses</h3>
+                    <div id="responses-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
+                        <!-- Responses loaded here -->
+                    </div>
+                </div>
                 <div class="flex flex-col gap-3">
                     <h3 class="text-[10px] text-teal-500 uppercase tracking-widest font-bold">Email responses</h3>
                     <div id="notif-messages-list" class="flex flex-col gap-2">
@@ -590,7 +580,7 @@
         <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-lg w-full flex flex-col gap-6 max-h-[90vh]">
             <div class="flex justify-between items-center border-b border-teal-500/20 pb-4">
                 <h2 class="text-xl text-teal-400 font-light tracking-widest uppercase">Social Hub</h2>
-                <button onclick="document.getElementById('modal-social').classList.add('hidden')" class="text-slate-400 hover:text-teal-300">
+                <button onclick="closeModal('modal-social')" class="text-slate-400 hover:text-teal-300">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
@@ -604,6 +594,14 @@
 
             <div id="social-content" class="overflow-y-auto pr-2 custom-scrollbar flex-1">
                 <!-- Content will be injected here -->
+            </div>
+
+            <div id="social-friends-add-container" class="hidden flex flex-col gap-3 border-t border-slate-700/50 pt-4">
+                <h3 class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Add Friend</h3>
+                <div class="flex gap-2">
+                    <input type="text" id="add-friend-input" class="glass-input flex-1 text-sm py-2 text-center tracking-widest" placeholder="USER ID" maxlength="8">
+                    <button onclick="window.addFriend()" class="glass-btn px-4 text-sm hover:text-teal-300">Add</button>
+                </div>
             </div>
         </div>
     </div>
@@ -663,10 +661,73 @@
         window.recordWin = window.recordWin || function(){}; 
 
         // --- UI UTILS ---
-        function showView(id) {
-            document.querySelectorAll('.view-container').forEach(v => v.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.remove('hidden');
+                history.pushState({ modalId: id }, '', `#${id}`);
+            }
         }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.add('hidden');
+                if (history.state && history.state.modalId === id) {
+                    history.back();
+                }
+            }
+        }
+
+        function showView(id, pushHistory = true) {
+            document.querySelectorAll('.view-container').forEach(v => v.classList.add('hidden'));
+            document.querySelectorAll('.fixed.inset-0').forEach(m => m.classList.add('hidden')); // Close all modals
+            const view = document.getElementById(id);
+            if (view) {
+                view.classList.remove('hidden');
+                if (pushHistory) {
+                    history.pushState({ viewId: id }, '', `#${id}`);
+                }
+                updateUniversalBackButton(id);
+            }
+        }
+
+        function updateUniversalBackButton(viewId) {
+            const backBtn = document.getElementById('universal-back-btn');
+            if (viewId === 'view-main-menu') {
+                backBtn.classList.add('hidden');
+            } else {
+                backBtn.classList.remove('hidden');
+            }
+        }
+
+        window.handleUniversalBack = () => {
+            if (history.state) {
+                history.back();
+            } else {
+                showView('view-main-menu');
+            }
+        };
+
+        window.onpopstate = (event) => {
+            // Close all modals first
+            document.querySelectorAll('.fixed.inset-0').forEach(m => m.classList.add('hidden'));
+            
+            if (event.state) {
+                if (event.state.viewId) {
+                    showView(event.state.viewId, false);
+                }
+                if (event.state.modalId) {
+                    const modal = document.getElementById(event.state.modalId);
+                    if (modal) modal.classList.remove('hidden');
+                }
+            } else {
+                showView('view-main-menu', false);
+            }
+        };
+
+        // Initialize history
+        history.replaceState({ viewId: 'view-main-menu' }, '', '#view-main-menu');
 
         function showNotification(msg) {
             const notif = document.getElementById('notification-toast');
@@ -681,10 +742,10 @@
         function showConfirm(msg, callback) {
             document.getElementById('confirm-text').innerText = msg;
             confirmCallback = callback;
-            document.getElementById('modal-confirm').classList.remove('hidden');
+            openModal('modal-confirm');
         }
         function closeConfirmModal() {
-            document.getElementById('modal-confirm').classList.add('hidden');
+            closeModal('modal-confirm');
             confirmCallback = null;
         }
         document.getElementById('btn-confirm-yes').onclick = () => {
@@ -725,18 +786,16 @@
             // Warm up
             nextRand(); nextRand(); nextRand();
 
+            const layouts = ['random', 'checkerboard_swap', 'center_clump', 'edge_huggers', 'inverted'];
+            const layoutIdx = Math.floor(nextRand() * layouts.length);
+
             let rules = {
-                randomPositions: nextRand() > 0.5,
+                layout: layouts[layoutIdx],
                 allKings: nextRand() > 0.7,
                 noKings: nextRand() > 0.8,
                 timedMoves: nextRand() > 0.5 ? Math.floor(nextRand() * 20) + 10 : null
             };
 
-            // Ensure at least one rule is active for Wild Mode
-            if (!rules.randomPositions && !rules.allKings && !rules.noKings && !rules.timedMoves) {
-                rules.randomPositions = true;
-            }
-            
             // Mutually exclusive kings rules
             if (rules.allKings && rules.noKings) {
                 rules.noKings = false;
@@ -748,26 +807,23 @@
         function initBoard() {
             let b = [];
             const isWild = gameState.wildRules;
-            const randomPos = isWild && gameState.wildRules.randomPositions;
+            const layout = isWild ? gameState.wildRules.layout : 'standard';
             const allKings = isWild && gameState.wildRules.allKings;
 
-            if (randomPos) {
-                // Initialize empty board
-                for (let r = 0; r < 8; r++) {
-                    let row = [];
-                    for (let c = 0; c < 8; c++) row.push(EMPTY);
-                    b.push(row);
-                }
+            // Initialize empty board
+            for (let r = 0; r < 8; r++) {
+                let row = [];
+                for (let c = 0; c < 8; c++) row.push(EMPTY);
+                b.push(row);
+            }
 
-                // Place 12 pieces for each player randomly on dark squares
+            if (layout === 'random') {
                 const darkSquares = [];
                 for (let r = 0; r < 8; r++) {
                     for (let c = 0; c < 8; c++) {
                         if ((r + c) % 2 === 1) darkSquares.push({r, c});
                     }
                 }
-
-                // Seeded random for daily consistency
                 const today = new Date().toISOString().split('T')[0];
                 let baseSeed = 0;
                 for (let i = 0; i < today.length; i++) {
@@ -775,39 +831,73 @@
                     baseSeed |= 0;
                 }
                 baseSeed = Math.abs(baseSeed);
-
                 const getSeededRandom = (s) => {
                     let x = Math.sin(s) * 10000;
                     return x - Math.floor(x);
                 };
-
-                // Shuffle dark squares
                 for (let i = darkSquares.length - 1; i > 0; i--) {
                     const j = Math.floor(getSeededRandom(baseSeed + i + 100) * (i + 1));
                     [darkSquares[i], darkSquares[j]] = [darkSquares[j], darkSquares[i]];
                 }
-
                 for (let i = 0; i < 12; i++) {
                     const pos1 = darkSquares.pop();
                     b[pos1.r][pos1.c] = allKings ? P1_KING : P1;
                     const pos2 = darkSquares.pop();
                     b[pos2.r][pos2.c] = allKings ? P2_KING : P2;
                 }
-                return b;
-            }
-
-            for (let r = 0; r < 8; r++) {
-                let row = [];
-                for (let c = 0; c < 8; c++) {
-                    if ((r + c) % 2 === 1) { 
-                        if (r < 3) row.push(allKings ? P2_KING : P2);
-                        else if (r > 4) row.push(allKings ? P1_KING : P1);
-                        else row.push(EMPTY);
-                    } else {
-                        row.push(EMPTY);
+            } else if (layout === 'checkerboard_swap') {
+                for (let r = 0; r < 8; r++) {
+                    for (let c = 0; c < 8; c++) {
+                        if ((r + c) % 2 === 1) {
+                            if (r < 3) b[r][c] = (c % 2 === 0) ? (allKings ? P1_KING : P1) : (allKings ? P2_KING : P2);
+                            else if (r > 4) b[r][c] = (c % 2 === 0) ? (allKings ? P2_KING : P2) : (allKings ? P1_KING : P1);
+                        }
                     }
                 }
-                b.push(row);
+            } else if (layout === 'center_clump') {
+                const spots = [];
+                for (let r = 2; r < 6; r++) {
+                    for (let c = 0; c < 8; c++) {
+                        if ((r + c) % 2 === 1) spots.push({r, c});
+                    }
+                }
+                for (let i = 0; i < 12; i++) {
+                    const p1 = spots.shift();
+                    b[p1.r][p1.c] = allKings ? P1_KING : P1;
+                    const p2 = spots.pop();
+                    b[p2.r][p2.c] = allKings ? P2_KING : P2;
+                }
+            } else if (layout === 'edge_huggers') {
+                const spots = [];
+                for (let r = 0; r < 8; r++) {
+                    for (let c = 0; c < 8; c++) {
+                        if ((r + c) % 2 === 1 && (c < 2 || c > 5)) spots.push({r, c});
+                    }
+                }
+                for (let i = 0; i < 12 && spots.length >= 2; i++) {
+                    const p1 = spots.shift();
+                    b[p1.r][p1.c] = allKings ? P1_KING : P1;
+                    const p2 = spots.pop();
+                    b[p2.r][p2.c] = allKings ? P2_KING : P2;
+                }
+            } else if (layout === 'inverted') {
+                for (let r = 0; r < 8; r++) {
+                    for (let c = 0; c < 8; c++) {
+                        if ((r + c) % 2 === 1) {
+                            if (r < 3) b[r][c] = allKings ? P1_KING : P1;
+                            else if (r > 4) b[r][c] = allKings ? P2_KING : P2;
+                        }
+                    }
+                }
+            } else {
+                for (let r = 0; r < 8; r++) {
+                    for (let c = 0; c < 8; c++) {
+                        if ((r + c) % 2 === 1) { 
+                            if (r < 3) b[r][c] = allKings ? P2_KING : P2;
+                            else if (r > 4) b[r][c] = allKings ? P1_KING : P1;
+                        }
+                    }
+                }
             }
             return b;
         }
@@ -864,7 +954,9 @@
                     wildIndicator.classList.remove('hidden');
                     wildIndicator.classList.add('flex');
                     let rules = [];
-                    if (gameState.wildRules.randomPositions) rules.push("Random Board");
+                    if (gameState.wildRules.layout && gameState.wildRules.layout !== 'standard') {
+                        rules.push(`${gameState.wildRules.layout.replace('_', ' ').toUpperCase()}`);
+                    }
                     if (gameState.wildRules.allKings) rules.push("All Kings");
                     if (gameState.wildRules.noKings) rules.push("No Kings");
                     if (gameState.wildRules.timedMoves) rules.push(`${gameState.wildRules.timedMoves}s Moves`);
@@ -1031,7 +1123,7 @@
                     }
                 }
                 document.getElementById('winner-text').innerText = msg;
-                document.getElementById('modal-gameover').classList.remove('hidden');
+                openModal('modal-gameover');
                 
                 if (gameState.mode === 'online' && window.currentMatchDoc) {
                     deleteDoc(window.currentMatchDoc).catch(()=>{});
@@ -1625,7 +1717,7 @@
         }
 
         function restartGame() {
-            document.getElementById('modal-gameover').classList.add('hidden');
+            closeModal('modal-gameover');
             if (gameState.mode === 'online') {
                 if (conn && conn.open) conn.send({type: 'restart'});
                 startGame('online', gameState.myPlayer, gameState.wildRules);
@@ -1843,7 +1935,7 @@
             const badgesEl = document.getElementById('profile-modal-badges');
             const addBtn = document.getElementById('btn-add-friend-from-profile');
 
-            modal.classList.remove('hidden');
+            openModal('modal-player-profile');
             nameEl.innerText = "Loading...";
             pointsEl.innerText = "";
             statsEl.innerText = "";
@@ -1906,6 +1998,11 @@
                         : "flex-1 py-2 text-xs uppercase tracking-widest font-bold text-slate-500";
                 }
             });
+
+            const addFriendContainer = document.getElementById('social-friends-add-container');
+            if (addFriendContainer) {
+                addFriendContainer.classList.toggle('hidden', tab !== 'friends');
+            }
 
             const content = document.getElementById('social-content');
             content.innerHTML = "<p class='text-slate-500 text-center py-8 italic'>Loading...</p>";
@@ -2153,7 +2250,7 @@
         }
 
         window.showNotificationsModal = async () => {
-            document.getElementById('modal-notifications').classList.remove('hidden');
+            openModal('modal-notifications');
             if (!fbUser) return;
             
             // Mark messages as read
@@ -2290,7 +2387,7 @@
                 return;
             }
             if (!friendCode || friendCode.length !== 8) {
-                window.showNotification("Invalid Friend Code");
+                window.showNotification("Invalid User ID");
                 return;
             }
 
@@ -2299,7 +2396,7 @@
                 const codeSnap = await getDoc(codeRef);
                 
                 if (!codeSnap.exists()) {
-                    window.showNotification("Friend code not found.");
+                    window.showNotification("User ID not found.");
                     return;
                 }
                 
@@ -3507,4 +3604,3 @@
     </script>
 </body>
 </html>
-
