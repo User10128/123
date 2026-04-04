@@ -120,6 +120,14 @@
 </head>
 <body class="bg-gradient-to-br from-slate-900 to-slate-800 text-slate-200 h-screen w-screen overflow-hidden flex flex-col font-sans selection:bg-teal-500/30 relative">
 
+    <!-- Top Left Logo Icon (Favicon) -->
+    <div class="fixed top-4 left-4 sm:top-6 sm:left-6 z-50 flex items-center pointer-events-none">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-8 h-8 sm:w-10 sm:h-10 text-teal-400 drop-shadow-[0_0_8px_rgba(45,212,191,0.5)]" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="12" r="5" fill="currentColor" stroke="none"></circle>
+        </svg>
+    </div>
+
     <!-- Top Right Account Icon -->
     <div class="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex gap-3">
         <button onclick="window.showLeaderboardView()" class="glass-btn p-2 sm:px-4 flex items-center gap-2" title="Leaderboard">
@@ -141,7 +149,7 @@
     </div>
 
     <!-- Global Header with Logo and Universal Back Button -->
-    <header id="global-header" class="fixed top-0 left-0 right-0 z-[150] p-4 sm:p-6 flex justify-center items-center pointer-events-none">
+    <header id="global-header" class="fixed top-0 left-0 right-0 z-[150] pt-20 pb-4 sm:pt-6 sm:pb-6 flex justify-center items-center pointer-events-none">
         <div class="relative flex items-center justify-center pointer-events-auto">
             <button id="universal-back-btn" onclick="window.handleUniversalBack()" class="absolute right-full mr-4 glass-btn p-3 rounded-full shadow-xl border-teal-500/30 text-teal-300 hidden hover:scale-110 transition-transform active:scale-95">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
@@ -156,8 +164,8 @@
     </div>
 
     <!-- MAIN MENU VIEW -->
-    <div id="view-main-menu" class="view-container flex flex-col items-center justify-center h-full w-full max-w-md mx-auto p-4 sm:p-6 transition-opacity duration-300">
-        <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-8 text-center relative overflow-hidden">
+    <div id="view-main-menu" class="view-container fixed inset-0 flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-8 text-center relative overflow-hidden">
             <div class="absolute -top-12 -right-12 w-40 h-40 bg-teal-400/10 rounded-full blur-3xl"></div>
             <div class="absolute -bottom-12 -left-12 w-40 h-40 bg-teal-800/20 rounded-full blur-3xl"></div>
 
@@ -211,8 +219,8 @@
 
 
     <!-- ACCOUNT & FRIENDS VIEW -->
-    <div id="view-account" class="view-container hidden flex-col items-center justify-center h-full w-full max-w-md mx-auto p-4 sm:p-6 transition-opacity duration-300">
-        <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-6 text-center">
+    <div id="view-account" class="view-container fixed inset-0 hidden flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-6 text-center">
             <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Account</h2>
             
             <!-- Logged out state -->
@@ -279,8 +287,8 @@
     </div>
 
     <!-- STATS VIEW -->
-    <div id="view-stats" class="view-container hidden flex-col items-center justify-center h-full w-full max-w-md mx-auto p-4 sm:p-6 transition-opacity duration-300">
-        <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-6 text-center">
+    <div id="view-stats" class="view-container fixed inset-0 hidden flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-6 text-center">
             <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Personal Stats</h2>
             
             <div id="stats-container" class="flex flex-col gap-4 text-left bg-slate-800/50 p-4 rounded-xl border border-teal-500/20">
@@ -302,8 +310,8 @@
     </div>
 
     <!-- LEADERBOARD VIEW -->
-    <div id="view-leaderboard" class="view-container hidden flex-col items-center justify-center h-full w-full max-w-lg mx-auto p-4 sm:p-6 transition-opacity duration-300">
-        <div class="glass-panel w-full p-6 sm:p-8 rounded-2xl flex flex-col gap-4 text-center">
+    <div id="view-leaderboard" class="view-container fixed inset-0 hidden flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-lg p-6 sm:p-8 rounded-2xl flex flex-col gap-4 text-center">
             <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Global Rankings</h2>
             
             <div class="flex flex-wrap gap-2 justify-center mb-2">
@@ -323,8 +331,8 @@
     </div>
 
     <!-- AI SETUP VIEW -->
-    <div id="view-ai-setup" class="view-container hidden flex-col items-center justify-center h-full w-full max-w-md mx-auto p-4 sm:p-6 transition-opacity duration-300">
-        <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-6">
+    <div id="view-ai-setup" class="view-container fixed inset-0 hidden flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-6">
             <h2 class="text-2xl text-teal-400 text-center tracking-widest uppercase font-light border-b border-teal-500/20 pb-4">Select Difficulty</h2>
             <div class="flex flex-col gap-3">
                 <button onclick="gameState.aiDifficulty='easy'; startGame('ai')" class="btn-primary flex justify-between"><span>Easy</span> <span class="text-teal-600">Random Moves</span></button>
@@ -335,8 +343,8 @@
     </div>
 
     <!-- ONLINE SETUP VIEW -->
-    <div id="view-online-setup" class="view-container hidden flex-col items-center justify-center h-full w-full max-w-md mx-auto p-4 sm:p-6 transition-opacity duration-300">
-        <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-6 text-center">
+    <div id="view-online-setup" class="view-container fixed inset-0 hidden flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-6 text-center">
             <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Play with Friends</h2>
             
             <div class="flex flex-col gap-4">
@@ -370,8 +378,8 @@
     </div>
 
     <!-- GLOBAL MATCHMAKING CHOICE VIEW -->
-    <div id="view-global-matchmaking-choice" class="view-container hidden flex-col items-center justify-center h-full w-full max-w-md mx-auto p-4 sm:p-6 transition-opacity duration-300">
-        <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-6 text-center">
+    <div id="view-global-matchmaking-choice" class="view-container fixed inset-0 hidden flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-6 text-center">
             <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light">Global Matchmaking</h2>
             <p class="text-slate-400 text-sm italic">Choose your game mode</p>
             <div class="flex flex-col gap-4">
@@ -392,8 +400,8 @@
     </div>
 
     <!-- GLOBAL MATCHMAKING VIEW -->
-    <div id="view-searching" class="view-container hidden flex-col items-center justify-center h-full w-full max-w-md mx-auto p-4 sm:p-6 transition-opacity duration-300">
-        <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-6 text-center">
+    <div id="view-searching" class="view-container fixed inset-0 hidden flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-6 text-center">
             <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light">Matchmaking</h2>
             <div class="relative w-24 h-24 mx-auto flex items-center justify-center">
                 <div class="absolute inset-0 rounded-full border-t-2 border-teal-400 animate-spin"></div>
@@ -410,8 +418,9 @@
     </div>
 
     <!-- GAME VIEW -->
-    <div id="view-game" class="view-container hidden flex-col h-full w-full max-w-2xl mx-auto pt-24 sm:pt-28 pb-6 px-4 sm:px-6 transition-opacity duration-300 relative">
-        <div class="flex justify-between items-end mb-6">
+    <div id="view-game" class="view-container fixed inset-0 hidden flex flex-col items-center justify-start pt-40 sm:pt-28 pb-6 px-4 sm:px-6 transition-opacity duration-300 relative">
+        <div class="w-full max-w-2xl">
+            <div class="flex justify-between items-end mb-6">
             <div>
                 <div id="turn-status" class="text-slate-300 mt-1 font-medium tracking-wide text-sm sm:text-base bg-slate-800/50 inline-block px-3 py-1 rounded-full border border-slate-700"></div>
                 <div id="opponent-info" class="hidden flex items-center gap-2 mt-2 bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700 w-max">
@@ -459,6 +468,7 @@
             </div>
         </div>
     </div>
+</div>
 
     <!-- Footer Modal -->
     <div id="modal-footer" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4 opacity-100 transition-opacity">
