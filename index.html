@@ -19,27 +19,21 @@
             position: relative;
         }
 
-        /* Subtle Background Pattern */
+        /* Background Animation */
         body::before {
             content: "";
             position: fixed;
-            top: -10%;
-            left: -10%;
-            width: 120%;
-            height: 120%;
+            top: -15%;
+            left: -15%;
+            width: 130%;
+            height: 130%;
             background-image: url('background.png');
             background-size: cover;
             background-position: center;
             z-index: -1;
-            animation: moveBackground var(--bg-speed, 60s) ease-in-out infinite alternate;
-            pointer-events: none;
             opacity: 0.4;
-            transition: opacity 1s ease;
-        }
-
-        @keyframes moveBackground {
-            0% { transform: translate(0, 0) scale(1.1); }
-            100% { transform: translate(-5%, -5%) scale(1.25); }
+            pointer-events: none;
+            will-change: transform;
         }
         
         /* Custom Scrollbar */
@@ -122,16 +116,21 @@
 </head>
 <body class="bg-gradient-to-br from-slate-900 to-slate-800 text-slate-200 h-screen w-screen overflow-hidden flex flex-col font-sans selection:bg-teal-500/30 relative">
 
-    <!-- Top Left Logo Icon (Favicon) -->
-    <div class="fixed top-4 left-4 sm:top-6 sm:left-6 z-50 flex items-center pointer-events-none">
+    <!-- Top Left Logo & Icon -->
+    <div class="fixed top-4 left-4 sm:top-6 sm:left-6 z-50 flex items-center gap-3 pointer-events-none">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-8 h-8 sm:w-10 sm:h-10 text-teal-400 drop-shadow-[0_0_8px_rgba(45,212,191,0.5)]" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"></circle>
             <circle cx="12" cy="12" r="5" fill="currentColor" stroke="none"></circle>
         </svg>
+        <h1 id="global-logo" class="text-2xl sm:text-3xl font-bold italic text-teal-300 tracking-wider uppercase drop-shadow-lg pointer-events-auto">CHECKERS</h1>
     </div>
 
-    <!-- Top Right Account Icon -->
+    <!-- Top Right Controls -->
     <div class="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex gap-3">
+        <button id="universal-back-btn" onclick="window.handleUniversalBack()" class="glass-btn px-4 py-2 rounded-xl shadow-xl border-teal-500/30 text-teal-300 hidden hover:scale-105 transition-transform active:scale-95 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <span class="font-medium">Back</span>
+        </button>
         <button onclick="window.showLeaderboardView()" class="glass-btn p-2 sm:px-4 flex items-center gap-2" title="Leaderboard">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
             <span class="hidden sm:inline">Leaderboard</span>
@@ -149,16 +148,6 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         </button>
     </div>
-
-    <!-- Global Header with Logo and Universal Back Button -->
-    <header id="global-header" class="fixed top-0 left-0 right-0 z-[150] pt-20 pb-4 sm:pt-6 sm:pb-6 flex justify-center items-center pointer-events-none">
-        <div class="relative flex items-center justify-center pointer-events-auto">
-            <button id="universal-back-btn" onclick="window.handleUniversalBack()" class="absolute right-full mr-4 glass-btn p-3 rounded-full shadow-xl border-teal-500/30 text-teal-300 hidden hover:scale-110 transition-transform active:scale-95">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            </button>
-            <h1 id="global-logo" class="text-3xl sm:text-4xl font-bold italic text-teal-300 tracking-wider uppercase drop-shadow-lg">CHECKERS</h1>
-        </div>
-    </header>
 
     <!-- Toast Notification -->
     <div id="notification-toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-slate-800/95 backdrop-blur-md text-teal-300 px-6 py-3 rounded-full shadow-lg shadow-teal-500/10 border border-teal-500/30 z-[100] transform transition-all duration-300 translate-y-[-150%] opacity-0 flex items-center gap-2 font-medium tracking-wide">
@@ -221,7 +210,7 @@
 
 
     <!-- ACCOUNT & FRIENDS VIEW -->
-    <div id="view-account" class="view-container fixed inset-0 hidden flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+    <div id="view-account" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
         <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-6 text-center">
             <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Account</h2>
             
@@ -289,7 +278,7 @@
     </div>
 
     <!-- STATS VIEW -->
-    <div id="view-stats" class="view-container fixed inset-0 hidden flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+    <div id="view-stats" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
         <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-6 text-center">
             <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Personal Stats</h2>
             
@@ -312,7 +301,7 @@
     </div>
 
     <!-- LEADERBOARD VIEW -->
-    <div id="view-leaderboard" class="view-container fixed inset-0 hidden flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+    <div id="view-leaderboard" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
         <div class="glass-panel w-full max-w-lg p-6 sm:p-8 rounded-2xl flex flex-col gap-4 text-center">
             <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Global Rankings</h2>
             
@@ -333,7 +322,7 @@
     </div>
 
     <!-- AI SETUP VIEW -->
-    <div id="view-ai-setup" class="view-container fixed inset-0 hidden flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+    <div id="view-ai-setup" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
         <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-6">
             <h2 class="text-2xl text-teal-400 text-center tracking-widest uppercase font-light border-b border-teal-500/20 pb-4">Select Difficulty</h2>
             <div class="flex flex-col gap-3">
@@ -345,7 +334,7 @@
     </div>
 
     <!-- ONLINE SETUP VIEW -->
-    <div id="view-online-setup" class="view-container fixed inset-0 hidden flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+    <div id="view-online-setup" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
         <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-6 text-center">
             <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Play with Friends</h2>
             
@@ -380,7 +369,7 @@
     </div>
 
     <!-- GLOBAL MATCHMAKING CHOICE VIEW -->
-    <div id="view-global-matchmaking-choice" class="view-container fixed inset-0 hidden flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+    <div id="view-global-matchmaking-choice" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
         <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-6 text-center">
             <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light">Global Matchmaking</h2>
             <p class="text-slate-400 text-sm italic">Choose your game mode</p>
@@ -402,7 +391,7 @@
     </div>
 
     <!-- GLOBAL MATCHMAKING VIEW -->
-    <div id="view-searching" class="view-container fixed inset-0 hidden flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+    <div id="view-searching" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
         <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-6 text-center">
             <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light">Matchmaking</h2>
             <div class="relative w-24 h-24 mx-auto flex items-center justify-center">
@@ -421,7 +410,7 @@
 
     <!-- GAME VIEW -->
     <div id="view-game" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300 relative">
-        <div class="w-full max-w-2xl mt-20 sm:mt-0">
+        <div class="w-full max-w-2xl">
             <div class="flex justify-between items-end mb-6">
             <div>
                 <div id="turn-status" class="text-slate-300 mt-1 font-medium tracking-wide text-sm sm:text-base bg-slate-800/50 inline-block px-3 py-1 rounded-full border border-slate-700"></div>
@@ -656,17 +645,41 @@
         // --- UI UTILS ---
         let navigationStack = ['view-main-menu'];
 
-        // Background speed control
+        // Background animation logic
+        let bgPos = 0;
+        let bgDir = 1;
+        let bgSpeed = 0.005;
+        let targetBgSpeed = 0.005;
+
+        function updateBackground() {
+            bgPos += bgDir * bgSpeed;
+            if (bgPos > 1) { bgPos = 1; bgDir = -1; }
+            if (bgPos < 0) { bgPos = 0; bgDir = 1; }
+            
+            // Smoothly interpolate speed back to base
+            bgSpeed += (targetBgSpeed - bgSpeed) * 0.05;
+            
+            const scale = 1.1 + (bgPos * 0.1);
+            const move = bgPos * 5; // 5% movement
+            
+            const bgEl = document.querySelector('body');
+            if (bgEl) {
+                bgEl.style.setProperty('--bg-transform', `translate(-${move}%, -${move}%) scale(${scale})`);
+            }
+            requestAnimationFrame(updateBackground);
+        }
+        
+        // Add style for dynamic transform
+        const style = document.createElement('style');
+        style.textContent = `body::before { transform: var(--bg-transform, translate(-2%, -2%) scale(1.1)); }`;
+        document.head.appendChild(style);
+        updateBackground();
+
         document.addEventListener('mousedown', (e) => {
             const isInteractive = e.target.closest('button') || e.target.closest('.piece') || e.target.closest('.glass-btn') || e.target.closest('.square');
             if (isInteractive) {
-                document.body.style.setProperty('--bg-speed', '15s');
-                
-                clearTimeout(window.bgSpeedTimeout);
-                window.bgSpeedTimeout = setTimeout(() => {
-                    // After the "boost", it stays "slightly quicker" than the initial slow speed
-                    document.body.style.setProperty('--bg-speed', '30s');
-                }, 3000);
+                bgSpeed = 0.05; // Quick burst
+                targetBgSpeed = 0.01; // Slightly quicker than base (0.005)
             }
         });
 
