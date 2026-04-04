@@ -155,7 +155,7 @@
     </div>
 
     <!-- LANDING VIEW -->
-    <div id="view-landing" class="view-container fixed inset-0 flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300 z-40">
+    <div id="view-landing" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300 z-40">
         <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-8 text-center relative overflow-hidden shadow-[0_0_50px_rgba(20,184,166,0.2)]">
             <div class="absolute -top-12 -right-12 w-40 h-40 bg-teal-400/10 rounded-full blur-3xl"></div>
             <div class="absolute -bottom-12 -left-12 w-40 h-40 bg-teal-800/20 rounded-full blur-3xl"></div>
@@ -793,13 +793,15 @@
         window.onpopstate = null;
 
         // Initialize
-        const hasSeenLanding = localStorage.getItem('checkers_landing_seen_v5');
-        if (hasSeenLanding) {
+        const hasSeenLanding = localStorage.getItem('checkers_landing_seen_v6');
+        if (!hasSeenLanding) {
+            // Turn it ON for the first time
+            showView('view-landing', false);
+            localStorage.setItem('checkers_landing_seen_v6', 'true');
+        } else {
+            // Skip it and go to main menu
             navigationStack = ['view-main-menu'];
             showView('view-main-menu', false);
-        } else {
-            showView('view-landing', false);
-            localStorage.setItem('checkers_landing_seen_v5', 'true');
         }
 
         function showNotification(msg) {
