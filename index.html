@@ -34,6 +34,7 @@
             opacity: 0.4;
             pointer-events: none;
             will-change: transform;
+            transition: opacity 1s ease;
         }
         
         /* Custom Scrollbar */
@@ -127,9 +128,8 @@
 
     <!-- Top Right Controls -->
     <div class="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex gap-3">
-        <button id="universal-back-btn" onclick="window.handleUniversalBack()" class="glass-btn px-4 py-2 rounded-xl shadow-xl border-teal-500/30 text-teal-300 hidden hover:scale-105 transition-transform active:scale-95 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            <span class="font-medium">Back</span>
+        <button id="universal-back-btn" onclick="window.handleUniversalBack()" class="glass-btn p-2 sm:px-4 rounded-lg shadow-xl border-teal-500/30 text-teal-300 hidden hover:scale-105 transition-transform active:scale-95 flex items-center justify-center" title="Back">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </button>
         <button onclick="window.showLeaderboardView()" class="glass-btn p-2 sm:px-4 flex items-center gap-2" title="Leaderboard">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
@@ -154,8 +154,34 @@
         <span id="notification-msg"></span>
     </div>
 
+    <!-- LANDING VIEW -->
+    <div id="view-landing" class="view-container fixed inset-0 flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300 relative">
+        <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-8 text-center relative overflow-hidden">
+            <div class="absolute -top-12 -right-12 w-40 h-40 bg-teal-400/10 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-12 -left-12 w-40 h-40 bg-teal-800/20 rounded-full blur-3xl"></div>
+            
+            <div class="flex flex-col gap-2 relative z-10">
+                <h2 class="text-3xl font-bold text-teal-300 tracking-tighter italic uppercase">Welcome to Checkers</h2>
+                <p class="text-slate-400 text-sm italic">The ultimate online checkers experience</p>
+            </div>
+
+            <div class="flex flex-col gap-4 relative z-10">
+                <button onclick="showView('view-account')" class="btn-primary flex items-center justify-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Sign In / Create Account
+                </button>
+                <button onclick="showView('view-main-menu')" class="glass-btn flex items-center justify-center gap-3 py-4 border-teal-500/30 text-teal-300 hover:bg-teal-500/10">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Play as Guest
+                </button>
+            </div>
+            
+            <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-4">Sign in to track stats and compete on leaderboards</p>
+        </div>
+    </div>
+
     <!-- MAIN MENU VIEW -->
-    <div id="view-main-menu" class="view-container fixed inset-0 flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+    <div id="view-main-menu" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
         <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-8 text-center relative overflow-hidden">
             <div class="absolute -top-12 -right-12 w-40 h-40 bg-teal-400/10 rounded-full blur-3xl"></div>
             <div class="absolute -bottom-12 -left-12 w-40 h-40 bg-teal-800/20 rounded-full blur-3xl"></div>
@@ -410,56 +436,56 @@
 
     <!-- GAME VIEW -->
     <div id="view-game" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300 relative">
-        <div class="w-full max-w-2xl">
-            <div class="flex justify-between items-end mb-6">
-            <div>
-                <div id="turn-status" class="text-slate-300 mt-1 font-medium tracking-wide text-sm sm:text-base bg-slate-800/50 inline-block px-3 py-1 rounded-full border border-slate-700"></div>
-                <div id="opponent-info" class="hidden flex items-center gap-2 mt-2 bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700 w-max">
-                    <span class="text-[10px] text-slate-400 uppercase tracking-widest">Opponent:</span>
-                    <span id="opponent-name" class="text-xs font-bold text-teal-300">...</span>
-                    <button id="btn-add-friend-opponent" class="hidden text-[10px] bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded hover:bg-teal-500/40 transition-colors">Add Friend</button>
-                </div>
-                <div id="live-score-container" class="mt-2 text-xs font-bold text-teal-400/80 uppercase tracking-widest flex items-center gap-2">
-                    <span class="opacity-50">Live Score:</span>
-                    <span id="live-score-val" class="text-teal-300">0</span>
-                </div>
-            </div>
-            <div class="flex gap-2">
-                <div class="relative inline-block">
-                    <button id="btn-chat" onclick="window.toggleChatMenu()" class="hidden glass-btn p-2 sm:px-4 text-sm flex items-center gap-2 border-teal-500/30 text-teal-300" title="Chat">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                        <span class="hidden sm:inline">Chat</span>
-                    </button>
-                    <div id="chat-menu" class="hidden absolute top-full right-0 mt-2 flex-col gap-1 glass-panel p-2 rounded-xl text-sm shadow-xl border-teal-500/50 w-40 z-50">
-                        <button onclick="window.sendChatMsg('Still there?')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Still there?</button>
-                        <button onclick="window.sendChatMsg('Play again?')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Play again?</button>
-                        <button onclick="window.sendChatMsg('Yes!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Yes!</button>
-                        <button onclick="window.sendChatMsg('No.')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">No.</button>
-                        <button onclick="window.sendChatMsg('Good move!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Good move!</button>
-                        <button onclick="window.sendChatMsg('Oops!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Oops!</button>
+        <div class="w-full max-w-2xl flex flex-col items-center justify-center">
+            <div class="w-full flex flex-col sm:flex-row justify-between items-center sm:items-end gap-4 mb-6">
+                <div class="flex flex-col items-center sm:items-start">
+                    <div id="turn-status" class="text-slate-300 mt-1 font-medium tracking-wide text-sm sm:text-base bg-slate-800/50 inline-block px-3 py-1 rounded-full border border-slate-700"></div>
+                    <div id="opponent-info" class="hidden flex items-center gap-2 mt-2 bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700 w-max">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-widest">Opponent:</span>
+                        <span id="opponent-name" class="text-xs font-bold text-teal-300">...</span>
+                        <button id="btn-add-friend-opponent" class="hidden text-[10px] bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded hover:bg-teal-500/40 transition-colors">Add Friend</button>
+                    </div>
+                    <div id="live-score-container" class="mt-2 text-xs font-bold text-teal-400/80 uppercase tracking-widest flex items-center gap-2">
+                        <span class="opacity-50">Live Score:</span>
+                        <span id="live-score-val" class="text-teal-300">0</span>
                     </div>
                 </div>
-                <button onclick="openModal('modal-rules')" class="glass-btn p-2 sm:px-4 text-sm flex items-center gap-2" title="Rules">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-                    <span class="hidden sm:inline">Rules</span>
-                </button>
-                <button onclick="quitGame()" class="glass-btn p-2 sm:px-4 text-sm flex items-center gap-2 text-red-400 border-red-900/40 hover:bg-red-900/20" title="Quit">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                    <span class="hidden sm:inline">Quit</span>
-                </button>
+                <div class="flex gap-2">
+                    <div class="relative inline-block">
+                        <button id="btn-chat" onclick="window.toggleChatMenu()" class="hidden glass-btn p-2 sm:px-4 text-sm flex items-center gap-2 border-teal-500/30 text-teal-300" title="Chat">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            <span class="hidden sm:inline">Chat</span>
+                        </button>
+                        <div id="chat-menu" class="hidden absolute top-full right-0 mt-2 flex-col gap-1 glass-panel p-2 rounded-xl text-sm shadow-xl border-teal-500/50 w-40 z-50">
+                            <button onclick="window.sendChatMsg('Still there?')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Still there?</button>
+                            <button onclick="window.sendChatMsg('Play again?')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Play again?</button>
+                            <button onclick="window.sendChatMsg('Yes!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Yes!</button>
+                            <button onclick="window.sendChatMsg('No.')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">No.</button>
+                            <button onclick="window.sendChatMsg('Good move!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Good move!</button>
+                            <button onclick="window.sendChatMsg('Oops!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Oops!</button>
+                        </div>
+                    </div>
+                    <button onclick="openModal('modal-rules')" class="glass-btn p-2 sm:px-4 text-sm flex items-center gap-2" title="Rules">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                        <span class="hidden sm:inline">Rules</span>
+                    </button>
+                    <button onclick="quitGame()" class="glass-btn p-2 sm:px-4 text-sm flex items-center gap-2 text-red-400 border-red-900/40 hover:bg-red-900/20" title="Quit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        <span class="hidden sm:inline">Quit</span>
+                    </button>
+                </div>
             </div>
-        </div>
 
-        <div class="flex-1 flex flex-col justify-center items-center mb-4 sm:mb-8 relative">
-            <div id="wild-rules-indicator" class="hidden absolute top-2 left-1/2 -translate-x-1/2 bg-teal-500/20 border border-teal-500/40 px-4 py-1 rounded-full text-[10px] text-teal-300 uppercase tracking-widest z-10 flex gap-4 shadow-[0_0_15px_rgba(20,184,166,0.1)]">
-                <!-- Rules listed here -->
-            </div>
-            <div id="board-container" class="grid grid-cols-8 grid-rows-8 w-full max-w-[95vw] sm:max-w-[550px] aspect-square rounded-xl overflow-hidden glass-panel border border-teal-500/30">
-                <!-- Squares injected dynamically -->
+            <div class="w-full flex flex-col justify-center items-center relative">
+                <div id="wild-rules-indicator" class="hidden absolute top-2 left-1/2 -translate-x-1/2 bg-teal-500/20 border border-teal-500/40 px-4 py-1 rounded-full text-[10px] text-teal-300 uppercase tracking-widest z-10 flex gap-4 shadow-[0_0_15px_rgba(20,184,166,0.1)]">
+                    <!-- Rules listed here -->
+                </div>
+                <div id="board-container" class="grid grid-cols-8 grid-rows-8 w-full max-w-[95vw] sm:max-w-[550px] aspect-square rounded-xl overflow-hidden glass-panel border border-teal-500/30">
+                    <!-- Squares injected dynamically -->
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <!-- Footer Modal -->
     <div id="modal-footer" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4 opacity-100 transition-opacity">
@@ -643,13 +669,13 @@
         window.recordWin = window.recordWin || function(){}; 
 
         // --- UI UTILS ---
-        let navigationStack = ['view-main-menu'];
+        let navigationStack = ['view-landing'];
 
         // Background animation logic
         let bgPos = 0;
         let bgDir = 1;
-        let bgSpeed = 0.005;
-        let targetBgSpeed = 0.005;
+        let bgSpeed = 0.001;
+        let targetBgSpeed = 0.001;
 
         function updateBackground() {
             bgPos += bgDir * bgSpeed;
@@ -678,8 +704,8 @@
         document.addEventListener('mousedown', (e) => {
             const isInteractive = e.target.closest('button') || e.target.closest('.piece') || e.target.closest('.glass-btn') || e.target.closest('.square');
             if (isInteractive) {
-                bgSpeed = 0.05; // Quick burst
-                targetBgSpeed = 0.01; // Slightly quicker than base (0.005)
+                bgSpeed = 0.01; // Quick burst
+                targetBgSpeed = 0.002; // Slightly quicker than base (0.001)
             }
         });
 
@@ -714,7 +740,7 @@
 
         function updateUniversalBackButton(viewId) {
             const backBtn = document.getElementById('universal-back-btn');
-            if (viewId === 'view-main-menu') {
+            if (viewId === 'view-main-menu' || viewId === 'view-landing') {
                 backBtn.classList.add('hidden');
             } else {
                 backBtn.classList.remove('hidden');
@@ -724,21 +750,21 @@
         window.handleUniversalBack = () => {
             // 1. Close open modals first
             const openModalEl = document.querySelector('.fixed.inset-0:not(.hidden)');
-            if (openModalEl) {
+            if (openModalEl && openModalEl.id !== 'view-landing' && openModalEl.id !== 'view-main-menu' && !openModalEl.id.startsWith('view-')) {
                 closeModal(openModalEl.id);
                 return;
             }
 
             // 2. Special logic for game
             const gameView = document.getElementById('view-game');
-            if (!gameView.classList.contains('hidden')) {
+            if (gameView && !gameView.classList.contains('hidden')) {
                 quitGame();
                 return;
             }
 
             // 3. Special logic for matchmaking
             const searchingView = document.getElementById('view-searching');
-            if (!searchingView.classList.contains('hidden')) {
+            if (searchingView && !searchingView.classList.contains('hidden')) {
                 cancelMatchmaking();
                 return;
             }
@@ -749,7 +775,8 @@
                 const prevView = navigationStack[navigationStack.length - 1];
                 showView(prevView, false);
             } else {
-                showView('view-main-menu', false);
+                // If we are at the root, ensure we are on landing
+                showView('view-landing', false);
             }
         };
 
@@ -757,7 +784,7 @@
         window.onpopstate = null;
 
         // Initialize
-        showView('view-main-menu', false);
+        showView('view-landing', false);
 
         function showNotification(msg) {
             const notif = document.getElementById('notification-toast');
@@ -3567,7 +3594,7 @@
             }
             gameState.wildRules = null;
             updateWildIndicator();
-            window.showView('view-main-menu');
+            window.showView('view-landing');
         }
 
         window.addEventListener('beforeunload', () => {
