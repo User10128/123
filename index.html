@@ -23,21 +23,23 @@
         body::before {
             content: "";
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 200%;
-            height: 200%;
-            background-image: 
-                radial-gradient(circle at 2px 2px, rgba(45, 212, 191, 0.05) 1px, transparent 0);
-            background-size: 40px 40px;
+            top: -10%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
             z-index: -1;
-            animation: moveBackground var(--bg-speed, 20s) linear infinite;
+            animation: moveBackground var(--bg-speed, 60s) ease-in-out infinite alternate;
             pointer-events: none;
+            opacity: 0.4;
+            transition: opacity 1s ease;
         }
 
         @keyframes moveBackground {
-            from { transform: translate(0, 0); }
-            to { transform: translate(-40px, -40px); }
+            0% { transform: translate(0, 0) scale(1.1); }
+            100% { transform: translate(-5%, -5%) scale(1.25); }
         }
         
         /* Custom Scrollbar */
@@ -418,8 +420,8 @@
     </div>
 
     <!-- GAME VIEW -->
-    <div id="view-game" class="view-container fixed inset-0 hidden flex flex-col items-center justify-start pt-40 sm:pt-28 pb-6 px-4 sm:px-6 transition-opacity duration-300 relative">
-        <div class="w-full max-w-2xl">
+    <div id="view-game" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300 relative">
+        <div class="w-full max-w-2xl mt-20 sm:mt-0">
             <div class="flex justify-between items-end mb-6">
             <div>
                 <div id="turn-status" class="text-slate-300 mt-1 font-medium tracking-wide text-sm sm:text-base bg-slate-800/50 inline-block px-3 py-1 rounded-full border border-slate-700"></div>
@@ -653,6 +655,20 @@
 
         // --- UI UTILS ---
         let navigationStack = ['view-main-menu'];
+
+        // Background speed control
+        document.addEventListener('mousedown', (e) => {
+            const isInteractive = e.target.closest('button') || e.target.closest('.piece') || e.target.closest('.glass-btn') || e.target.closest('.square');
+            if (isInteractive) {
+                document.body.style.setProperty('--bg-speed', '15s');
+                
+                clearTimeout(window.bgSpeedTimeout);
+                window.bgSpeedTimeout = setTimeout(() => {
+                    // After the "boost", it stays "slightly quicker" than the initial slow speed
+                    document.body.style.setProperty('--bg-speed', '30s');
+                }, 3000);
+            }
+        });
 
         function openModal(id) {
             const modal = document.getElementById(id);
