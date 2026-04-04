@@ -120,14 +120,6 @@
 </head>
 <body class="bg-gradient-to-br from-slate-900 to-slate-800 text-slate-200 h-screen w-screen overflow-hidden flex flex-col font-sans selection:bg-teal-500/30 relative">
 
-    <!-- Top Left Logo Icon -->
-    <div class="fixed top-4 left-4 sm:top-6 sm:left-6 z-50 flex items-center pointer-events-none">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-8 h-8 sm:w-10 sm:h-10 text-teal-400 drop-shadow-[0_0_8px_rgba(45,212,191,0.5)]" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <circle cx="12" cy="12" r="5" fill="currentColor" stroke="none"></circle>
-        </svg>
-    </div>
-
     <!-- Top Right Account Icon -->
     <div class="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex gap-3">
         <button onclick="window.showLeaderboardView()" class="glass-btn p-2 sm:px-4 flex items-center gap-2" title="Leaderboard">
@@ -148,10 +140,15 @@
         </button>
     </div>
 
-    <!-- Universal Back Button -->
-    <button id="universal-back-btn" onclick="window.handleUniversalBack()" class="fixed top-4 left-4 z-[150] glass-btn p-3 rounded-full shadow-xl border-teal-500/30 text-teal-300 hidden hover:scale-110 transition-transform active:scale-95">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-    </button>
+    <!-- Global Header with Logo and Universal Back Button -->
+    <header id="global-header" class="fixed top-0 left-0 right-0 z-[150] p-4 sm:p-6 flex justify-center items-center pointer-events-none">
+        <div class="relative flex items-center justify-center pointer-events-auto">
+            <button id="universal-back-btn" onclick="window.handleUniversalBack()" class="absolute right-full mr-4 glass-btn p-3 rounded-full shadow-xl border-teal-500/30 text-teal-300 hidden hover:scale-110 transition-transform active:scale-95">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            </button>
+            <h1 id="global-logo" class="text-3xl sm:text-4xl font-bold italic text-teal-300 tracking-wider uppercase drop-shadow-lg">CHECKERS</h1>
+        </div>
+    </header>
 
     <!-- Toast Notification -->
     <div id="notification-toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-slate-800/95 backdrop-blur-md text-teal-300 px-6 py-3 rounded-full shadow-lg shadow-teal-500/10 border border-teal-500/30 z-[100] transform transition-all duration-300 translate-y-[-150%] opacity-0 flex items-center gap-2 font-medium tracking-wide">
@@ -160,13 +157,9 @@
 
     <!-- MAIN MENU VIEW -->
     <div id="view-main-menu" class="view-container flex flex-col items-center justify-center h-full w-full max-w-md mx-auto p-4 sm:p-6 transition-opacity duration-300">
-        <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-8 text-center relative overflow-hidden mt-8">
+        <div class="glass-panel w-full p-8 rounded-2xl flex flex-col gap-8 text-center relative overflow-hidden">
             <div class="absolute -top-12 -right-12 w-40 h-40 bg-teal-400/10 rounded-full blur-3xl"></div>
             <div class="absolute -bottom-12 -left-12 w-40 h-40 bg-teal-800/20 rounded-full blur-3xl"></div>
-
-            <div class="relative z-10 flex flex-col items-center">
-                <h1 class="text-5xl sm:text-5xl font-bold italic text-teal-300 bg-clip-text tracking-wider uppercase mb-6 drop-shadow-lg">CHECKERS</h1>
-            </div>
 
             <!-- Daily Challenge Banner -->
             <div id="daily-challenge-banner" class="hidden relative z-10 bg-teal-500/10 border border-teal-500/30 rounded-xl p-3 text-left">
@@ -282,8 +275,6 @@
                     <button onclick="window.deleteAccount()" class="text-[10px] text-red-500/50 hover:text-red-400 uppercase tracking-widest font-bold mt-2">Delete Account</button>
                 </div>
             </div>
-
-            <button onclick="showView('view-main-menu')" class="glass-btn mt-2">Back</button>
         </div>
     </div>
 
@@ -306,7 +297,6 @@
 
             <div class="flex flex-col gap-3 mt-2">
                 <button onclick="window.deleteHighScores()" class="glass-btn text-red-400 hover:text-red-300 hover:bg-red-900/20 py-2 border-red-900/30">Delete High Scores</button>
-                <button onclick="showView('view-account')" class="glass-btn">Back to Account</button>
             </div>
         </div>
     </div>
@@ -329,8 +319,6 @@
                     <p class="text-slate-500 text-center py-4">Loading leaderboard...</p>
                 </div>
             </div>
-
-            <button onclick="showView('view-main-menu')" class="glass-btn mt-4">Back</button>
         </div>
     </div>
 
@@ -343,7 +331,6 @@
                 <button onclick="gameState.aiDifficulty='medium'; startGame('ai')" class="btn-primary flex justify-between"><span>Medium</span> <span class="text-teal-600">Basic Tactics</span></button>
                 <button onclick="gameState.aiDifficulty='hard'; startGame('ai')" class="btn-primary flex justify-between"><span>Hard</span> <span class="text-teal-600">Minimax Logic</span></button>
             </div>
-            <button onclick="showView('view-main-menu')" class="glass-btn mt-2">Back</button>
         </div>
     </div>
 
@@ -379,8 +366,6 @@
                     <span id="join-btn-text">Connect to Game</span>
                 </button>
             </div>
-            
-            <button onclick="showView('view-main-menu')" class="glass-btn mt-4">Back</button>
         </div>
     </div>
 
@@ -403,7 +388,6 @@
                     <span class="text-[10px] opacity-60 uppercase tracking-widest">Randomized Rules & Chaos</span>
                 </button>
             </div>
-            <button onclick="showView('view-main-menu')" class="glass-btn mt-4">Back</button>
         </div>
     </div>
 
@@ -422,15 +406,13 @@
                 <p class="text-xs text-slate-400 italic">Connection taking longer than expected...</p>
                 <button onclick="window.startGlobalMatch()" class="btn-primary py-2 text-sm">Attempt Reconnection</button>
             </div>
-            <button onclick="cancelMatchmaking()" class="glass-btn mt-4 px-6 py-2">Cancel</button>
         </div>
     </div>
 
     <!-- GAME VIEW -->
-    <div id="view-game" class="view-container hidden flex-col h-full w-full max-w-2xl mx-auto pt-20 sm:pt-6 pb-6 px-4 sm:px-6 transition-opacity duration-300 relative">
+    <div id="view-game" class="view-container hidden flex-col h-full w-full max-w-2xl mx-auto pt-24 sm:pt-28 pb-6 px-4 sm:px-6 transition-opacity duration-300 relative">
         <div class="flex justify-between items-end mb-6">
             <div>
-                <h1 class="text-2xl sm:text-3xl text-teal-400 tracking-widest font-bold italic uppercase">CHECKERS</h1>
                 <div id="turn-status" class="text-slate-300 mt-1 font-medium tracking-wide text-sm sm:text-base bg-slate-800/50 inline-block px-3 py-1 rounded-full border border-slate-700"></div>
                 <div id="opponent-info" class="hidden flex items-center gap-2 mt-2 bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700 w-max">
                     <span class="text-[10px] text-slate-400 uppercase tracking-widest">Opponent:</span>
@@ -611,7 +593,6 @@
         <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-sm w-full text-center">
             <h3 class="text-xl text-teal-400 mb-6 font-medium" id="confirm-text">Are you sure?</h3>
             <div class="flex gap-4 justify-center">
-                <button onclick="closeConfirmModal()" class="glass-btn px-6 py-2 flex-1">Cancel</button>
                 <button id="btn-confirm-yes" class="btn-primary px-6 py-2 flex-1 border-red-500/50 text-red-300 hover:bg-red-500/20 hover:shadow-[0_0_15px_rgba(239,68,68,0.2)]">Yes, Quit</button>
             </div>
         </div>
@@ -661,11 +642,12 @@
         window.recordWin = window.recordWin || function(){}; 
 
         // --- UI UTILS ---
+        let navigationStack = ['view-main-menu'];
+
         function openModal(id) {
             const modal = document.getElementById(id);
             if (modal) {
                 modal.classList.remove('hidden');
-                history.pushState({ modalId: id }, '', `#${id}`);
             }
         }
 
@@ -673,20 +655,19 @@
             const modal = document.getElementById(id);
             if (modal) {
                 modal.classList.add('hidden');
-                if (history.state && history.state.modalId === id) {
-                    history.back();
-                }
             }
         }
 
-        function showView(id, pushHistory = true) {
+        function showView(id, pushToStack = true) {
             document.querySelectorAll('.view-container').forEach(v => v.classList.add('hidden'));
             document.querySelectorAll('.fixed.inset-0').forEach(m => m.classList.add('hidden')); // Close all modals
             const view = document.getElementById(id);
             if (view) {
                 view.classList.remove('hidden');
-                if (pushHistory) {
-                    history.pushState({ viewId: id }, '', `#${id}`);
+                if (pushToStack) {
+                    if (navigationStack[navigationStack.length - 1] !== id) {
+                        navigationStack.push(id);
+                    }
                 }
                 updateUniversalBackButton(id);
             }
@@ -702,32 +683,35 @@
         }
 
         window.handleUniversalBack = () => {
-            if (history.state) {
-                history.back();
-            } else {
-                showView('view-main-menu');
+            // 1. Close open modals first
+            const openModalEl = document.querySelector('.fixed.inset-0:not(.hidden)');
+            if (openModalEl) {
+                closeModal(openModalEl.id);
+                return;
             }
-        };
 
-        window.onpopstate = (event) => {
-            // Close all modals first
-            document.querySelectorAll('.fixed.inset-0').forEach(m => m.classList.add('hidden'));
-            
-            if (event.state) {
-                if (event.state.viewId) {
-                    showView(event.state.viewId, false);
-                }
-                if (event.state.modalId) {
-                    const modal = document.getElementById(event.state.modalId);
-                    if (modal) modal.classList.remove('hidden');
-                }
+            // 2. Special logic for matchmaking
+            const searchingView = document.getElementById('view-searching');
+            if (!searchingView.classList.contains('hidden')) {
+                cancelMatchmaking();
+                return;
+            }
+
+            // 3. Navigate back in stack
+            if (navigationStack.length > 1) {
+                navigationStack.pop();
+                const prevView = navigationStack[navigationStack.length - 1];
+                showView(prevView, false);
             } else {
                 showView('view-main-menu', false);
             }
         };
 
-        // Initialize history
-        history.replaceState({ viewId: 'view-main-menu' }, '', '#view-main-menu');
+        // Remove onpopstate as we are no longer using OS history
+        window.onpopstate = null;
+
+        // Initialize
+        showView('view-main-menu', false);
 
         function showNotification(msg) {
             const notif = document.getElementById('notification-toast');
