@@ -439,7 +439,7 @@
         <div class="w-full max-w-2xl flex flex-col items-center justify-center">
             <div class="w-full flex flex-col sm:flex-row justify-between items-center sm:items-end gap-4 mb-6">
                 <div class="flex flex-col items-center sm:items-start">
-                    <div id="turn-status" class="text-slate-300 mt-1 font-medium tracking-wide text-sm sm:text-base bg-slate-800/50 inline-block px-3 py-1 rounded-full border border-slate-700"></div>
+                    <div id="turn-status" class="hidden sm:inline-block text-slate-300 mt-1 font-medium tracking-wide text-sm sm:text-base bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700"></div>
                     <div class="hidden sm:block">
                         <div id="opponent-info" class="hidden flex items-center gap-2 mt-2 bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700 w-max">
                             <span class="text-[10px] text-slate-400 uppercase tracking-widest">Opponent:</span>
@@ -454,17 +454,14 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="w-full flex flex-col justify-center items-center relative">
-                <!-- Game Controls: Top right on desktop, Bottom left on mobile -->
-                <div class="flex gap-2 absolute sm:-top-16 sm:right-0 -bottom-12 left-0 z-20">
+                <!-- Desktop Controls -->
+                <div class="hidden sm:flex gap-2">
                     <div class="relative inline-block">
-                        <button id="btn-chat" onclick="window.toggleChatMenu()" class="hidden glass-btn p-2 sm:px-4 text-sm flex items-center gap-2 border-teal-500/30 text-teal-300" title="Chat">
+                        <button id="btn-chat-desktop" onclick="window.toggleChatMenu()" class="hidden glass-btn p-2 sm:px-4 text-sm flex items-center gap-2 border-teal-500/30 text-teal-300" title="Chat">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                             <span class="hidden sm:inline">Chat</span>
                         </button>
-                        <div id="chat-menu" class="hidden absolute bottom-full sm:top-full sm:bottom-auto right-0 mb-2 sm:mt-2 flex-col gap-1 glass-panel p-2 rounded-xl text-sm shadow-xl border-teal-500/50 w-40 z-50">
+                        <div id="chat-menu-desktop" class="hidden absolute top-full left-0 mt-2 flex-col gap-1 glass-panel p-2 rounded-xl text-sm shadow-xl border-teal-500/50 w-40 z-50">
                             <button onclick="window.sendChatMsg('Still there?')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Still there?</button>
                             <button onclick="window.sendChatMsg('Play again?')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Play again?</button>
                             <button onclick="window.sendChatMsg('Yes!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Yes!</button>
@@ -482,6 +479,31 @@
                         <span class="hidden sm:inline">Quit</span>
                     </button>
                 </div>
+            </div>
+
+            <div class="w-full flex flex-col justify-center items-center relative">
+                <!-- Mobile Controls: Bottom left -->
+                <div class="flex sm:hidden gap-2 absolute -bottom-12 left-0 z-20">
+                    <div class="relative inline-block">
+                        <button id="btn-chat-mobile" onclick="window.toggleChatMenu()" class="hidden glass-btn p-2 text-sm flex items-center gap-2 border-teal-500/30 text-teal-300" title="Chat">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        </button>
+                        <div id="chat-menu-mobile" class="hidden absolute bottom-full left-0 mb-2 flex-col gap-1 glass-panel p-2 rounded-xl text-sm shadow-xl border-teal-500/50 w-40 z-50">
+                            <button onclick="window.sendChatMsg('Still there?')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Still there?</button>
+                            <button onclick="window.sendChatMsg('Play again?')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Play again?</button>
+                            <button onclick="window.sendChatMsg('Yes!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Yes!</button>
+                            <button onclick="window.sendChatMsg('No.')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">No.</button>
+                            <button onclick="window.sendChatMsg('Good move!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Good move!</button>
+                            <button onclick="window.sendChatMsg('Oops!')" class="text-left px-3 py-2 hover:bg-slate-700/80 rounded transition-colors text-slate-200">Oops!</button>
+                        </div>
+                    </div>
+                    <button onclick="openModal('modal-rules')" class="glass-btn p-2 text-sm flex items-center gap-2" title="Rules">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                    </button>
+                    <button onclick="quitGame()" class="glass-btn p-2 text-sm flex items-center gap-2 text-red-400 border-red-900/40 hover:bg-red-900/20" title="Quit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    </button>
+                </div>
                 <div id="wild-rules-indicator" class="hidden absolute top-2 left-1/2 -translate-x-1/2 bg-teal-500/20 border border-teal-500/40 px-4 py-1 rounded-full text-[10px] text-teal-300 uppercase tracking-widest z-10 flex gap-4 shadow-[0_0_15px_rgba(20,184,166,0.1)]">
                     <!-- Rules listed here -->
                 </div>
@@ -489,6 +511,20 @@
                     <!-- Squares injected dynamically -->
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Welcome Modal -->
+    <div id="modal-welcome" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="glass-panel p-8 sm:p-12 rounded-3xl max-w-md w-full text-center shadow-[0_0_50px_rgba(20,184,166,0.2)] border-teal-500/30">
+            <div class="mb-6 flex justify-center">
+                <div class="w-20 h-20 bg-teal-500/20 rounded-full flex items-center justify-center border border-teal-500/40 animate-pulse">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-300"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="5" fill="currentColor" stroke="none"></circle></svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-white mb-2 tracking-tight">Welcome to Checkers</h2>
+            <p class="text-slate-400 mb-8 leading-relaxed">Experience the classic game of strategy. Play against AI, challenge friends, or join global matches.</p>
+            <button onclick="closeModal('modal-welcome')" class="btn-primary w-full py-4 text-lg font-bold tracking-widest uppercase">Start Playing</button>
         </div>
     </div>
 
@@ -817,9 +853,11 @@
 
         // --- CHAT SYSTEM ---
         window.toggleChatMenu = () => {
-            const menu = document.getElementById('chat-menu');
-            menu.classList.toggle('hidden');
-            menu.classList.toggle('flex');
+            const menus = document.querySelectorAll('[id^="chat-menu"]');
+            menus.forEach(m => {
+                m.classList.toggle('hidden');
+                m.classList.toggle('flex');
+            });
         };
 
         window.sendChatMsg = (text) => {
@@ -982,8 +1020,11 @@
             updateWildIndicator();
 
             if (mode === 'online') {
-                document.getElementById('btn-chat').classList.remove('hidden');
-                document.getElementById('btn-chat').classList.add('flex');
+                const chatBtns = document.querySelectorAll('[id^="btn-chat"]');
+                chatBtns.forEach(b => {
+                    b.classList.remove('hidden');
+                    b.classList.add('flex');
+                });
                 document.getElementById('opponent-info').classList.remove('hidden');
                 document.getElementById('opponent-info').classList.add('flex');
                 
@@ -991,10 +1032,16 @@
                 document.getElementById('opponent-name').innerText = "...";
                 document.getElementById('btn-add-friend-opponent').classList.add('hidden');
             } else {
-                document.getElementById('btn-chat').classList.add('hidden');
-                document.getElementById('btn-chat').classList.remove('flex');
-                document.getElementById('chat-menu').classList.add('hidden');
-                document.getElementById('chat-menu').classList.remove('flex');
+                const chatBtns = document.querySelectorAll('[id^="btn-chat"]');
+                chatBtns.forEach(b => {
+                    b.classList.add('hidden');
+                    b.classList.remove('flex');
+                });
+                const chatMenus = document.querySelectorAll('[id^="chat-menu"]');
+                chatMenus.forEach(m => {
+                    m.classList.add('hidden');
+                    m.classList.remove('flex');
+                });
                 document.getElementById('opponent-info').classList.add('hidden');
                 document.getElementById('opponent-info').classList.remove('flex');
             }
@@ -3618,7 +3665,7 @@
             // First-time popup logic
             if (!localStorage.getItem('checkers_first_visit')) {
                 setTimeout(() => {
-                    openModal('modal-rules');
+                    openModal('modal-welcome');
                     localStorage.setItem('checkers_first_visit', 'true');
                 }, 1000);
             }
