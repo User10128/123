@@ -204,7 +204,7 @@
                 </button>
                 <button onclick="showView('view-ai-setup')" class="btn-primary flex items-center justify-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-                    Play vs Computer
+                    Play vs AI
                 </button>
                 <button onclick="showView('view-global-matchmaking-choice')" class="btn-primary flex items-center justify-center gap-3 shadow-[0_0_15px_rgba(45,212,191,0.15)] border-teal-400/40">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
@@ -230,7 +230,7 @@
             <span class="opacity-20">|</span>
             <a href="https://checkers.page/service" target="_blank" class="hover:text-teal-400 transition-colors">Terms of Service</a>
             <span class="opacity-20">|</span>
-            <button onclick="window.showFooterModal('contact')" class="hover:text-teal-400 transition-colors">CONTACT</button>
+            <button onclick="window.showFooterModal('contact')" class="hover:text-teal-400 transition-colors">Contact</button>
         </div>
     </div>
 
@@ -440,10 +440,10 @@
         <div class="relative flex flex-col items-center justify-center w-full max-w-2xl">
             
             <!-- Top Info & Controls: Positioned directly above the board for all devices -->
-            <div class="absolute -top-16 sm:-top-20 w-full flex flex-row justify-between items-end gap-2 px-2 z-30">
+            <div class="absolute -top-20 sm:-top-24 w-full flex flex-row justify-between items-end gap-2 px-2 z-30">
                 <div class="flex flex-col items-start">
                     <div id="turn-status" class="text-slate-300 font-medium tracking-wide text-xs sm:text-sm bg-slate-800/60 px-3 py-1 rounded-full border border-slate-700/50 backdrop-blur-sm"></div>
-                    <div id="opponent-info" class="hidden flex items-center gap-2 mt-1 bg-slate-800/60 px-3 py-1 rounded-full border border-slate-700/50 backdrop-blur-sm w-max">
+                    <div id="opponent-info" class="hidden sm:flex items-center gap-2 mt-1 bg-slate-800/60 px-3 py-1 rounded-full border border-slate-700/50 backdrop-blur-sm w-max">
                         <span class="text-[10px] text-slate-400 uppercase tracking-widest">Opponent:</span>
                         <span id="opponent-name" class="text-xs font-bold text-teal-300">...</span>
                         <button id="btn-add-friend-opponent" class="hidden text-[10px] bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded hover:bg-teal-500/40 transition-colors">Add Friend</button>
@@ -782,10 +782,14 @@
             if (navigationStack.length > 1) {
                 navigationStack.pop();
                 const prevView = navigationStack[navigationStack.length - 1];
+                if (prevView === 'view-main-menu') {
+                    window.location.reload();
+                    return;
+                }
                 showView(prevView, false);
             } else {
-                // If we are at the root, ensure we are on landing
-                showView('view-landing', false);
+                // If we are at the root, ensure we are on main menu and reload
+                window.location.reload();
             }
         };
 
@@ -1665,9 +1669,28 @@
                 const customId = Math.floor(100000 + Math.random() * 900000).toString();
                 peer = new Peer(customId);
                 
-                peer.on('open', (id) => {
+                peer.on('open', async (id) => {
                     document.getElementById('host-id-display').value = id;
                     showNotification('Host Code Generated!');
+                    
+                    // If we have a pending invite, send it now
+                    if (pendingInviteUid) {
+                        try {
+                            const inviteRef = doc(db, 'artifacts', appId, 'users', pendingInviteUid, 'invites', fbUser.uid);
+                            await setDoc(inviteRef, {
+                                fromName: fbUser.displayName || 'Friend',
+                                fromId: fbUser.uid,
+                                code: id,
+                                timestamp: Date.now()
+                            });
+                            window.showNotification(`Invite sent to ${pendingInviteName}!`);
+                        } catch (e) {
+                            console.error("Failed to send invite:", e);
+                            window.showNotification("Failed to send invite.");
+                        }
+                        pendingInviteUid = null;
+                        pendingInviteName = null;
+                    }
                 });
                 peer.on('connection', (connection) => {
                     conn = connection;
@@ -1925,6 +1948,8 @@
         let fbUser = null;
         let isRegisteredUser = false;
         let authInitialized = false;
+        let pendingInviteUid = null;
+        let pendingInviteName = null;
         let invitesUnsubscribe = null;
         let responsesUnsubscribe = null;
         let authMode = 'signin'; // 'signin' or 'signup'
@@ -2121,19 +2146,36 @@
                         if (friends.length === 0) {
                             content.innerHTML = `<p class="text-slate-500 text-center py-8 italic">No active friends found.</p>`;
                         } else {
+                            const now = Date.now();
                             content.innerHTML = `
                                 <div class="flex flex-col gap-3">
-                                    ${friends.map(f => `
-                                        <div class="flex justify-between items-center bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
-                                            <div class="flex items-center gap-3">
-                                                <div class="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-400 font-bold text-xs">
-                                                    ${f.displayName ? f.displayName[0].toUpperCase() : 'P'}
+                                    ${friends.map(f => {
+                                        const isOnline = f.lastSeen && (now - f.lastSeen < 60000); // 1 minute threshold
+                                        return `
+                                            <div class="flex justify-between items-center bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="relative">
+                                                        <div class="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-400 font-bold text-xs">
+                                                            ${f.displayName ? f.displayName[0].toUpperCase() : 'P'}
+                                                        </div>
+                                                        <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-900 ${isOnline ? 'bg-green-500' : 'bg-slate-600'}"></div>
+                                                    </div>
+                                                    <div class="flex flex-col">
+                                                        <span class="text-sm font-medium text-slate-200">${f.displayName}</span>
+                                                        <span class="text-[9px] uppercase tracking-widest ${isOnline ? 'text-green-400' : 'text-slate-500'}">
+                                                            ${isOnline ? 'Online' : 'Offline'}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                                <span class="text-sm font-medium text-slate-200">${f.displayName}</span>
+                                                <div class="flex gap-2">
+                                                    ${isOnline ? `
+                                                        <button onclick="window.inviteFriendToGame('${f.uid}', '${f.displayName}')" class="text-[10px] bg-teal-500/20 text-teal-300 px-3 py-1 rounded-lg hover:bg-teal-500/40 transition-colors">Invite</button>
+                                                    ` : ''}
+                                                    <button onclick="window.showPlayerProfile('${f.uid}')" class="text-[10px] text-slate-400 hover:text-teal-400 transition-colors">Profile</button>
+                                                </div>
                                             </div>
-                                            <button onclick="window.showPlayerProfile('${f.uid}')" class="text-[10px] text-teal-400 hover:underline">View Profile</button>
-                                        </div>
-                                    `).join('')}
+                                        `;
+                                    }).join('')}
                                 </div>
                             `;
                         }
@@ -3625,7 +3667,7 @@
             }
             gameState.wildRules = null;
             updateWildIndicator();
-            window.showView('view-landing');
+            window.showView('view-main-menu');
         }
 
         window.addEventListener('beforeunload', () => {
@@ -3654,6 +3696,23 @@
             }
         }
 
+        window.inviteFriendToGame = (uid, name) => {
+            pendingInviteUid = uid;
+            pendingInviteName = name;
+            showView('view-online-setup');
+            startHost();
+        };
+
+        async function updateHeartbeat() {
+            if (fbUser && isRegisteredUser) {
+                const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
+                await updateDoc(profileRef, {
+                    lastSeen: Date.now()
+                }).catch(() => {});
+            }
+        }
+        setInterval(updateHeartbeat, 30000);
+
         onAuthStateChanged(auth, async (user) => {
             if (!user && !authInitialized) {
                 authInitialized = true;
@@ -3668,6 +3727,7 @@
             if (user) {
                 isRegisteredUser = !user.isAnonymous;
                 updateAccountUI();
+                updateHeartbeat();
                 
                 if (isRegisteredUser) {
                     await updatePublicProfile(true);
