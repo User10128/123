@@ -624,11 +624,12 @@
     </div>
 
     <!-- Confirm Modal -->
-    <div id="modal-confirm" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[200] hidden flex items-center justify-center p-4">
+    <div id="modal-confirm" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[9999] hidden flex items-center justify-center p-4">
         <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-sm w-full text-center">
             <h3 class="text-xl text-teal-400 mb-6 font-medium" id="confirm-text">Are you sure?</h3>
             <div class="flex gap-4 justify-center">
-                <button id="btn-confirm-yes" class="btn-primary px-6 py-2 flex-1 border-red-500/50 text-red-300 hover:bg-red-500/20 hover:shadow-[0_0_15px_rgba(239,68,68,0.2)]">Yes, Quit</button>
+                <button onclick="closeConfirmModal()" class="glass-btn px-6 py-2 flex-1">Cancel</button>
+                <button id="btn-confirm-yes" class="btn-primary px-6 py-2 flex-1 border-red-500/50 text-red-300 hover:bg-red-500/20 hover:shadow-[0_0_15px_rgba(239,68,68,0.2)]">Yes</button>
             </div>
         </div>
     </div>
@@ -702,6 +703,7 @@
             lastMove: null,
             opponentInfo: null // { displayName, friendCode }
         };
+        window.gameState = gameState;
 
         // Ensure Firebase hooks exist even if module loads late
         window.recordWin = window.recordWin || function(){}; 
@@ -861,10 +863,13 @@
             confirmCallback = callback;
             openModal('modal-confirm');
         }
+        window.showConfirm = showConfirm;
+
         function closeConfirmModal() {
             closeModal('modal-confirm');
             confirmCallback = null;
         }
+        window.closeConfirmModal = closeConfirmModal;
         document.getElementById('btn-confirm-yes').onclick = () => {
             if (confirmCallback) confirmCallback();
             closeConfirmModal();
@@ -1755,6 +1760,9 @@
         window.joinGame = joinGame;
         window.startHost = startHost;
         window.quitGame = quitGame;
+        window.checkWinCondition = checkWinCondition;
+        window.renderBoard = renderBoard;
+        window.updateStatusText = updateStatusText;
         window.quitGameFromEnd = quitGameFromEnd;
         window.restartGame = restartGame;
 
@@ -1917,7 +1925,7 @@
                     restartRequested: 0,
                     chat: null,
                     status: 'waiting',
-                    wildRules: gameState.wildRules,
+                    wildRules: window.gameState.wildRules,
                     timestamp: Date.now()
                 }).catch(e => handleFirestoreError(e, OperationType.CREATE, `games/${gameId}`));
 
@@ -1939,7 +1947,7 @@
                 }
 
                 window.setupGameListenerFirebase(gameId);
-                window.startGame('online', window.P1, gameState.wildRules);
+                window.startGame('online', window.P1, window.gameState.wildRules);
 
             } catch(e) {
                 console.error(e);
@@ -2021,7 +2029,7 @@
                 // Sync opponent info
                 const opponent = isHost ? data.p2 : data.p1;
                 if (opponent) {
-                    gameState.opponentInfo = { displayName: opponent.displayName, friendCode: opponent.friendCode };
+                    window.gameState.opponentInfo = { displayName: opponent.displayName, friendCode: opponent.friendCode };
                     window.opponentPoints = opponent.points || 5;
                     document.getElementById('opponent-name').innerText = opponent.displayName || "Unknown Player";
                     
@@ -2034,29 +2042,29 @@
                 }
 
                 // Sync board and turn
-                if (data.timestamp > (gameState.lastSyncTime || 0)) {
-                    const oldSyncTime = gameState.lastSyncTime || 0;
-                    gameState.lastSyncTime = data.timestamp;
+                if (data.timestamp > (window.gameState.lastSyncTime || 0)) {
+                    const oldSyncTime = window.gameState.lastSyncTime || 0;
+                    window.gameState.lastSyncTime = data.timestamp;
                     
                     // If it's the opponent's turn or just changed to our turn
-                    if (data.turn !== gameState.myPlayer || (data.lastMove && JSON.stringify(data.lastMove) !== JSON.stringify(gameState.lastMove))) {
-                         gameState.board = data.board;
-                         gameState.turn = data.turn;
-                         gameState.mustJumpPiece = data.mustJumpPiece;
-                         gameState.lastMove = data.lastMove;
+                    if (data.turn !== window.gameState.myPlayer || (data.lastMove && JSON.stringify(data.lastMove) !== JSON.stringify(window.gameState.lastMove))) {
+                         window.gameState.board = data.board;
+                         window.gameState.turn = data.turn;
+                         window.gameState.mustJumpPiece = data.mustJumpPiece;
+                         window.gameState.lastMove = data.lastMove;
                          window.checkWinCondition();
                          window.renderBoard();
                          window.updateStatusText();
                     }
 
-                    if (data.restartRequested && data.restartRequested > (gameState.lastRestartRequest || 0)) {
-                        gameState.lastRestartRequest = data.restartRequested;
-                        window.startGame('online', gameState.myPlayer, data.wildRules);
+                    if (data.restartRequested && data.restartRequested > (window.gameState.lastRestartRequest || 0)) {
+                        window.gameState.lastRestartRequest = data.restartRequested;
+                        window.startGame('online', window.gameState.myPlayer, data.wildRules);
                         window.showNotification("Match Restarted!");
                     }
 
-                    if (data.chat && data.chat.timestamp > (gameState.lastChatTime || 0)) {
-                        gameState.lastChatTime = data.chat.timestamp;
+                    if (data.chat && data.chat.timestamp > (window.gameState.lastChatTime || 0)) {
+                        window.gameState.lastChatTime = data.chat.timestamp;
                         if (data.chat.uid !== fbUser.uid) {
                             window.showNotification("Opponent: " + data.chat.text);
                         }
@@ -2070,7 +2078,7 @@
                 const gameRef = doc(db, 'artifacts', appId, 'games', currentGameId);
                 updateDoc(gameRef, {
                     board: board,
-                    turn: turnEnds ? (gameState.turn === window.P1 ? window.P2 : window.P1) : gameState.turn,
+                    turn: turnEnds ? (window.gameState.turn === window.P1 ? window.P2 : window.P1) : window.gameState.turn,
                     mustJumpPiece: turnEnds ? null : mustJumpPiece,
                     lastMove: move,
                     timestamp: Date.now()
