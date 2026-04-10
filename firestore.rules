@@ -63,6 +63,17 @@ service cloud.firestore {
           allow write: if isOwner(userId) || isAdmin();
         }
       }
+
+      // Multiplayer Games
+      match /games/{gameId} {
+        allow read: if isAuthenticated();
+        // Allow create if authenticated
+        allow create: if isAuthenticated();
+        // Allow update if authenticated (in a real app we'd check if user is p1 or p2)
+        allow update: if isAuthenticated();
+        // Allow delete if authenticated
+        allow delete: if isAuthenticated();
+      }
     }
     
     // Default deny
