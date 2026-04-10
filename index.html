@@ -1834,17 +1834,18 @@
         import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, getDoc, onSnapshot, query, where, updateDoc, orderBy, limit, arrayUnion, arrayRemove, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
-            authDomain: "auth.checkers.page",
-            projectId: "checkers-matchmaking-5ac55",
-            storageBucket: "checkers-matchmaking-5ac55.firebasestorage.app",
-            messagingSenderId: "778086491027",
-            appId: "1:778086491027:web:c315fd9d97aebae6087e66"
+            projectId: "gen-lang-client-0045227220",
+            appId: "1:688944824025:web:a09e05512d7884a18808c8",
+            apiKey: "AIzaSyBsQwWy7VvUVKpzt7dwHhEJf60ze01HGdI",
+            authDomain: "gen-lang-client-0045227220.firebaseapp.com",
+            firestoreDatabaseId: "ai-studio-1b0759c5-d6bf-49f9-9930-a375f042e02b",
+            storageBucket: "gen-lang-client-0045227220.firebasestorage.app",
+            messagingSenderId: "688944824025"
         };
         
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
+        const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
         const appId = 'checkers-app';
 
         // --- STATE ---
@@ -2039,6 +2040,11 @@
                             window.addFriendByCode(opponent.friendCode);
                         };
                     }
+
+                    // Update matchmaking status if host
+                    if (isHost && data.p2 && window.currentMatchDoc) {
+                        updateDoc(window.currentMatchDoc, { status: 'playing' }).catch(()=>{});
+                    }
                 }
 
                 // Sync board and turn
@@ -2161,7 +2167,7 @@
                 } else {
                     window.showNotification("Signing in...");
                     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                    if (email === 'email-control-panel@checkers.page') {
+                    if (email === 'billlokey@gmail.com') {
                         window.showNotification("Admin signed in! Opening panel...");
                         setTimeout(() => {
                             window.location.href = 'admin-panel.html';
@@ -3669,38 +3675,45 @@
 
             try {
                 const matchRef = collection(db, 'artifacts', appId, 'public', 'data', 'matchmaking');
-                matchmakingUnsubscribe = onSnapshot(matchRef, (snapshot) => {
-                    let availableHost = null;
-                    const now = Date.now();
-                    let activeCount = 0;
+            matchmakingUnsubscribe = onSnapshot(matchRef, (snapshot) => {
+                console.log("Matchmaking snapshot received, docs:", snapshot.size);
+                let availableHost = null;
+                const now = Date.now();
+                let activeCount = 0;
 
-                    snapshot.forEach(docSnap => {
-                        const data = docSnap.data();
-                        const age = now - data.timestamp;
-                        
-                        if (data.status === 'waiting' && (age < 120000) && (data.mode === mode) && data.uid !== fbUser.uid) {
-                            availableHost = data.gameId;
-                            activeCount++;
-                        } else if (data.status === 'playing' && (age < 3600000)) { 
-                            activeCount++;
-                        } else if (age >= 120000 && data.status === 'waiting') {
-                            deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', docSnap.id)).catch(()=>{});
-                        }
-                    });
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const age = now - data.timestamp;
+                    
+                    if (data.status === 'waiting' && (age < 120000) && (data.mode === mode) && data.uid !== fbUser.uid) {
+                        availableHost = data.gameId;
+                        activeCount++;
+                    } else if (data.status === 'playing' && (age < 3600000)) { 
+                        activeCount++;
+                    } else if (age >= 120000 && data.status === 'waiting') {
+                        deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', docSnap.id)).catch(()=>{});
+                    }
+                });
 
-                    document.getElementById('active-games-count').innerText = `Active Games: ${activeCount}`;
+                document.getElementById('active-games-count').innerText = `Active Games: ${activeCount}`;
 
-                    if (!hasJoinedOrHosted) {
+                if (!hasJoinedOrHosted) {
+                    if (availableHost || snapshot.size === 0 || !snapshot.docs.some(d => d.data().status === 'waiting' && d.data().mode === mode && d.data().uid !== fbUser.uid)) {
                         hasJoinedOrHosted = true;
                         if (availableHost) {
+                            console.log("Joining available host:", availableHost);
                             document.getElementById('matchmaking-status-text').innerText = "Opponent found! Connecting...";
                             joinGame(availableHost);
+                            if (matchmakingUnsubscribe) { matchmakingUnsubscribe(); matchmakingUnsubscribe = null; }
                         } else {
+                            console.log("No host found, hosting global game...");
                             document.getElementById('matchmaking-status-text').innerText = "Creating a lobby...";
                             hostGlobalGame(mode);
+                            if (matchmakingUnsubscribe) { matchmakingUnsubscribe(); matchmakingUnsubscribe = null; }
                         }
                     }
-                }, (error) => {
+                }
+            }, (error) => {
                     console.error("Matchmaking error:", error);
                     window.showNotification("Matchmaking failed.");
                     window.showView('view-main-menu');
