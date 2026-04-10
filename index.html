@@ -115,6 +115,19 @@
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 to-slate-800 text-slate-200 h-screen w-screen overflow-hidden flex flex-col font-sans selection:bg-teal-500/30 relative">
+    <!-- Critical Error Display -->
+    <div id="critical-error-display" class="fixed inset-0 z-[10000] bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="max-w-md w-full bg-slate-800 border border-red-500/50 rounded-3xl p-8 text-center shadow-2xl shadow-red-500/20">
+            <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-2">Application Error</h2>
+            <p id="critical-error-message" class="text-slate-400 mb-8 text-sm leading-relaxed">An unexpected error occurred while starting the application.</p>
+            <button onclick="window.location.reload()" class="w-full py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-red-500/30">
+                Reload Application
+            </button>
+        </div>
+    </div>
 
     <!-- Top Left Logo & Icon -->
     <div class="fixed top-4 left-4 sm:top-6 sm:left-6 z-50 flex items-center gap-3 pointer-events-none">
@@ -1848,6 +1861,20 @@
         const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
         const appId = 'checkers-app';
 
+        // --- CONNECTION TEST ---
+        async function testConnection() {
+            try {
+                const { getDocFromServer } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+                await getDocFromServer(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', 'connection-test'));
+            } catch (error) {
+                if (error instanceof Error && error.message.includes('the client is offline')) {
+                    console.error("Please check your Firebase configuration. The client is offline.");
+                    window.showNotification("Connection Error: Please check your internet or Firebase setup.");
+                }
+            }
+        }
+        testConnection();
+
         // --- STATE ---
         let fbUser = null;
         let isRegisteredUser = false;
@@ -1864,6 +1891,7 @@
 
         window.isRegisteredUser = () => isRegisteredUser;
 
+        // --- ERROR HANDLING ---
         const OperationType = {
             CREATE: 'create',
             UPDATE: 'update',
@@ -1872,6 +1900,15 @@
             GET: 'get',
             WRITE: 'write',
         };
+
+        window.addEventListener('error', (event) => {
+            console.error('Global Error:', event.error);
+            const errorDisplay = document.getElementById('critical-error-display');
+            if (errorDisplay) {
+                errorDisplay.classList.remove('hidden');
+                document.getElementById('critical-error-message').innerText = event.error?.message || 'An unexpected error occurred.';
+            }
+        });
 
         function handleFirestoreError(error, operationType, path) {
             const errInfo = {
@@ -1893,6 +1930,10 @@
                 path
             };
             console.error('Firestore Error: ', JSON.stringify(errInfo));
+            // Show a user-friendly message if it's a permission error
+            if (errInfo.error.includes('permission-denied')) {
+                window.showNotification("Permission denied. Please sign in again.");
+            }
             throw new Error(JSON.stringify(errInfo));
         }
 
@@ -1928,7 +1969,7 @@
                     status: 'waiting',
                     wildRules: window.gameState.wildRules,
                     timestamp: Date.now()
-                }).catch(e => handleFirestoreError(e, OperationType.CREATE, `games/${gameId}`));
+                }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/games/${gameId}`));
 
                 document.getElementById('host-id-display').value = gameId;
                 window.showNotification('Host Code Generated!');
@@ -1941,7 +1982,7 @@
                         fromId: fbUser.uid,
                         code: gameId,
                         timestamp: Date.now()
-                    });
+                    }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/users/${pendingInviteUid}/invites/${fbUser.uid}`));
                     window.showNotification(`Invite sent to ${pendingInviteName}!`);
                     pendingInviteUid = null;
                     pendingInviteName = null;
@@ -1977,7 +2018,7 @@
 
             try {
                 const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
-                const gameSnap = await getDoc(gameRef).catch(e => handleFirestoreError(e, OperationType.GET, `games/${gameId}`));
+                const gameSnap = await getDoc(gameRef).catch(e => handleFirestoreError(e, OperationType.GET, `artifacts/${appId}/games/${gameId}`));
                 
                 if (!gameSnap.exists()) {
                     window.showNotification("Game not found");
@@ -2000,7 +2041,7 @@
                     p2: { uid: fbUser.uid, displayName: info.displayName, friendCode: info.friendCode, points: info.playerPoints || 5 },
                     status: 'playing',
                     timestamp: Date.now()
-                }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `games/${gameId}`));
+                }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/games/${gameId}`));
 
                 window.setupGameListenerFirebase(gameId);
                 window.startGame('online', window.P2, gameData.wildRules);
@@ -2043,7 +2084,7 @@
 
                     // Update matchmaking status if host
                     if (isHost && data.p2 && window.currentMatchDoc) {
-                        updateDoc(window.currentMatchDoc, { status: 'playing' }).catch(()=>{});
+                        updateDoc(window.currentMatchDoc, { status: 'playing' }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/matchmaking/${fbUser.uid}`));
                     }
                 }
 
@@ -2088,7 +2129,7 @@
                     mustJumpPiece: turnEnds ? null : mustJumpPiece,
                     lastMove: move,
                     timestamp: Date.now()
-                }).catch(e => console.error("Sync error:", e));
+                }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/games/${currentGameId}`));
             }
         };
 
@@ -2098,7 +2139,7 @@
                 updateDoc(gameRef, {
                     chat: { text: text, uid: fbUser.uid, timestamp: Date.now() },
                     timestamp: Date.now()
-                });
+                }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/games/${currentGameId}`));
                 window.showNotification("You: " + text);
             }
         };
@@ -2113,7 +2154,7 @@
                     lastMove: null,
                     restartRequested: Date.now(),
                     timestamp: Date.now()
-                });
+                }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/games/${currentGameId}`));
             }
         };
 
@@ -2274,7 +2315,7 @@
                     const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
                     await updateDoc(myPrivRef, {
                         friends: arrayRemove(friendId)
-                    });
+                    }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/users/${fbUser.uid}/private/data`));
 
                     // 2. Notify friend to remove me
                     const friendMsgRef = collection(db, 'artifacts', appId, 'users', friendId, 'messages');
@@ -2285,7 +2326,7 @@
                         timestamp: Date.now(),
                         processed: false,
                         read: false
-                    });
+                    }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/users/${friendId}/messages`));
 
                     window.showNotification("Friend removed.");
                     closeModal('modal-player-profile');
@@ -2588,7 +2629,7 @@
             const messagesRef = collection(db, 'artifacts', appId, 'users', fbUser.uid, 'messages');
             const snapshot = await getDocs(query(messagesRef, where('read', '==', false)));
             snapshot.forEach(d => {
-                updateDoc(d.ref, { read: true });
+                updateDoc(d.ref, { read: true }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/users/${fbUser.uid}/messages/${d.id}`));
             });
 
             // Mark badges as seen
@@ -2617,18 +2658,18 @@
                     
                     // Reset hidden flag when user connects
                     if (data.hiddenFromLeaderboard) {
-                        await setDoc(docRef, { hiddenFromLeaderboard: false }, { merge: true });
+                        await setDoc(docRef, { hiddenFromLeaderboard: false }, { merge: true }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/profiles/${fbUser.uid}`));
                     }
                 }
                 
                 if (!friendCode) {
                     friendCode = Math.floor(10000000 + Math.random() * 90000000).toString();
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'friendCodes', friendCode), { uid: fbUser.uid });
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'friendCodes', friendCode), { uid: fbUser.uid }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/public/data/friendCodes/${friendCode}`));
                 }
 
                 // Store email mapping for admin lookup
                 if (fbUser.email) {
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'emails', fbUser.email.toLowerCase()), { uid: fbUser.uid });
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'emails', fbUser.email.toLowerCase()), { uid: fbUser.uid }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/public/data/emails/${fbUser.email.toLowerCase()}`));
                 }
 
                 await setDoc(docRef, {
@@ -2636,7 +2677,7 @@
                     isOnline: isOnline,
                     lastSeen: Date.now(),
                     friendCode: friendCode
-                }, { merge: true });
+                }, { merge: true }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/profiles/${fbUser.uid}`));
 
                 document.getElementById('account-uid').innerText = friendCode;
                 document.getElementById('account-display-name').innerText = currentDisplayName;
@@ -2767,7 +2808,7 @@
                     fromUid: fbUser.uid,
                     fromName: fbUser.displayName || 'Player',
                     timestamp: Date.now()
-                });
+                }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/users/${friendId}/friendRequests/${fbUser.uid}`));
 
                 window.showNotification("Friend request sent!");
             } catch (e) {
@@ -2796,10 +2837,10 @@
                 const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
                 const updatePromise = updateDoc(myPrivRef, {
                     friends: arrayUnion(fromUid)
-                });
+                }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/users/${fbUser.uid}/private/data`));
 
                 // 3. Delete the request
-                const deletePromise = deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'friendRequests', requestId));
+                const deletePromise = deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'friendRequests', requestId)).catch(e => handleFirestoreError(e, OperationType.DELETE, `artifacts/${appId}/users/${fbUser.uid}/friendRequests/${requestId}`));
                 
                 // Fire all operations in parallel for maximum speed
                 await Promise.all([notifyPromise, updatePromise, deletePromise]);
@@ -2821,7 +2862,7 @@
         window.declineFriendRequest = async (requestId) => {
             if (!fbUser) return;
             try {
-                await deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'friendRequests', requestId));
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'friendRequests', requestId)).catch(e => handleFirestoreError(e, OperationType.DELETE, `artifacts/${appId}/users/${fbUser.uid}/friendRequests/${requestId}`));
                 window.showNotification("Request declined.");
                 window.switchSocialTab('requests');
             } catch (e) {
@@ -2944,22 +2985,22 @@
                                 const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
                                 await updateDoc(myPrivRef, {
                                     friends: arrayUnion(data.fromUid)
-                                });
+                                }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/users/${fbUser.uid}/private/data`));
                                 window.showNotification(`New Friend: ${data.fromName || 'Player'}`);
                                 window.renderFriendsList();
                                 // Mark as processed
-                                await updateDoc(change.doc.ref, { processed: true, read: true });
+                                await updateDoc(change.doc.ref, { processed: true, read: true }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/users/${fbUser.uid}/messages/${change.doc.id}`));
                             } else if (data.type === 'friendship_removed' && !data.processed) {
                                 console.log("Processing friendship_removed from:", data.fromUid);
                                 // Remove them from my friends list using arrayRemove for speed
                                 const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
                                 await updateDoc(myPrivRef, {
                                     friends: arrayRemove(data.fromUid)
-                                });
+                                }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/users/${fbUser.uid}/private/data`));
                                 window.showNotification(`Friendship ended with ${data.fromName || 'a player'}`);
                                 window.renderFriendsList();
                                 // Mark as processed
-                                await updateDoc(change.doc.ref, { processed: true, read: true });
+                                await updateDoc(change.doc.ref, { processed: true, read: true }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/users/${fbUser.uid}/messages/${change.doc.id}`));
                             }
                         } catch (err) {
                             console.error("Error processing message:", err);
@@ -3004,7 +3045,7 @@
         window.deleteResponse = async (msgId) => {
             if (!fbUser) return;
             try {
-                await deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'messages', msgId));
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'messages', msgId)).catch(e => handleFirestoreError(e, OperationType.DELETE, `artifacts/${appId}/users/${fbUser.uid}/messages/${msgId}`));
                 window.showNotification("Response deleted.");
             } catch (e) {
                 console.error("Error deleting response:", e);
@@ -3017,7 +3058,6 @@
             window.showView('view-online-setup');
             window.startHost();
             
-            // Wait briefly for host ID to generate
             setTimeout(async () => {
                 const code = document.getElementById('host-id-display').value;
                 if (code && code !== "Generating..." && code !== "Error") {
@@ -3027,7 +3067,7 @@
                             fromName: fbUser.displayName || 'A Friend',
                             code: code,
                             timestamp: Date.now()
-                        });
+                        }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/users/${friendId}/invites`));
                         window.showNotification("Invite sent!");
                     } catch(e) { console.error(e); }
                 }
@@ -3067,14 +3107,14 @@
 
             document.getElementById(`accept-${docId}`).onclick = () => {
                 removeToast();
-                deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'invites', docId)).catch(()=>{});
-                window.showView('view-online-setup');
+                deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'invites', docId)).catch(e => handleFirestoreError(e, OperationType.DELETE, `artifacts/${appId}/users/${fbUser.uid}/invites/${docId}`));
+                window.showView('online-setup');
                 document.getElementById('join-id-input').value = code;
                 window.joinGame(code);
             };
             document.getElementById(`decline-${docId}`).onclick = () => {
                 removeToast();
-                deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'invites', docId)).catch(()=>{});
+                deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'invites', docId)).catch(e => handleFirestoreError(e, OperationType.DELETE, `artifacts/${appId}/users/${fbUser.uid}/invites/${docId}`));
             };
             
             setTimeout(() => {
@@ -3208,7 +3248,7 @@
             if (!fbUser || !score) return;
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
-                const docSnap = await getDoc(docRef);
+                const docSnap = await getDoc(docRef).catch(e => handleFirestoreError(e, OperationType.GET, `artifacts/${appId}/public/data/profiles/${fbUser.uid}`));
                 let data = docSnap.exists() ? docSnap.data() : { displayName: fbUser.displayName || 'Player', playerPoints: 5, wins: 0, losses: 0, dailyPoints: 0, lastPointsDate: '', badges: [], streak: 0, lastStreakDate: '' };
                 
                 // Initialize new fields for existing users
@@ -3332,7 +3372,7 @@
                 if (myKings >= 3) addAward("King Maker");
                 if ((data.friends || []).length >= 5) addAward("Socialite");
 
-                await setDoc(docRef, data, { merge: true });
+                await setDoc(docRef, data, { merge: true }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/profiles/${fbUser.uid}`));
                 postSocialEvent(`won a ${mode} game with a score of ${score}!`);
                 updateDailyChallengeUI(data);
             } catch (e) { console.error("Failed to record win", e); }
@@ -3342,7 +3382,7 @@
             if (!isRegisteredUser || !fbUser || window.gameState.mode !== 'online') return;
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
-                const docSnap = await getDoc(docRef);
+                const docSnap = await getDoc(docRef).catch(e => handleFirestoreError(e, OperationType.GET, `artifacts/${appId}/public/data/profiles/${fbUser.uid}`));
                 if (!docSnap.exists()) return;
                 let data = docSnap.data();
                 
@@ -3353,7 +3393,7 @@
                 data.playerPoints = Math.max(0, (data.playerPoints || 5) + loss);
                 window.myPlayerPoints = data.playerPoints;
                 
-                await setDoc(docRef, data, { merge: true });
+                await setDoc(docRef, data, { merge: true }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/profiles/${fbUser.uid}`));
                 window.showNotification(`${loss} Player Points`);
             } catch (e) { console.error("Failed to record loss", e); }
         };
@@ -3388,7 +3428,7 @@
                     userName: fbUser.displayName || 'A Player',
                     text: text,
                     timestamp: Date.now()
-                });
+                }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/public/data/socialFeed`));
             } catch (e) { console.error("Social post failed", e); }
         }
 
@@ -3419,7 +3459,7 @@
             if (newName.length > 0) {
                 try {
                     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
-                    await setDoc(docRef, { displayName: newName }, { merge: true });
+                    await setDoc(docRef, { displayName: newName }, { merge: true }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/profiles/${fbUser.uid}`));
                     
                     // Also update Auth profile so fbUser.displayName is current
                     await updateProfile(fbUser, { displayName: newName });
@@ -3443,7 +3483,7 @@
             
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
-                const docSnap = await getDoc(docRef);
+                const docSnap = await getDoc(docRef).catch(e => handleFirestoreError(e, OperationType.GET, `artifacts/${appId}/public/data/profiles/${fbUser.uid}`));
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     const wr = (data.wins || 0) + (data.losses || 0) > 0 ? ((data.wins || 0) / ((data.wins || 0) + (data.losses || 0)) * 100).toFixed(1) : 0;
@@ -3512,7 +3552,7 @@
                         aiEasyScore: 0,
                         aiMediumScore: 0,
                         aiHardScore: 0
-                    }, { merge: true });
+                    }, { merge: true }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/profiles/${fbUser.uid}`));
                     window.showNotification("High scores deleted.");
                     window.loadPersonalStats();
                 } catch (e) {
@@ -3540,24 +3580,24 @@
                     const uid = fbUser.uid;
 
                     // 1. Delete Profile
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', uid));
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', uid)).catch(e => handleFirestoreError(e, OperationType.DELETE, `artifacts/${appId}/public/data/profiles/${uid}`));
                     
                     // 2. Delete Private Data
-                    await deleteDoc(doc(db, 'artifacts', appId, 'users', uid, 'private', 'data'));
+                    await deleteDoc(doc(db, 'artifacts', appId, 'users', uid, 'private', 'data')).catch(e => handleFirestoreError(e, OperationType.DELETE, `artifacts/${appId}/users/${uid}/private/data`));
 
                     // 3. Delete Invites
                     const invitesRef = collection(db, 'artifacts', appId, 'users', uid, 'invites');
-                    const invitesSnap = await getDocs(invitesRef);
+                    const invitesSnap = await getDocs(invitesRef).catch(e => handleFirestoreError(e, OperationType.LIST, `artifacts/${appId}/users/${uid}/invites`));
                     for (const d of invitesSnap.docs) {
-                        await deleteDoc(doc(db, 'artifacts', appId, 'users', uid, 'invites', d.id));
+                        await deleteDoc(doc(db, 'artifacts', appId, 'users', uid, 'invites', d.id)).catch(e => handleFirestoreError(e, OperationType.DELETE, `artifacts/${appId}/users/${uid}/invites/${d.id}`));
                     }
 
                     // 4. Delete Social Feed entries
                     const feedRef = collection(db, 'artifacts', appId, 'public', 'data', 'socialFeed');
                     const q = query(feedRef, where('uid', '==', uid));
-                    const feedSnap = await getDocs(q);
+                    const feedSnap = await getDocs(q).catch(e => handleFirestoreError(e, OperationType.LIST, `artifacts/${appId}/public/data/socialFeed`));
                     for (const d of feedSnap.docs) {
-                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'socialFeed', d.id));
+                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'socialFeed', d.id)).catch(e => handleFirestoreError(e, OperationType.DELETE, `artifacts/${appId}/public/data/socialFeed/${d.id}`));
                     }
 
                     // 5. Delete Auth User
@@ -3588,7 +3628,7 @@
 
             try {
                 const profilesRef = collection(db, 'artifacts', appId, 'public', 'data', 'profiles');
-                const snapshot = await getDocs(profilesRef);
+                const snapshot = await getDocs(profilesRef).catch(e => handleFirestoreError(e, OperationType.LIST, `artifacts/${appId}/public/data/profiles`));
                 let profiles = [];
                 snapshot.forEach(docSnap => profiles.push({ uid: docSnap.id, ...docSnap.data() }));
 
@@ -3749,7 +3789,7 @@
                 status: 'waiting',
                 wildRules: wildRules,
                 timestamp: Date.now()
-            });
+            }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/games/${gameId}`));
 
             const matchRef = doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', fbUser.uid);
             await setDoc(matchRef, {
@@ -3758,7 +3798,7 @@
                 status: 'waiting',
                 timestamp: Date.now(),
                 mode: mode
-            });
+            }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/public/data/matchmaking/${fbUser.uid}`));
 
             window.currentMatchDoc = matchRef;
             window.setupGameListenerFirebase(gameId);
@@ -3818,7 +3858,7 @@
                 const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
                 await updateDoc(profileRef, {
                     lastSeen: Date.now()
-                }).catch(() => {});
+                }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/profiles/${fbUser.uid}`));
             }
         }
         setInterval(updateHeartbeat, 30000);
