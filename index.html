@@ -150,7 +150,7 @@
     </div>
 
     <!-- Toast Notification -->
-    <div id="notification-toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-slate-800/95 backdrop-blur-md text-teal-300 px-6 py-3 rounded-full shadow-lg shadow-teal-500/10 border border-teal-500/30 z-[100] transform transition-all duration-300 translate-y-[-150%] opacity-0 flex items-center gap-2 font-medium tracking-wide">
+    <div id="notification-toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-slate-800/95 backdrop-blur-md text-teal-300 px-6 py-3 rounded-full shadow-lg shadow-teal-500/10 border border-teal-500/30 z-[999] transform transition-all duration-300 translate-y-[-150%] opacity-0 flex items-center gap-2 font-medium tracking-wide">
         <span id="notification-msg"></span>
     </div>
 
@@ -1676,20 +1676,16 @@
             try {
                 if(peer) peer.destroy();
                 const customId = Math.floor(100000 + Math.random() * 900000).toString();
-                peer = new Peer(customId);
                 
-                peer.on('open', async (id) => {
-                    document.getElementById('host-id-display').value = id;
-                    showNotification('Host Code Generated!');
-                    
-                    // If we have a pending invite, send it now
-                    if (pendingInviteUid) {
+                // Send invite IMMEDIATELY after code is created
+                if (pendingInviteUid) {
+                    (async () => {
                         try {
                             const inviteRef = doc(db, 'artifacts', appId, 'users', pendingInviteUid, 'invites', fbUser.uid);
                             await setDoc(inviteRef, {
                                 fromName: fbUser.displayName || 'Friend',
                                 fromId: fbUser.uid,
-                                code: id,
+                                code: customId,
                                 timestamp: Date.now()
                             });
                             window.showNotification(`Invite sent to ${pendingInviteName}!`);
@@ -1699,7 +1695,14 @@
                         }
                         pendingInviteUid = null;
                         pendingInviteName = null;
-                    }
+                    })();
+                }
+
+                peer = new Peer(customId);
+                
+                peer.on('open', (id) => {
+                    document.getElementById('host-id-display').value = id;
+                    showNotification('Host Code Generated!');
                 });
                 peer.on('connection', (connection) => {
                     conn = connection;
@@ -2883,7 +2886,7 @@
         function showInviteToast(name, code, docId) {
             const toast = document.createElement('div');
             // Mobile-first: full width with margins, centered on desktop
-            toast.className = "fixed top-4 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-full sm:max-w-md bg-slate-800/95 backdrop-blur-xl text-teal-300 px-4 py-4 sm:px-6 sm:py-3 rounded-2xl sm:rounded-full shadow-2xl shadow-teal-500/20 border border-teal-500/40 z-[100] transform transition-all duration-500 translate-y-[-150%] opacity-0 flex flex-col sm:flex-row items-center justify-between gap-4 font-medium tracking-wide";
+            toast.className = "fixed top-4 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-full sm:max-w-md bg-slate-800/95 backdrop-blur-xl text-teal-300 px-4 py-4 sm:px-6 sm:py-3 rounded-2xl sm:rounded-full shadow-2xl shadow-teal-500/20 border border-teal-500/40 z-[999] transform transition-all duration-500 translate-y-[-150%] opacity-0 flex flex-col sm:flex-row items-center justify-between gap-4 font-medium tracking-wide";
             toast.innerHTML = `
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center">
