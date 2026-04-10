@@ -1962,6 +1962,9 @@
         let authInitialized = false;
         let pendingInviteUid = null;
         let pendingInviteName = null;
+        let currentGameId = null;
+        let gameUnsubscribe = null;
+        let isHost = false;
         let invitesUnsubscribe = null;
         let responsesUnsubscribe = null;
         let authMode = 'signin'; // 'signin' or 'signup'
