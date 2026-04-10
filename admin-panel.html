@@ -119,24 +119,25 @@
         import { getFirestore, collection, doc, setDoc, getDocs, query, orderBy, getDoc, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
-            authDomain: "auth.checkers.page",
-            projectId: "checkers-matchmaking-5ac55",
-            storageBucket: "checkers-matchmaking-5ac55.firebasestorage.app",
-            messagingSenderId: "778086491027",
-            appId: "1:778086491027:web:c315fd9d97aebae6087e66"
+            projectId: "gen-lang-client-0045227220",
+            appId: "1:688944824025:web:a09e05512d7884a18808c8",
+            apiKey: "AIzaSyBsQwWy7VvUVKpzt7dwHhEJf60ze01HGdI",
+            authDomain: "gen-lang-client-0045227220.firebaseapp.com",
+            firestoreDatabaseId: "ai-studio-1b0759c5-d6bf-49f9-9930-a375f042e02b",
+            storageBucket: "gen-lang-client-0045227220.firebasestorage.app",
+            messagingSenderId: "688944824025"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
+        const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
         const appId = 'checkers-app';
 
         let currentUser = null;
         let allPlayers = [];
 
         onAuthStateChanged(auth, (user) => {
-            if (!user || user.email !== 'email-control-panel@checkers.page') {
+            if (!user || user.email !== 'billlokey@gmail.com') {
                 window.location.href = 'index.html';
                 return;
             }
