@@ -39,6 +39,19 @@
     </style>
 </head>
 <body class="min-h-screen p-4 sm:p-8 bg-[#0f172a] text-[#f8fafc]" id="admin-body">
+    <!-- Critical Error Display -->
+    <div id="critical-error-display" class="fixed inset-0 z-[10000] bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="max-w-md w-full bg-slate-800 border border-red-500/50 rounded-3xl p-8 text-center shadow-2xl shadow-red-500/20">
+            <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-2">Admin Panel Error</h2>
+            <p id="critical-error-message" class="text-slate-400 mb-8 text-sm leading-relaxed">An unexpected error occurred while starting the admin panel.</p>
+            <button onclick="window.location.reload()" class="w-full py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-red-500/30">
+                Reload Panel
+            </button>
+        </div>
+    </div>
     <div id="admin-content" class="hidden">
         <div class="max-w-4xl mx-auto">
             <div class="flex justify-between items-center mb-8">
@@ -133,11 +146,68 @@
         const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
         const appId = 'checkers-app';
 
+        // --- CONNECTION TEST ---
+        async function testConnection() {
+            try {
+                const { getDocFromServer } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+                await getDocFromServer(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', 'connection-test'));
+            } catch (error) {
+                if (error instanceof Error && error.message.includes('the client is offline')) {
+                    console.error("Please check your Firebase configuration. The client is offline.");
+                    alert("Connection Error: Please check your internet or Firebase setup.");
+                }
+            }
+        }
+        testConnection();
+
+        // --- ERROR HANDLING ---
+        const OperationType = {
+            CREATE: 'create',
+            UPDATE: 'update',
+            DELETE: 'delete',
+            LIST: 'list',
+            GET: 'get',
+            WRITE: 'write',
+        };
+
+        window.addEventListener('error', (event) => {
+            console.error('Global Error:', event.error);
+            const errorDisplay = document.getElementById('critical-error-display');
+            if (errorDisplay) {
+                errorDisplay.classList.remove('hidden');
+                document.getElementById('critical-error-message').innerText = event.error?.message || 'An unexpected error occurred.';
+            }
+        });
+
+        function handleFirestoreError(error, operationType, path) {
+            const errInfo = {
+                error: error instanceof Error ? error.message : String(error),
+                authInfo: {
+                    userId: auth.currentUser?.uid,
+                    email: auth.currentUser?.email,
+                    emailVerified: auth.currentUser?.emailVerified,
+                    isAnonymous: auth.currentUser?.isAnonymous,
+                    tenantId: auth.currentUser?.tenantId,
+                    providerInfo: auth.currentUser?.providerData.map(provider => ({
+                        providerId: provider.providerId,
+                        displayName: provider.displayName,
+                        email: provider.email,
+                        photoUrl: provider.photoURL
+                    })) || []
+                },
+                operationType,
+                path
+            };
+            console.error('Firestore Error: ', JSON.stringify(errInfo));
+            throw new Error(JSON.stringify(errInfo));
+        }
+
         let currentUser = null;
         let allPlayers = [];
 
         onAuthStateChanged(auth, (user) => {
-            if (!user || user.email !== 'email-control-panel@checkers.page') {
+            const isAdmin = user && (user.email === 'billlokey@gmail.com' || user.email === 'email-control-panel@checkers.page');
+            if (!user || !isAdmin) {
                 window.location.href = 'index.html';
                 return;
             }
@@ -163,7 +233,7 @@
             const listEl = document.getElementById('player-list');
             try {
                 const q = collection(db, 'artifacts', appId, 'public', 'data', 'profiles');
-                const snap = await getDocs(q);
+                const snap = await getDocs(q).catch(e => handleFirestoreError(e, OperationType.LIST, `artifacts/${appId}/public/data/profiles`));
                 allPlayers = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
                 renderPlayers();
             } catch (e) {
@@ -215,7 +285,7 @@
             
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', uid);
-                await updateDoc(docRef, { hiddenFromLeaderboard: true });
+                await updateDoc(docRef, { hiddenFromLeaderboard: true }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/profiles/${uid}`));
                 alert(`${name} has been hidden from leaderboards.`);
                 loadPlayers();
             } catch (e) {
@@ -231,7 +301,7 @@
             const sentList = document.getElementById('sent-list');
             try {
                 const q = collection(db, 'artifacts', appId, 'admin', 'sentMessages', 'history');
-                const querySnapshot = await getDocs(q);
+                const querySnapshot = await getDocs(q).catch(e => handleFirestoreError(e, OperationType.LIST, `artifacts/${appId}/admin/sentMessages/history`));
                 
                 if (querySnapshot.empty) {
                     sentList.innerHTML = '<p class="text-slate-500 italic text-center py-8">No messages sent yet.</p>';
@@ -286,7 +356,7 @@
                     if (recipientInput.includes('@')) {
                         // Look up by email
                         const emailRef = doc(db, 'artifacts', appId, 'public', 'data', 'emails', recipientInput.toLowerCase());
-                        const emailSnap = await getDoc(emailRef);
+                        const emailSnap = await getDoc(emailRef).catch(e => handleFirestoreError(e, OperationType.GET, `artifacts/${appId}/public/data/emails/${recipientInput.toLowerCase()}`));
                         if (emailSnap.exists()) {
                             recipientUid = emailSnap.data().uid;
                         } else {
@@ -296,7 +366,7 @@
                     } else {
                         // Look up by friend code
                         const codeRef = doc(db, 'artifacts', appId, 'public', 'data', 'friendCodes', recipientInput);
-                        const codeSnap = await getDoc(codeRef);
+                        const codeSnap = await getDoc(codeRef).catch(e => handleFirestoreError(e, OperationType.GET, `artifacts/${appId}/public/data/friendCodes/${recipientInput}`));
                         if (codeSnap.exists()) {
                             recipientUid = codeSnap.data().uid;
                         } else {
@@ -313,7 +383,7 @@
                         timestamp: Date.now(),
                         from: 'Admin',
                         read: false
-                    });
+                    }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/users/${recipientUid}/messages`));
 
                     // 3. Record in admin history
                     const adminHistoryRef = collection(db, 'artifacts', appId, 'admin', 'sentMessages', 'history');
@@ -323,7 +393,7 @@
                         subject,
                         content,
                         timestamp: Date.now()
-                    });
+                    }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/admin/sentMessages/history`));
 
                     alert("Message sent successfully!");
                     document.getElementById('recipient-id').value = '';
