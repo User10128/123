@@ -1888,6 +1888,15 @@
         }
 
         window.startHostFirebase = async () => {
+            if (!authInitialized || !fbUser) {
+                window.showNotification("Connecting to servers...");
+                await initAuth();
+                if (!fbUser) {
+                    window.showNotification("Failed to connect to servers.");
+                    return;
+                }
+            }
+
             document.getElementById('host-id-container').classList.remove('hidden');
             document.getElementById('host-id-display').value = "Generating...";
             
@@ -1939,6 +1948,15 @@
         };
 
         window.joinGameFirebase = async (overrideId = null) => {
+            if (!authInitialized || !fbUser) {
+                window.showNotification("Connecting to servers...");
+                await initAuth();
+                if (!fbUser) {
+                    window.showNotification("Failed to connect to servers.");
+                    return;
+                }
+            }
+
             let gameId = overrideId || document.getElementById('join-id-input').value.trim().toUpperCase();
             if (!gameId || gameId.length !== 6) {
                 window.showNotification("Please enter a 6-digit code");
@@ -3605,12 +3623,18 @@
         window.currentMatchDoc = null;
 
         async function initAuth() {
-            if (authInitialized) return;
+            if (fbUser) return;
             return new Promise(resolve => {
-                const unsubscribe = onAuthStateChanged(auth, () => {
+                const unsubscribe = onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        unsubscribe();
+                        resolve();
+                    }
+                });
+                setTimeout(() => {
                     unsubscribe();
                     resolve();
-                });
+                }, 5000);
             });
         }
 
