@@ -624,7 +624,7 @@
     </div>
 
     <!-- Confirm Modal -->
-    <div id="modal-confirm" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4">
+    <div id="modal-confirm" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[200] hidden flex items-center justify-center p-4">
         <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-sm w-full text-center">
             <h3 class="text-xl text-teal-400 mb-6 font-medium" id="confirm-text">Are you sure?</h3>
             <div class="flex gap-4 justify-center">
@@ -647,7 +647,40 @@
         </div>
     </div>
 
+    <!-- Error Modal -->
+    <div id="modal-error" class="fixed inset-0 bg-slate-900/90 backdrop-blur-xl z-[300] hidden flex items-center justify-center p-4">
+        <div class="glass-panel p-8 rounded-2xl max-w-md w-full text-center border-red-500/30">
+            <div class="w-16 h-16 bg-red-500/20 text-red-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </div>
+            <h3 class="text-2xl text-white mb-2 font-bold">Something went wrong</h3>
+            <p id="error-modal-msg" class="text-slate-400 mb-8">An unexpected error occurred. Please try reloading the application.</p>
+            <button onclick="window.location.reload()" class="w-full py-4 bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold rounded-xl transition-all shadow-lg shadow-teal-500/20">
+                Reload App
+            </button>
+        </div>
+    </div>
+
     <script>
+        window.onerror = (msg, url, line, col, error) => {
+            console.error("Global Error:", msg, error);
+            const modal = document.getElementById('modal-error');
+            if (modal) {
+                document.getElementById('error-modal-msg').innerText = "A technical error occurred. Please try reloading.";
+                modal.classList.remove('hidden');
+            }
+            return false;
+        };
+
+        window.onunhandledrejection = (event) => {
+            console.error("Unhandled Rejection:", event.reason);
+            const modal = document.getElementById('modal-error');
+            if (modal) {
+                document.getElementById('error-modal-msg').innerText = "A connection error occurred. Please check your internet.";
+                modal.classList.remove('hidden');
+            }
+        };
+
         // --- CONSTANTS & STATE ---
         const P1 = 1; 
         const P2 = 2; 
@@ -669,9 +702,6 @@
             lastMove: null,
             opponentInfo: null // { displayName, friendCode }
         };
-
-        let peer = null;
-        let conn = null;
 
         // Ensure Firebase hooks exist even if module loads late
         window.recordWin = window.recordWin || function(){}; 
@@ -850,13 +880,11 @@
         };
 
         window.sendChatMsg = (text) => {
-            if (gameState.mode === 'online' && currentGameId) {
-                const gameRef = doc(db, 'artifacts', appId, 'games', currentGameId);
-                updateDoc(gameRef, {
-                    chat: { text: text, uid: fbUser.uid, timestamp: Date.now() },
-                    timestamp: Date.now()
-                });
-                showNotification("You: " + text);
+            if (gameState.mode === 'online') {
+                // This will be handled in the module script
+                if (window.sendChatMsgFirebase) {
+                    window.sendChatMsgFirebase(text);
+                }
             }
             window.toggleChatMenu();
         };
@@ -994,6 +1022,9 @@
             }
             return b;
         }
+
+        window.initBoard = initBoard;
+        window.getDailyWildRules = getDailyWildRules;
 
         function startGame(mode, myPlayer = P1, wildRules = null) {
             gameState.wildRules = wildRules;
@@ -1379,15 +1410,8 @@
             gameState.selectedPiece = null;
             gameState.validMoves = [];
 
-            if (gameState.mode === 'online' && currentGameId) {
-                const gameRef = doc(db, 'artifacts', appId, 'games', currentGameId);
-                updateDoc(gameRef, {
-                    board: gameState.board,
-                    turn: result.turnEnds ? (gameState.turn === P1 ? P2 : P1) : gameState.turn,
-                    mustJumpPiece: result.turnEnds ? null : result.mustJumpPiece,
-                    lastMove: move,
-                    timestamp: Date.now()
-                }).catch(e => console.error("Sync error:", e));
+            if (gameState.mode === 'online' && window.syncMoveToFirebase) {
+                window.syncMoveToFirebase(gameState.board, result.turnEnds, result.mustJumpPiece, move);
             }
 
             if (result.turnEnds) {
@@ -1678,202 +1702,44 @@
         }
 
         // --- MULTIPLAYER (FIRESTORE) ---
+        // Firebase-dependent functions moved to module script
         async function startHost() {
-            document.getElementById('host-id-container').classList.remove('hidden');
-            document.getElementById('host-id-display').value = "Generating...";
-            
-            try {
-                const gameId = Math.floor(100000 + Math.random() * 900000).toString();
-                currentGameId = gameId;
-                isHost = true;
-
-                const info = window.getMyInfo ? window.getMyInfo() : { displayName: 'Player 1', friendCode: '' };
-                const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
-                
-                await setDoc(gameRef, {
-                    board: initBoard(),
-                    turn: P1,
-                    p1: { uid: fbUser.uid, displayName: info.displayName, friendCode: info.friendCode, points: info.playerPoints || 5 },
-                    p2: null,
-                    lastMove: null,
-                    restartRequested: 0,
-                    chat: null,
-                    status: 'waiting',
-                    wildRules: gameState.wildRules,
-                    timestamp: Date.now()
-                });
-
-                document.getElementById('host-id-display').value = gameId;
-                showNotification('Host Code Generated!');
-
-                // Send invite if pending
-                if (pendingInviteUid) {
-                    const inviteRef = doc(db, 'artifacts', appId, 'users', pendingInviteUid, 'invites', fbUser.uid);
-                    await setDoc(inviteRef, {
-                        fromName: fbUser.displayName || 'Friend',
-                        fromId: fbUser.uid,
-                        code: gameId,
-                        timestamp: Date.now()
-                    });
-                    window.showNotification(`Invite sent to ${pendingInviteName}!`);
-                    pendingInviteUid = null;
-                    pendingInviteName = null;
-                }
-
-                setupGameListener(gameId);
-                startGame('online', P1, gameState.wildRules);
-
-            } catch(e) {
-                console.error(e);
-                showNotification('Failed to host game');
-            }
+            if (window.startHostFirebase) await window.startHostFirebase();
         }
 
         async function joinGame(overrideId = null) {
-            let gameId = overrideId || document.getElementById('join-id-input').value.trim().toUpperCase();
-            if (!gameId || gameId.length !== 6) {
-                showNotification("Please enter a 6-digit code");
-                return;
-            }
-            
-            const btnText = document.getElementById('join-btn-text');
-            btnText.innerText = "Connecting...";
-
-            try {
-                const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
-                const gameSnap = await getDoc(gameRef);
-                
-                if (!gameSnap.exists()) {
-                    showNotification("Game not found");
-                    btnText.innerText = "Connect to Game";
-                    return;
-                }
-
-                const gameData = gameSnap.data();
-                if (gameData.status !== 'waiting' && gameData.p2 && gameData.p2.uid !== fbUser.uid) {
-                    showNotification("Game is full");
-                    btnText.innerText = "Connect to Game";
-                    return;
-                }
-
-                currentGameId = gameId;
-                isHost = false;
-                const info = window.getMyInfo ? window.getMyInfo() : { displayName: 'Player 2', friendCode: '' };
-
-                await updateDoc(gameRef, {
-                    p2: { uid: fbUser.uid, displayName: info.displayName, friendCode: info.friendCode, points: info.playerPoints || 5 },
-                    status: 'playing',
-                    timestamp: Date.now()
-                });
-
-                setupGameListener(gameId);
-                startGame('online', P2, gameData.wildRules);
-                showNotification('Connected to Game!');
-                btnText.innerText = "Connect to Game";
-
-            } catch(e) {
-                console.error(e);
-                showNotification('Failed to join');
-                btnText.innerText = "Connect to Game";
-            }
+            if (window.joinGameFirebase) await window.joinGameFirebase(overrideId);
         }
 
         function setupGameListener(gameId) {
-            if (gameUnsubscribe) gameUnsubscribe();
-            
-            const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
-            gameUnsubscribe = onSnapshot(gameRef, (snapshot) => {
-                if (!snapshot.exists()) {
-                    showNotification("Game closed");
-                    quitGameFromEnd();
-                    return;
-                }
-
-                const data = snapshot.data();
-                
-                // Sync opponent info
-                const opponent = isHost ? data.p2 : data.p1;
-                if (opponent) {
-                    gameState.opponentInfo = { displayName: opponent.displayName, friendCode: opponent.friendCode };
-                    window.opponentPoints = opponent.points || 5;
-                    document.getElementById('opponent-name').innerText = opponent.displayName || "Unknown Player";
-                    
-                    if (opponent.friendCode && isRegisteredUser) {
-                        document.getElementById('btn-add-friend-opponent').classList.remove('hidden');
-                        document.getElementById('btn-add-friend-opponent').onclick = () => {
-                            window.addFriendByCode(opponent.friendCode);
-                        };
-                    }
-                }
-
-                // Sync board and turn
-                if (data.timestamp > (gameState.lastSyncTime || 0)) {
-                    const oldSyncTime = gameState.lastSyncTime || 0;
-                    gameState.lastSyncTime = data.timestamp;
-                    
-                    // If it's the opponent's turn or just changed to our turn
-                    if (data.turn !== gameState.myPlayer || (data.lastMove && JSON.stringify(data.lastMove) !== JSON.stringify(gameState.lastMove))) {
-                         gameState.board = data.board;
-                         gameState.turn = data.turn;
-                         gameState.mustJumpPiece = data.mustJumpPiece;
-                         gameState.lastMove = data.lastMove;
-                         checkWinCondition();
-                         renderBoard();
-                         updateStatusText();
-                    }
-
-                    if (data.restartRequested && data.restartRequested > (gameState.lastRestartRequest || 0)) {
-                        gameState.lastRestartRequest = data.restartRequested;
-                        startGame('online', gameState.myPlayer, data.wildRules);
-                        showNotification("Match Restarted!");
-                    }
-
-                    if (data.chat && data.chat.timestamp > (gameState.lastChatTime || 0)) {
-                        gameState.lastChatTime = data.chat.timestamp;
-                        if (data.chat.uid !== fbUser.uid) {
-                            showNotification("Opponent: " + data.chat.text);
-                        }
-                    }
-                }
-            });
+            if (window.setupGameListenerFirebase) window.setupGameListenerFirebase(gameId);
         }
 
         function restartGame() {
-            closeModal('modal-gameover');
-            if (gameState.mode === 'online' && currentGameId) {
-                const gameRef = doc(db, 'artifacts', appId, 'games', currentGameId);
-                updateDoc(gameRef, {
-                    board: initBoard(),
-                    turn: P1,
-                    mustJumpPiece: null,
-                    lastMove: null,
-                    restartRequested: Date.now(),
-                    timestamp: Date.now()
-                });
+            if (gameState.mode === 'online') {
+                if (window.restartGameFirebase) window.restartGameFirebase();
             } else {
                 startGame(gameState.mode, P1, gameState.wildRules);
+                closeModal('modal-gameover');
             }
         }
 
         function quitGame() {
-            showConfirm("Are you sure you want to exit the game?", () => {
-                quitGameFromEnd();
-            });
+            if (gameState.mode === 'online') {
+                showConfirm("Are you sure you want to quit this online game?", () => {
+                    if (window.quitGameFirebase) window.quitGameFirebase();
+                });
+            } else {
+                showView('view-main-menu');
+            }
         }
 
         function quitGameFromEnd() {
-            document.getElementById('modal-gameover').classList.add('hidden');
-            if (gameUnsubscribe) {
-                gameUnsubscribe();
-                gameUnsubscribe = null;
+            if (gameState.mode === 'online') {
+                if (window.quitGameFirebase) window.quitGameFirebase();
+            } else {
+                showView('view-main-menu');
             }
-            if (gameState.mode === 'online' && currentGameId && isHost) {
-                deleteDoc(doc(db, 'artifacts', appId, 'games', currentGameId)).catch(()=>{});
-            }
-            currentGameId = null;
-            gameState.wildRules = null;
-            updateWildIndicator();
-            showView('view-main-menu');
         }
 
         // --- EXPORT TO WINDOW FOR MODULES ---
@@ -1888,6 +1754,9 @@
         window.setConn = (c) => {};
         window.joinGame = joinGame;
         window.startHost = startHost;
+        window.quitGame = quitGame;
+        window.quitGameFromEnd = quitGameFromEnd;
+        window.restartGame = restartGame;
 
         window.opponentPoints = 5;
         window.myPlayerPoints = 5;
@@ -1970,20 +1839,253 @@
         const db = getFirestore(app);
         const appId = 'checkers-app';
 
+        // --- STATE ---
         let fbUser = null;
         let isRegisteredUser = false;
         let authInitialized = false;
+        let currentGameId = null;
+        let isHost = false;
+        let gameUnsubscribe = null;
         let pendingInviteUid = null;
         let pendingInviteName = null;
-        let currentGameId = null;
-        let gameUnsubscribe = null;
-        let isHost = false;
         let invitesUnsubscribe = null;
         let responsesUnsubscribe = null;
+        let matchmakingUnsubscribe = null;
         let authMode = 'signin'; // 'signin' or 'signup'
 
         window.isRegisteredUser = () => isRegisteredUser;
 
+        const OperationType = {
+            CREATE: 'create',
+            UPDATE: 'update',
+            DELETE: 'delete',
+            LIST: 'list',
+            GET: 'get',
+            WRITE: 'write',
+        };
+
+        function handleFirestoreError(error, operationType, path) {
+            const errInfo = {
+                error: error instanceof Error ? error.message : String(error),
+                authInfo: {
+                    userId: auth.currentUser?.uid,
+                    email: auth.currentUser?.email,
+                    emailVerified: auth.currentUser?.emailVerified,
+                    isAnonymous: auth.currentUser?.isAnonymous,
+                    tenantId: auth.currentUser?.tenantId,
+                    providerInfo: auth.currentUser?.providerData.map(provider => ({
+                        providerId: provider.providerId,
+                        displayName: provider.displayName,
+                        email: provider.email,
+                        photoUrl: provider.photoURL
+                    })) || []
+                },
+                operationType,
+                path
+            };
+            console.error('Firestore Error: ', JSON.stringify(errInfo));
+            throw new Error(JSON.stringify(errInfo));
+        }
+
+        window.startHostFirebase = async () => {
+            document.getElementById('host-id-container').classList.remove('hidden');
+            document.getElementById('host-id-display').value = "Generating...";
+            
+            try {
+                const gameId = Math.floor(100000 + Math.random() * 900000).toString();
+                currentGameId = gameId;
+                isHost = true;
+
+                const info = window.getMyInfo ? window.getMyInfo() : { displayName: 'Player 1', friendCode: '' };
+                const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
+                
+                await setDoc(gameRef, {
+                    board: window.initBoard(),
+                    turn: window.P1,
+                    p1: { uid: fbUser.uid, displayName: info.displayName, friendCode: info.friendCode, points: info.playerPoints || 5 },
+                    p2: null,
+                    lastMove: null,
+                    restartRequested: 0,
+                    chat: null,
+                    status: 'waiting',
+                    wildRules: gameState.wildRules,
+                    timestamp: Date.now()
+                }).catch(e => handleFirestoreError(e, OperationType.CREATE, `games/${gameId}`));
+
+                document.getElementById('host-id-display').value = gameId;
+                window.showNotification('Host Code Generated!');
+
+                // Send invite if pending
+                if (pendingInviteUid) {
+                    const inviteRef = doc(db, 'artifacts', appId, 'users', pendingInviteUid, 'invites', fbUser.uid);
+                    await setDoc(inviteRef, {
+                        fromName: fbUser.displayName || 'Friend',
+                        fromId: fbUser.uid,
+                        code: gameId,
+                        timestamp: Date.now()
+                    });
+                    window.showNotification(`Invite sent to ${pendingInviteName}!`);
+                    pendingInviteUid = null;
+                    pendingInviteName = null;
+                }
+
+                window.setupGameListenerFirebase(gameId);
+                window.startGame('online', window.P1, gameState.wildRules);
+
+            } catch(e) {
+                console.error(e);
+                window.showNotification('Failed to host game');
+            }
+        };
+
+        window.joinGameFirebase = async (overrideId = null) => {
+            let gameId = overrideId || document.getElementById('join-id-input').value.trim().toUpperCase();
+            if (!gameId || gameId.length !== 6) {
+                window.showNotification("Please enter a 6-digit code");
+                return;
+            }
+            
+            const btnText = document.getElementById('join-btn-text');
+            btnText.innerText = "Connecting...";
+
+            try {
+                const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
+                const gameSnap = await getDoc(gameRef).catch(e => handleFirestoreError(e, OperationType.GET, `games/${gameId}`));
+                
+                if (!gameSnap.exists()) {
+                    window.showNotification("Game not found");
+                    btnText.innerText = "Connect to Game";
+                    return;
+                }
+
+                const gameData = gameSnap.data();
+                if (gameData.status !== 'waiting' && gameData.p2 && gameData.p2.uid !== fbUser.uid) {
+                    window.showNotification("Game is full");
+                    btnText.innerText = "Connect to Game";
+                    return;
+                }
+
+                currentGameId = gameId;
+                isHost = false;
+                const info = window.getMyInfo ? window.getMyInfo() : { displayName: 'Player 2', friendCode: '' };
+
+                await updateDoc(gameRef, {
+                    p2: { uid: fbUser.uid, displayName: info.displayName, friendCode: info.friendCode, points: info.playerPoints || 5 },
+                    status: 'playing',
+                    timestamp: Date.now()
+                }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `games/${gameId}`));
+
+                window.setupGameListenerFirebase(gameId);
+                window.startGame('online', window.P2, gameData.wildRules);
+                window.showNotification('Connected to Game!');
+                btnText.innerText = "Connect to Game";
+
+            } catch(e) {
+                console.error(e);
+                window.showNotification('Failed to join');
+                btnText.innerText = "Connect to Game";
+            }
+        };
+
+        window.setupGameListenerFirebase = (gameId) => {
+            if (gameUnsubscribe) gameUnsubscribe();
+            
+            const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
+            gameUnsubscribe = onSnapshot(gameRef, (snapshot) => {
+                if (!snapshot.exists()) {
+                    window.showNotification("Game closed");
+                    window.quitGameFromEnd();
+                    return;
+                }
+
+                const data = snapshot.data();
+                
+                // Sync opponent info
+                const opponent = isHost ? data.p2 : data.p1;
+                if (opponent) {
+                    gameState.opponentInfo = { displayName: opponent.displayName, friendCode: opponent.friendCode };
+                    window.opponentPoints = opponent.points || 5;
+                    document.getElementById('opponent-name').innerText = opponent.displayName || "Unknown Player";
+                    
+                    if (opponent.friendCode && isRegisteredUser) {
+                        document.getElementById('btn-add-friend-opponent').classList.remove('hidden');
+                        document.getElementById('btn-add-friend-opponent').onclick = () => {
+                            window.addFriendByCode(opponent.friendCode);
+                        };
+                    }
+                }
+
+                // Sync board and turn
+                if (data.timestamp > (gameState.lastSyncTime || 0)) {
+                    const oldSyncTime = gameState.lastSyncTime || 0;
+                    gameState.lastSyncTime = data.timestamp;
+                    
+                    // If it's the opponent's turn or just changed to our turn
+                    if (data.turn !== gameState.myPlayer || (data.lastMove && JSON.stringify(data.lastMove) !== JSON.stringify(gameState.lastMove))) {
+                         gameState.board = data.board;
+                         gameState.turn = data.turn;
+                         gameState.mustJumpPiece = data.mustJumpPiece;
+                         gameState.lastMove = data.lastMove;
+                         window.checkWinCondition();
+                         window.renderBoard();
+                         window.updateStatusText();
+                    }
+
+                    if (data.restartRequested && data.restartRequested > (gameState.lastRestartRequest || 0)) {
+                        gameState.lastRestartRequest = data.restartRequested;
+                        window.startGame('online', gameState.myPlayer, data.wildRules);
+                        window.showNotification("Match Restarted!");
+                    }
+
+                    if (data.chat && data.chat.timestamp > (gameState.lastChatTime || 0)) {
+                        gameState.lastChatTime = data.chat.timestamp;
+                        if (data.chat.uid !== fbUser.uid) {
+                            window.showNotification("Opponent: " + data.chat.text);
+                        }
+                    }
+                }
+            }, (error) => handleFirestoreError(error, OperationType.GET, `games/${gameId}`));
+        };
+
+        window.syncMoveToFirebase = (board, turnEnds, mustJumpPiece, move) => {
+            if (currentGameId) {
+                const gameRef = doc(db, 'artifacts', appId, 'games', currentGameId);
+                updateDoc(gameRef, {
+                    board: board,
+                    turn: turnEnds ? (gameState.turn === window.P1 ? window.P2 : window.P1) : gameState.turn,
+                    mustJumpPiece: turnEnds ? null : mustJumpPiece,
+                    lastMove: move,
+                    timestamp: Date.now()
+                }).catch(e => console.error("Sync error:", e));
+            }
+        };
+
+        window.sendChatMsgFirebase = (text) => {
+            if (currentGameId) {
+                const gameRef = doc(db, 'artifacts', appId, 'games', currentGameId);
+                updateDoc(gameRef, {
+                    chat: { text: text, uid: fbUser.uid, timestamp: Date.now() },
+                    timestamp: Date.now()
+                });
+                window.showNotification("You: " + text);
+            }
+        };
+
+        window.restartGameFirebase = () => {
+            if (currentGameId) {
+                const gameRef = doc(db, 'artifacts', appId, 'games', currentGameId);
+                updateDoc(gameRef, {
+                    board: window.initBoard(),
+                    turn: window.P1,
+                    mustJumpPiece: null,
+                    lastMove: null,
+                    restartRequested: Date.now(),
+                    timestamp: Date.now()
+                });
+            }
+        };
+
+        // ------------------ AUTH & INITIALIZATION ------------------
         window.getMyInfo = () => {
             if (!fbUser || !isRegisteredUser) return { displayName: "Guest", friendCode: null, playerPoints: 5 };
             return {
@@ -2134,33 +2236,33 @@
         };
 
         window.deleteFriend = async (friendId, friendName) => {
-            if (!confirm(`Are you sure you want to remove ${friendName || 'this player'} from your friends list?`)) return;
-            
-            try {
-                // 1. Remove from my list
-                const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
-                await updateDoc(myPrivRef, {
-                    friends: arrayRemove(friendId)
-                });
+            window.showConfirm(`Are you sure you want to remove ${friendName || 'this player'} from your friends list?`, async () => {
+                try {
+                    // 1. Remove from my list
+                    const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
+                    await updateDoc(myPrivRef, {
+                        friends: arrayRemove(friendId)
+                    });
 
-                // 2. Notify friend to remove me
-                const friendMsgRef = collection(db, 'artifacts', appId, 'users', friendId, 'messages');
-                await addDoc(friendMsgRef, {
-                    type: 'friendship_removed',
-                    fromUid: fbUser.uid,
-                    fromName: fbUser.displayName || 'A player',
-                    timestamp: Date.now(),
-                    processed: false,
-                    read: false
-                });
+                    // 2. Notify friend to remove me
+                    const friendMsgRef = collection(db, 'artifacts', appId, 'users', friendId, 'messages');
+                    await addDoc(friendMsgRef, {
+                        type: 'friendship_removed',
+                        fromUid: fbUser.uid,
+                        fromName: fbUser.displayName || 'A player',
+                        timestamp: Date.now(),
+                        processed: false,
+                        read: false
+                    });
 
-                window.showNotification("Friend removed.");
-                closeModal('modal-player-profile');
-                window.renderFriendsList();
-            } catch (e) {
-                console.error("Failed to delete friend:", e);
-                window.showNotification("Failed to remove friend.");
-            }
+                    window.showNotification("Friend removed.");
+                    closeModal('modal-player-profile');
+                    window.renderFriendsList();
+                } catch (e) {
+                    console.error("Failed to delete friend:", e);
+                    window.showNotification("Failed to remove friend.");
+                }
+            });
         };
 
         window.showSocialHub = () => {
@@ -3502,8 +3604,6 @@
 
         window.currentMatchDoc = null;
 
-        let matchmakingUnsubscribe = null;
-
         async function initAuth() {
             if (authInitialized) return;
             return new Promise(resolve => {
@@ -3590,11 +3690,11 @@
             const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
             
             let wildRules = null;
-            if (mode === 'wild') wildRules = getDailyWildRules();
+            if (mode === 'wild') wildRules = window.getDailyWildRules();
 
             await setDoc(gameRef, {
-                board: initBoard(),
-                turn: P1,
+                board: window.initBoard(),
+                turn: window.P1,
                 p1: { uid: fbUser.uid, displayName: info.displayName, friendCode: info.friendCode, points: info.playerPoints || 5 },
                 p2: null,
                 lastMove: null,
@@ -3615,8 +3715,8 @@
             });
 
             window.currentMatchDoc = matchRef;
-            setupGameListener(gameId);
-            startGame('online', P1, wildRules);
+            window.setupGameListenerFirebase(gameId);
+            window.startGame('online', window.P1, wildRules);
             document.getElementById('matchmaking-status-text').innerText = "Waiting for an opponent...";
         }
 
