@@ -10,13 +10,45 @@
         "p1": { "type": "object", "description": "Host player information." },
         "p2": { "type": "object", "description": "Joining player information." },
         "lastMove": { "type": "object", "description": "The last move made in the game." },
-        "restartRequested": { "type": "boolean", "description": "Whether a game restart has been requested." },
+        "restartRequested": { "type": "number", "description": "Timestamp or count of restart requests." },
         "chat": { "type": "object", "description": "The last chat message sent." },
         "status": { "type": "string", "enum": ["waiting", "playing", "finished"], "description": "The current status of the game." },
         "wildRules": { "type": "object", "description": "Special rules for wild mode." },
         "timestamp": { "type": "number", "description": "The last time the game was updated." }
       },
       "required": ["board", "turn", "status", "timestamp"]
+    },
+    "Profile": {
+      "title": "User Profile",
+      "description": "Public user profile information.",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "playerPoints": { "type": "number" },
+        "wins": { "type": "number" },
+        "losses": { "type": "number" },
+        "globalScore": { "type": "number" },
+        "aiEasyScore": { "type": "number" },
+        "aiMediumScore": { "type": "number" },
+        "aiHardScore": { "type": "number" },
+        "badges": { "type": "array" },
+        "awards": { "type": "array" },
+        "streak": { "type": "number" },
+        "lastStreakDate": { "type": "string" },
+        "lastPointsDate": { "type": "string" },
+        "dailyPoints": { "type": "number" }
+      }
+    },
+    "SocialEvent": {
+      "title": "Social Event",
+      "description": "An entry in the global social feed.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "userName": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "number" }
+      }
     }
   },
   "firestore": {
@@ -24,10 +56,45 @@
       "schema": "Game",
       "description": "Collection of active and past multiplayer games."
     },
-    "/artifacts/{appId}/public/data/matchmaking/{peerId}": {
+    "/artifacts/{appId}/public/data/matchmaking/{userId}": {
       "schema": "object",
       "description": "Matchmaking lobby entries."
+    },
+    "/artifacts/{appId}/public/data/profiles/{userId}": {
+      "schema": "Profile",
+      "description": "Public user profiles and stats."
+    },
+    "/artifacts/{appId}/public/data/friendCodes/{code}": {
+      "schema": "object",
+      "description": "Mapping of friend codes to user UIDs."
+    },
+    "/artifacts/{appId}/public/data/emails/{email}": {
+      "schema": "object",
+      "description": "Mapping of email addresses to user UIDs."
+    },
+    "/artifacts/{appId}/public/data/socialFeed/{eventId}": {
+      "schema": "SocialEvent",
+      "description": "Global activity feed."
+    },
+    "/artifacts/{appId}/users/{userId}/friendRequests/{requestId}": {
+      "schema": "object",
+      "description": "Friend requests sent to the user."
+    },
+    "/artifacts/{appId}/users/{userId}/invites/{inviteId}": {
+      "schema": "object",
+      "description": "Game invites sent to the user."
+    },
+    "/artifacts/{appId}/users/{userId}/messages/{msgId}": {
+      "schema": "object",
+      "description": "User inbox for notifications and system messages."
+    },
+    "/artifacts/{appId}/users/{userId}/private/data": {
+      "schema": "object",
+      "description": "Private user data like friends list."
+    },
+    "/artifacts/{appId}/admin/sentMessages/history/{msgId}": {
+      "schema": "object",
+      "description": "History of messages sent by admins."
     }
   }
 }
-
