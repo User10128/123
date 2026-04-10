@@ -1373,12 +1373,15 @@
             gameState.selectedPiece = null;
             gameState.validMoves = [];
 
-            if (gameState.mode === 'online') {
-                if (conn && conn.open) {
-                    conn.send({ type: 'move', move: move });
-                } else {
-                    showNotification("Connection lost!");
-                }
+            if (gameState.mode === 'online' && currentGameId) {
+                const gameRef = doc(db, 'artifacts', appId, 'games', currentGameId);
+                updateDoc(gameRef, {
+                    board: gameState.board,
+                    turn: result.turnEnds ? (gameState.turn === P1 ? P2 : P1) : gameState.turn,
+                    mustJumpPiece: result.turnEnds ? null : result.mustJumpPiece,
+                    lastMove: move,
+                    timestamp: Date.now()
+                }).catch(e => console.error("Sync error:", e));
             }
 
             if (result.turnEnds) {
@@ -1668,87 +1671,62 @@
             return score;
         }
 
-        // --- MULTIPLAYER (PEERJS) ---
-        function startHost() {
+        // --- MULTIPLAYER (FIRESTORE) ---
+        async function startHost() {
             document.getElementById('host-id-container').classList.remove('hidden');
             document.getElementById('host-id-display').value = "Generating...";
             
             try {
-                if(peer) peer.destroy();
-                const customId = Math.floor(100000 + Math.random() * 900000).toString();
+                const gameId = Math.floor(100000 + Math.random() * 900000).toString();
+                currentGameId = gameId;
+                isHost = true;
+
+                const info = window.getMyInfo ? window.getMyInfo() : { displayName: 'Player 1', friendCode: '' };
+                const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
                 
-                // Send invite IMMEDIATELY after code is created
+                await setDoc(gameRef, {
+                    board: initBoard(),
+                    turn: P1,
+                    p1: { uid: fbUser.uid, displayName: info.displayName, friendCode: info.friendCode, points: info.playerPoints || 5 },
+                    p2: null,
+                    lastMove: null,
+                    restartRequested: 0,
+                    chat: null,
+                    status: 'waiting',
+                    wildRules: gameState.wildRules,
+                    timestamp: Date.now()
+                });
+
+                document.getElementById('host-id-display').value = gameId;
+                showNotification('Host Code Generated!');
+
+                // Send invite if pending
                 if (pendingInviteUid) {
-                    (async () => {
-                        try {
-                            const inviteRef = doc(db, 'artifacts', appId, 'users', pendingInviteUid, 'invites', fbUser.uid);
-                            await setDoc(inviteRef, {
-                                fromName: fbUser.displayName || 'Friend',
-                                fromId: fbUser.uid,
-                                code: customId,
-                                timestamp: Date.now()
-                            });
-                            window.showNotification(`Invite sent to ${pendingInviteName}!`);
-                        } catch (e) {
-                            console.error("Failed to send invite:", e);
-                            window.showNotification("Failed to send invite.");
-                        }
-                        pendingInviteUid = null;
-                        pendingInviteName = null;
-                    })();
+                    const inviteRef = doc(db, 'artifacts', appId, 'users', pendingInviteUid, 'invites', fbUser.uid);
+                    await setDoc(inviteRef, {
+                        fromName: fbUser.displayName || 'Friend',
+                        fromId: fbUser.uid,
+                        code: gameId,
+                        timestamp: Date.now()
+                    });
+                    window.showNotification(`Invite sent to ${pendingInviteName}!`);
+                    pendingInviteUid = null;
+                    pendingInviteName = null;
                 }
 
-                peer = new Peer(customId);
-                
-                peer.on('open', (id) => {
-                    document.getElementById('host-id-display').value = id;
-                    showNotification('Host Code Generated!');
-                });
-                peer.on('connection', (connection) => {
-                    conn = connection;
-                    setupConnection();
-                    
-                    // Send our info to the joining player
-                    if (window.getMyInfo) {
-                        const info = window.getMyInfo();
-                        conn.send({ type: 'identity', displayName: info.displayName, friendCode: info.friendCode });
-                    }
+                setupGameListener(gameId);
+                startGame('online', P1, gameState.wildRules);
 
-                    startGame('online', P1); 
-                    showNotification('Opponent Joined!');
-                });
-                peer.on('error', (err) => {
-                    if(err.type === 'unavailable-id') {
-                        startHost(); 
-                    } else {
-                        showNotification('Connection Error: ' + err.type);
-                        document.getElementById('host-id-display').value = "Error";
-                    }
-                });
             } catch(e) {
-                showNotification('Failed to connect to network');
+                console.error(e);
+                showNotification('Failed to host game');
             }
         }
 
-        function copyLobbyLink() {
-            const code = document.getElementById('host-id-display').value;
-            if (!code || code === "Generating..." || code === "Error") return;
-            
-            const url = new URL(window.location.href);
-            url.searchParams.set('code', code);
-            const link = url.toString();
-            
-            navigator.clipboard.writeText(link).then(() => {
-                showNotification("Lobby link copied to clipboard!");
-            }).catch(() => {
-                showNotification("Failed to copy link.");
-            });
-        }
-
-        function joinGame(overrideId = null) {
-            let hostId = overrideId || document.getElementById('join-id-input').value.trim().toUpperCase();
-            if (!hostId || hostId.length !== 6) {
-                showNotification("Please enter a valid 6-digit code");
+        async function joinGame(overrideId = null) {
+            let gameId = overrideId || document.getElementById('join-id-input').value.trim().toUpperCase();
+            if (!gameId || gameId.length !== 6) {
+                showNotification("Please enter a 6-digit code");
                 return;
             }
             
@@ -1756,92 +1734,116 @@
             btnText.innerText = "Connecting...";
 
             try {
-                if(peer) peer.destroy();
-                peer = new Peer();
-                peer.on('open', () => {
-                    conn = peer.connect(hostId);
-                    conn.on('open', () => {
-                        btnText.innerText = "Connect to Game";
-                        setupConnection();
-
-                        // Send our info to the host
-                        if (window.getMyInfo) {
-                            const info = window.getMyInfo();
-                            conn.send({ type: 'identity', displayName: info.displayName, friendCode: info.friendCode });
-                        }
-
-                        startGame('online', P2); 
-                        showNotification('Connected to Game!');
-                    });
-                    conn.on('error', () => {
-                        showNotification("Failed to connect to Host");
-                        btnText.innerText = "Connect to Game";
-                    });
-                });
-                peer.on('error', (err) => {
-                    showNotification('Connection Error: ' + err.type);
+                const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
+                const gameSnap = await getDoc(gameRef);
+                
+                if (!gameSnap.exists()) {
+                    showNotification("Game not found");
                     btnText.innerText = "Connect to Game";
+                    return;
+                }
+
+                const gameData = gameSnap.data();
+                if (gameData.status !== 'waiting' && gameData.p2 && gameData.p2.uid !== fbUser.uid) {
+                    showNotification("Game is full");
+                    btnText.innerText = "Connect to Game";
+                    return;
+                }
+
+                currentGameId = gameId;
+                isHost = false;
+                const info = window.getMyInfo ? window.getMyInfo() : { displayName: 'Player 2', friendCode: '' };
+
+                await updateDoc(gameRef, {
+                    p2: { uid: fbUser.uid, displayName: info.displayName, friendCode: info.friendCode, points: info.playerPoints || 5 },
+                    status: 'playing',
+                    timestamp: Date.now()
                 });
+
+                setupGameListener(gameId);
+                startGame('online', P2, gameData.wildRules);
+                showNotification('Connected to Game!');
+                btnText.innerText = "Connect to Game";
+
             } catch(e) {
+                console.error(e);
                 showNotification('Failed to join');
                 btnText.innerText = "Connect to Game";
             }
         }
 
-        function setupConnection() {
-            conn.on('data', (data) => {
-                if (data.type === 'move') {
-                    gameState.lastMove = data.move;
-                    let result = applyMove(gameState.board, data.move);
-                    gameState.board = result.board;
-                    if (result.turnEnds) {
-                        gameState.turn = gameState.turn === P1 ? P2 : P1;
-                        gameState.mustJumpPiece = null;
-                    } else {
-                        gameState.mustJumpPiece = result.mustJumpPiece;
-                    }
-                    checkWinCondition();
-                    renderBoard();
-                    updateStatusText();
-                } else if (data.type === 'restart') {
-                    document.getElementById('modal-gameover').classList.add('hidden');
-                    startGame('online', gameState.myPlayer, gameState.wildRules);
-                    showNotification("Match Restarted!");
-                } else if (data.type === 'chat') {
-                    showNotification("Opponent: " + data.text);
-                } else if (data.type === 'identity') {
-                    gameState.opponentInfo = { displayName: data.displayName, friendCode: data.friendCode };
-                    window.opponentPoints = data.playerPoints || 5;
-                    document.getElementById('opponent-name').innerText = data.displayName || "Unknown Player";
-                    
-                    if (data.wildRules) {
-                        gameState.wildRules = data.wildRules;
-                        updateWildIndicator();
-                    }
-                    if (data.board) {
-                        gameState.board = data.board;
-                        renderBoard();
-                    }
+        function setupGameListener(gameId) {
+            if (gameUnsubscribe) gameUnsubscribe();
+            
+            const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
+            gameUnsubscribe = onSnapshot(gameRef, (snapshot) => {
+                if (!snapshot.exists()) {
+                    showNotification("Game closed");
+                    quitGameFromEnd();
+                    return;
+                }
 
-                    if (data.friendCode && window.isRegisteredUser && window.isRegisteredUser()) {
+                const data = snapshot.data();
+                
+                // Sync opponent info
+                const opponent = isHost ? data.p2 : data.p1;
+                if (opponent) {
+                    gameState.opponentInfo = { displayName: opponent.displayName, friendCode: opponent.friendCode };
+                    window.opponentPoints = opponent.points || 5;
+                    document.getElementById('opponent-name').innerText = opponent.displayName || "Unknown Player";
+                    
+                    if (opponent.friendCode && isRegisteredUser) {
                         document.getElementById('btn-add-friend-opponent').classList.remove('hidden');
                         document.getElementById('btn-add-friend-opponent').onclick = () => {
-                            window.addFriendByCode(data.friendCode);
+                            window.addFriendByCode(opponent.friendCode);
                         };
                     }
                 }
-            });
-            conn.on('close', () => {
-                showNotification("Opponent disconnected.");
-                quitGameFromEnd();
+
+                // Sync board and turn
+                if (data.timestamp > (gameState.lastSyncTime || 0)) {
+                    const oldSyncTime = gameState.lastSyncTime || 0;
+                    gameState.lastSyncTime = data.timestamp;
+                    
+                    // If it's the opponent's turn or just changed to our turn
+                    if (data.turn !== gameState.myPlayer || (data.lastMove && JSON.stringify(data.lastMove) !== JSON.stringify(gameState.lastMove))) {
+                         gameState.board = data.board;
+                         gameState.turn = data.turn;
+                         gameState.mustJumpPiece = data.mustJumpPiece;
+                         gameState.lastMove = data.lastMove;
+                         checkWinCondition();
+                         renderBoard();
+                         updateStatusText();
+                    }
+
+                    if (data.restartRequested && data.restartRequested > (gameState.lastRestartRequest || 0)) {
+                        gameState.lastRestartRequest = data.restartRequested;
+                        startGame('online', gameState.myPlayer, data.wildRules);
+                        showNotification("Match Restarted!");
+                    }
+
+                    if (data.chat && data.chat.timestamp > (gameState.lastChatTime || 0)) {
+                        gameState.lastChatTime = data.chat.timestamp;
+                        if (data.chat.uid !== fbUser.uid) {
+                            showNotification("Opponent: " + data.chat.text);
+                        }
+                    }
+                }
             });
         }
 
         function restartGame() {
             closeModal('modal-gameover');
-            if (gameState.mode === 'online') {
-                if (conn && conn.open) conn.send({type: 'restart'});
-                startGame('online', gameState.myPlayer, gameState.wildRules);
+            if (gameState.mode === 'online' && currentGameId) {
+                const gameRef = doc(db, 'artifacts', appId, 'games', currentGameId);
+                updateDoc(gameRef, {
+                    board: initBoard(),
+                    turn: P1,
+                    mustJumpPiece: null,
+                    lastMove: null,
+                    restartRequested: Date.now(),
+                    timestamp: Date.now()
+                });
             } else {
                 startGame(gameState.mode, P1, gameState.wildRules);
             }
@@ -3533,14 +3535,12 @@
                         const data = docSnap.data();
                         const age = now - data.timestamp;
                         
-                        if (data.status === 'waiting' && (age < 120000) && (data.mode === mode)) {
-                            availableHost = data.peerId;
+                        if (data.status === 'waiting' && (age < 120000) && (data.mode === mode) && data.uid !== fbUser.uid) {
+                            availableHost = data.gameId;
                             activeCount++;
-                        } else if (data.status === 'playing' && (age < 3600000)) { // Count games in progress for up to 1 hour
+                        } else if (data.status === 'playing' && (age < 3600000)) { 
                             activeCount++;
                         } else if (age >= 120000 && data.status === 'waiting') {
-                            deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', docSnap.id)).catch(()=>{});
-                        } else if (age >= 3600000 && data.status === 'playing') {
                             deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', docSnap.id)).catch(()=>{});
                         }
                     });
@@ -3551,7 +3551,7 @@
                         hasJoinedOrHosted = true;
                         if (availableHost) {
                             document.getElementById('matchmaking-status-text').innerText = "Opponent found! Connecting...";
-                            joinGlobalGame(availableHost, mode);
+                            joinGame(availableHost);
                         } else {
                             document.getElementById('matchmaking-status-text').innerText = "Creating a lobby...";
                             hostGlobalGame(mode);
@@ -3570,83 +3570,43 @@
             }
         };
 
-        function hostGlobalGame(mode = 'standard') {
-            let currentPeer = window.getPeer();
-            if(currentPeer) currentPeer.destroy();
+        async function hostGlobalGame(mode = 'standard') {
+            const gameId = Math.floor(100000 + Math.random() * 900000).toString();
+            currentGameId = gameId;
+            isHost = true;
+
+            const info = window.getMyInfo ? window.getMyInfo() : { displayName: 'Player 1', friendCode: '' };
+            const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
             
-            const peerId = "chk-" + Math.floor(Math.random() * 1000000000);
-            const newPeer = new Peer(peerId);
-            window.setPeer(newPeer);
+            let wildRules = null;
+            if (mode === 'wild') wildRules = getDailyWildRules();
 
-            newPeer.on('open', async (id) => {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', id);
-                
-                // If wild mode, generate rules
-                let wildRules = null;
-                if (mode === 'wild') {
-                    wildRules = getDailyWildRules();
-                }
-
-                await setDoc(docRef, {
-                    peerId: id,
-                    status: 'waiting',
-                    timestamp: Date.now(),
-                    mode: mode,
-                    wildRules: wildRules
-                });
-
-                window.currentMatchDoc = docRef;
-                document.getElementById('matchmaking-status-text').innerText = "Waiting for an opponent to join...";
+            await setDoc(gameRef, {
+                board: initBoard(),
+                turn: P1,
+                p1: { uid: fbUser.uid, displayName: info.displayName, friendCode: info.friendCode, points: info.playerPoints || 5 },
+                p2: null,
+                lastMove: null,
+                restartRequested: 0,
+                chat: null,
+                status: 'waiting',
+                wildRules: wildRules,
+                timestamp: Date.now()
             });
 
-            newPeer.on('connection', (connection) => {
-                if (matchmakingUnsubscribe) {
-                    matchmakingUnsubscribe();
-                    matchmakingUnsubscribe = null;
-                }
-                window.setConn(connection);
-                window.setupConnection();
-                
-                // Send our info to the joining player
-                if (window.getMyInfo) {
-                    const info = window.getMyInfo();
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', peerId);
-                    getDoc(docRef).then(docSnap => {
-                        let wildRules = null;
-                        if (docSnap.exists()) wildRules = docSnap.data().wildRules;
-                        
-                        window.startGame('online', window.P1, wildRules);
-
-                        connection.send({ 
-                            type: 'identity', 
-                            displayName: info.displayName, 
-                            friendCode: info.friendCode, 
-                            playerPoints: info.playerPoints,
-                            wildRules: wildRules,
-                            board: gameState.board
-                        });
-
-                        window.showNotification("Opponent Joined!");
-                    });
-                }
-                
-                if (window.currentMatchDoc) {
-                    updateDoc(window.currentMatchDoc, { status: 'playing', timestamp: Date.now() }).catch(()=>{});
-                }
-
-                connection.on('close', () => {
-                    if (window.currentMatchDoc) {
-                        deleteDoc(window.currentMatchDoc).catch(()=>{});
-                        window.currentMatchDoc = null;
-                    }
-                });
+            const matchRef = doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', fbUser.uid);
+            await setDoc(matchRef, {
+                uid: fbUser.uid,
+                gameId: gameId,
+                status: 'waiting',
+                timestamp: Date.now(),
+                mode: mode
             });
 
-            newPeer.on('error', (err) => {
-                window.showNotification('Connection Error: ' + err.type);
-                if (window.currentMatchDoc) deleteDoc(window.currentMatchDoc).catch(()=>{});
-                window.showView('view-main-menu');
-            });
+            window.currentMatchDoc = matchRef;
+            setupGameListener(gameId);
+            startGame('online', P1, wildRules);
+            document.getElementById('matchmaking-status-text').innerText = "Waiting for an opponent...";
         }
 
         function joinGlobalGame(hostPeerId, mode = 'standard') {
