@@ -1,0 +1,32 @@
+{
+  "entities": {
+    "Game": {
+      "title": "Game",
+      "description": "Represents a multiplayer checkers game session.",
+      "type": "object",
+      "properties": {
+        "board": { "type": "array", "description": "The current state of the board." },
+        "turn": { "type": "number", "description": "The player whose turn it is." },
+        "p1": { "type": "object", "description": "Host player information." },
+        "p2": { "type": "object", "description": "Joining player information." },
+        "lastMove": { "type": "object", "description": "The last move made in the game." },
+        "restartRequested": { "type": "boolean", "description": "Whether a game restart has been requested." },
+        "chat": { "type": "object", "description": "The last chat message sent." },
+        "status": { "type": "string", "enum": ["waiting", "playing", "finished"], "description": "The current status of the game." },
+        "wildRules": { "type": "object", "description": "Special rules for wild mode." },
+        "timestamp": { "type": "number", "description": "The last time the game was updated." }
+      },
+      "required": ["board", "turn", "status", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/artifacts/{appId}/games/{gameId}": {
+      "schema": "Game",
+      "description": "Collection of active and past multiplayer games."
+    },
+    "/artifacts/{appId}/public/data/matchmaking/{peerId}": {
+      "schema": "object",
+      "description": "Matchmaking lobby entries."
+    }
+  }
+}
