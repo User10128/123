@@ -1880,7 +1880,6 @@
         window.P1 = P1;
         window.P2 = P2;
         window.startGame = startGame;
-        window.setupConnection = setupConnection;
         window.showNotification = showNotification;
         window.showView = showView;
         window.getPeer = () => null;
@@ -3621,60 +3620,6 @@
             document.getElementById('matchmaking-status-text').innerText = "Waiting for an opponent...";
         }
 
-        function joinGlobalGame(hostPeerId, mode = 'standard') {
-            let currentPeer = window.getPeer();
-            if(currentPeer) currentPeer.destroy();
-            
-            const newPeer = new Peer();
-            window.setPeer(newPeer);
-
-            // Reconnection timer starts ONLY when we found a host and are trying to connect
-            const reconnectTimer = setTimeout(() => {
-                document.getElementById('reconnect-container').classList.remove('hidden');
-            }, 5000);
-
-            newPeer.on('open', () => {
-                if (matchmakingUnsubscribe) {
-                    matchmakingUnsubscribe();
-                    matchmakingUnsubscribe = null;
-                }
-                const connection = newPeer.connect(hostPeerId);
-                window.setConn(connection);
-                
-                connection.on('open', () => {
-                    clearTimeout(reconnectTimer);
-                    window.setupConnection();
-
-                    // Send our info to the host
-                    if (window.getMyInfo) {
-                        const info = window.getMyInfo();
-                        connection.send({ type: 'identity', displayName: info.displayName, friendCode: info.friendCode, playerPoints: info.playerPoints });
-                    }
-
-                    // We'll get wildRules from the host's identity message
-                    if (mode === 'wild') {
-                        gameState.wildRules = getDailyWildRules();
-                    } else {
-                        gameState.wildRules = null;
-                    }
-                    window.startGame('online', window.P2, gameState.wildRules);
-                    window.showNotification("Connected to Match!");
-                });
-                
-                connection.on('error', () => {
-                    clearTimeout(reconnectTimer);
-                    window.showNotification("Failed to connect to Host, retrying...");
-                    window.startGlobalMatch(); 
-                });
-            });
-
-            newPeer.on('error', (err) => {
-                clearTimeout(reconnectTimer);
-                window.showNotification('Connection Error: ' + err.type);
-                window.showView('view-main-menu');
-            });
-        }
-        
         window.cancelMatchmaking = () => {
             if (matchmakingUnsubscribe) {
                 matchmakingUnsubscribe();
