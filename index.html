@@ -537,7 +537,6 @@
         </div>
     </div>
 
-    <!-- Player Profile Modal -->
     <div id="modal-player-profile" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[110] hidden flex items-center justify-center p-4">
         <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-sm w-full text-center flex flex-col gap-6">
             <div class="flex justify-between items-center border-b border-teal-500/20 pb-4">
@@ -557,6 +556,7 @@
                 </div>
             </div>
             <button id="btn-add-friend-from-profile" class="btn-primary w-full hidden">Add Friend</button>
+            <button id="btn-delete-friend-from-profile" class="glass-btn w-full hidden text-red-400 border-red-900/40 hover:bg-red-900/20">Delete Friend</button>
         </div>
     </div>
 
@@ -775,6 +775,15 @@
             const searchingView = document.getElementById('view-searching');
             if (searchingView && !searchingView.classList.contains('hidden')) {
                 cancelMatchmaking();
+                return;
+            }
+
+            // 3.5 Special logic for connection screens
+            const onlineSetupView = document.getElementById('view-online-setup');
+            const globalChoiceView = document.getElementById('view-global-matchmaking-choice');
+            if ((onlineSetupView && !onlineSetupView.classList.contains('hidden')) || 
+                (globalChoiceView && !globalChoiceView.classList.contains('hidden'))) {
+                window.location.reload();
                 return;
             }
 
@@ -2045,6 +2054,7 @@
             const statsEl = document.getElementById('profile-modal-stats');
             const badgesEl = document.getElementById('profile-modal-badges');
             const addBtn = document.getElementById('btn-add-friend-from-profile');
+            const deleteBtn = document.getElementById('btn-delete-friend-from-profile');
 
             openModal('modal-player-profile');
             nameEl.innerText = "Loading...";
@@ -2052,6 +2062,7 @@
             statsEl.innerText = "";
             badgesEl.innerHTML = "";
             addBtn.classList.add('hidden');
+            deleteBtn.classList.add('hidden');
 
             try {
                 const docSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', uid));
@@ -2085,13 +2096,52 @@
                     }
 
                     if (fbUser && fbUser.uid !== uid) {
-                        addBtn.classList.remove('hidden');
-                        addBtn.onclick = () => window.addFriendByCode(data.friendCode);
+                        const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
+                        const myPrivSnap = await getDoc(myPrivRef);
+                        const myFriends = myPrivSnap.exists() ? (myPrivSnap.data().friends || []) : [];
+                        
+                        if (myFriends.includes(uid)) {
+                            deleteBtn.classList.remove('hidden');
+                            deleteBtn.onclick = () => window.deleteFriend(uid, data.displayName);
+                        } else {
+                            addBtn.classList.remove('hidden');
+                            addBtn.onclick = () => window.addFriendByCode(data.friendCode);
+                        }
                     }
                 } else {
                     nameEl.innerText = "User not found";
                 }
             } catch (e) { console.error(e); }
+        };
+
+        window.deleteFriend = async (friendId, friendName) => {
+            if (!confirm(`Are you sure you want to remove ${friendName || 'this player'} from your friends list?`)) return;
+            
+            try {
+                // 1. Remove from my list
+                const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
+                await updateDoc(myPrivRef, {
+                    friends: arrayRemove(friendId)
+                });
+
+                // 2. Notify friend to remove me
+                const friendMsgRef = collection(db, 'artifacts', appId, 'users', friendId, 'messages');
+                await addDoc(friendMsgRef, {
+                    type: 'friendship_removed',
+                    fromUid: fbUser.uid,
+                    fromName: fbUser.displayName || 'A player',
+                    timestamp: Date.now(),
+                    processed: false,
+                    read: false
+                });
+
+                window.showNotification("Friend removed.");
+                closeModal('modal-player-profile');
+                window.renderFriendsList();
+            } catch (e) {
+                console.error("Failed to delete friend:", e);
+                window.showNotification("Failed to remove friend.");
+            }
         };
 
         window.showSocialHub = () => {
