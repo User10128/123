@@ -3684,15 +3684,6 @@
                 deleteDoc(window.currentMatchDoc).catch(()=>{});
                 window.currentMatchDoc = null;
             }
-            if (conn) {
-                conn.close();
-                conn = null;
-            }
-            let currentPeer = window.getPeer();
-            if (currentPeer) {
-                currentPeer.destroy();
-                window.setPeer(null);
-            }
             gameState.wildRules = null;
             updateWildIndicator();
             window.showView('view-main-menu');
