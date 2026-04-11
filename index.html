@@ -1920,7 +1920,7 @@ await setDoc(gameRef, {
             }
         };
 
-        window.joinGameFirebase = async (overrideId = null) => {
+window.joinGameFirebase = async (overrideId = null) => {
             if (!authInitialized || !fbUser) {
                 window.showNotification("Connecting to servers...");
                 await initAuth();
@@ -1930,14 +1930,16 @@ await setDoc(gameRef, {
                 }
             }
 
-            let gameId = overrideId || document.getElementById('join-id-input').value.trim().toUpperCase();
+            const inputEl = document.getElementById('join-id-input');
+            let gameId = overrideId || (inputEl ? inputEl.value.trim().toUpperCase() : null);
+            
             if (!gameId || gameId.length !== 6) {
                 window.showNotification("Please enter a 6-digit code");
                 return;
             }
             
             const btnText = document.getElementById('join-btn-text');
-            btnText.innerText = "Connecting...";
+            if (btnText) btnText.innerText = "Connecting...";
 
             try {
                 const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
@@ -1945,20 +1947,38 @@ await setDoc(gameRef, {
                 
                 if (!gameSnap.exists()) {
                     window.showNotification("Game not found");
-                    btnText.innerText = "Connect to Game";
+                    if (btnText) btnText.innerText = "Connect to Game";
                     return;
                 }
 
                 const gameData = gameSnap.data();
                 if (gameData.status !== 'waiting' && gameData.p2 && gameData.p2.uid !== fbUser.uid) {
                     window.showNotification("Game is full");
-                    btnText.innerText = "Connect to Game";
+                    if (btnText) btnText.innerText = "Connect to Game";
                     return;
                 }
 
                 currentGameId = gameId;
                 isHost = false;
                 const info = window.getMyInfo ? window.getMyInfo() : { displayName: 'Player 2', friendCode: '' };
+
+                await updateDoc(gameRef, {
+                    p2: { uid: fbUser.uid, displayName: info.displayName, friendCode: info.friendCode, points: info.playerPoints || 5 },
+                    status: 'playing',
+                    timestamp: Date.now()
+                }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/games/${gameId}`));
+
+                window.setupGameListenerFirebase(gameId);
+                window.startGame('online', window.P2, gameData.wildRules);
+                window.showNotification('Connected to Game!');
+                if (btnText) btnText.innerText = "Connect to Game";
+
+            } catch(e) {
+                console.error(e);
+                window.showNotification('Failed to join');
+                if (btnText) btnText.innerText = "Connect to Game";
+            }
+        };
 
                 await updateDoc(gameRef, {
                     p2: { uid: fbUser.uid, displayName: info.displayName, friendCode: info.friendCode, points: info.playerPoints || 5 },
