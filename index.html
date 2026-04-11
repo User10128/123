@@ -3746,15 +3746,13 @@ const firebaseConfig = {
                         }
                     } else if (snapshot.empty || !snapshot.docs.some(d => d.data().mode === mode && d.data().uid !== fbUser.uid)) {
                         // No host found, wait a bit then host ourselves if still nothing
-                        setTimeout(() => {
-                            if (!hasJoinedOrHosted && !availableHostDoc) {
-                                hasJoinedOrHosted = true;
-                                console.log("No host found after wait, hosting global game...");
-                                document.getElementById('matchmaking-status-text').innerText = "Creating a lobby...";
-                                hostGlobalGame(mode);
-                                if (matchmakingUnsubscribe) { matchmakingUnsubscribe(); matchmakingUnsubscribe = null; }
-                            }
-                        }, 2000);
+                        if (Date.now() - searchStartTime > 2000) {
+                            hasJoinedOrHosted = true;
+                            console.log("No host found after wait, hosting global game...");
+                            document.getElementById('matchmaking-status-text').innerText = "Creating a lobby...";
+                            hostGlobalGame(mode);
+                            if (matchmakingUnsubscribe) { matchmakingUnsubscribe(); matchmakingUnsubscribe = null; }
+                        }
                     }
                 }, (error) => {
                     handleFirestoreError(error, OperationType.LIST, `artifacts/${appId}/matchmaking`);
