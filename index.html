@@ -115,20 +115,6 @@
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 to-slate-800 text-slate-200 h-screen w-screen overflow-hidden flex flex-col font-sans selection:bg-teal-500/30 relative">
-    <!-- Critical Error Display -->
-    <div id="critical-error-display" class="fixed inset-0 z-[10000] bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-4 hidden">
-        <div class="max-w-md w-full bg-slate-800 border border-red-500/50 rounded-3xl p-8 text-center shadow-2xl shadow-red-500/20">
-            <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-            </div>
-            <h2 class="text-2xl font-bold text-white mb-2">Application Error</h2>
-            <p id="critical-error-message" class="text-slate-400 mb-8 text-sm leading-relaxed">An unexpected error occurred while starting the application.</p>
-            <button onclick="window.location.reload()" class="w-full py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-red-500/30">
-                Reload Application
-            </button>
-        </div>
-    </div>
-
     <!-- Top Left Logo & Icon -->
     <div class="fixed top-4 left-4 sm:top-6 sm:left-6 z-50 flex items-center gap-3 pointer-events-none">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-8 h-8 sm:w-10 sm:h-10 text-teal-400 drop-shadow-[0_0_8px_rgba(45,212,191,0.5)]" fill="none" stroke="currentColor" stroke-width="2">
@@ -661,40 +647,7 @@
         </div>
     </div>
 
-    <!-- Error Modal -->
-    <div id="modal-error" class="fixed inset-0 bg-slate-900/90 backdrop-blur-xl z-[300] hidden flex items-center justify-center p-4">
-        <div class="glass-panel p-8 rounded-2xl max-w-md w-full text-center border-red-500/30">
-            <div class="w-16 h-16 bg-red-500/20 text-red-400 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-            </div>
-            <h3 class="text-2xl text-white mb-2 font-bold">Something went wrong</h3>
-            <p id="error-modal-msg" class="text-slate-400 mb-8">An unexpected error occurred. Please try reloading the application.</p>
-            <button onclick="window.location.reload()" class="w-full py-4 bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold rounded-xl transition-all shadow-lg shadow-teal-500/20">
-                Reload App
-            </button>
-        </div>
-    </div>
-
     <script>
-        window.onerror = (msg, url, line, col, error) => {
-            console.error("Global Error:", msg, error);
-            const modal = document.getElementById('modal-error');
-            if (modal) {
-                document.getElementById('error-modal-msg').innerText = "A technical error occurred. Please try reloading.";
-                modal.classList.remove('hidden');
-            }
-            return false;
-        };
-
-        window.onunhandledrejection = (event) => {
-            console.error("Unhandled Rejection:", event.reason);
-            const modal = document.getElementById('modal-error');
-            if (modal) {
-                document.getElementById('error-modal-msg').innerText = "A connection error occurred. Please check your internet.";
-                modal.classList.remove('hidden');
-            }
-        };
-
         // --- CONSTANTS & STATE ---
         const P1 = 1; 
         const P2 = 2; 
@@ -1870,20 +1823,6 @@ const firebaseConfig = {
         const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
         const appId = 'checkers-app';
 
-        // --- CONNECTION TEST ---
-        async function testConnection() {
-            try {
-                const { getDocFromServer } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-                await getDocFromServer(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', 'connection-test'));
-            } catch (error) {
-                if (error instanceof Error && error.message.includes('the client is offline')) {
-                    console.error("Please check your Firebase configuration. The client is offline.");
-                    window.showNotification("Connection Error: Please check your internet or Firebase setup.");
-                }
-            }
-        }
-        testConnection();
-
         // --- STATE ---
         let fbUser = null;
         let isRegisteredUser = false;
@@ -1910,15 +1849,6 @@ const firebaseConfig = {
             WRITE: 'write',
         };
 
-        window.addEventListener('error', (event) => {
-            console.error('Global Error:', event.error);
-            const errorDisplay = document.getElementById('critical-error-display');
-            if (errorDisplay) {
-                errorDisplay.classList.remove('hidden');
-                document.getElementById('critical-error-message').innerText = event.error?.message || 'An unexpected error occurred.';
-            }
-        });
-
         function handleFirestoreError(error, operationType, path) {
             const errInfo = {
                 error: error instanceof Error ? error.message : String(error),
@@ -1939,11 +1869,7 @@ const firebaseConfig = {
                 path
             };
             console.error('Firestore Error: ', JSON.stringify(errInfo));
-            // Show a user-friendly message if it's a permission error
-            if (errInfo.error.includes('permission-denied')) {
-                window.showNotification("Permission denied. Please sign in again.");
-            }
-            throw new Error(JSON.stringify(errInfo));
+            // No longer throwing to prevent blocking the user
         }
 
         window.startHostFirebase = async () => {
