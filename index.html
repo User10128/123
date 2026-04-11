@@ -1809,7 +1809,8 @@ const firebaseConfig = {
   projectId: "checkers-matchmaking-5ac55",
   storageBucket: "checkers-matchmaking-5ac55.firebasestorage.app",
   messagingSenderId: "778086491027",
-  appId: "1:778086491027:web:c315fd9d97aebae6087e66"
+  appId: "1:778086491027:web:c315fd9d97aebae6087e66",
+  firestoreDatabaseId: "(default)"
 };
         
         const app = initializeApp(firebaseConfig);
@@ -2048,7 +2049,7 @@ const firebaseConfig = {
                     }
                 }
                 }
-            }, (error) => handleFirestoreError(error, OperationType.GET, `games/${gameId}`));
+            }, (error) => handleFirestoreError(error, OperationType.GET, `artifacts/${appId}/games/${gameId}`));
         };
 
         window.syncMoveToFirebase = (board, turnEnds, mustJumpPiece, move) => {
@@ -2516,7 +2517,7 @@ const firebaseConfig = {
                         `;
                     }).join('');
                 }
-            });
+            }, (error) => handleFirestoreError(error, OperationType.LIST, `artifacts/${appId}/users/${fbUser.uid}/messages`));
 
             onSnapshot(profilesRef, (docSnap) => {
                 const listEl = document.getElementById('notif-badges-list');
@@ -2549,7 +2550,7 @@ const firebaseConfig = {
                         `;
                     }).join('');
                 }
-            });
+            }, (error) => handleFirestoreError(error, OperationType.GET, `artifacts/${appId}/public/data/profiles/${fbUser.uid}`));
         }
 
         window.showNotificationsModal = async () => {
@@ -2594,7 +2595,17 @@ const firebaseConfig = {
                 }
                 
                 if (!friendCode) {
-                    friendCode = Math.floor(10000000 + Math.random() * 90000000).toString();
+                    // Check for collisions
+                    let codeExists = true;
+                    let attempts = 0;
+                    while (codeExists && attempts < 5) {
+                        friendCode = Math.floor(10000000 + Math.random() * 90000000).toString();
+                        const codeSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'friendCodes', friendCode));
+                        if (!codeSnap.exists()) {
+                            codeExists = false;
+                        }
+                        attempts++;
+                    }
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'friendCodes', friendCode), { uid: fbUser.uid }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/public/data/friendCodes/${friendCode}`));
                 }
 
@@ -2896,7 +2907,7 @@ const firebaseConfig = {
                         }
                     }
                 });
-            }, (error) => console.error("Invites listener error:", error));
+            }, (error) => handleFirestoreError(error, OperationType.LIST, `artifacts/${appId}/users/${fbUser.uid}/invites`));
         }
 
         function setupResponsesListener() {
@@ -2970,7 +2981,7 @@ const firebaseConfig = {
                         </div>
                     `;
                 }).join('');
-            }, (error) => console.error("Responses listener error:", error));
+            }, (error) => handleFirestoreError(error, OperationType.LIST, `artifacts/${appId}/users/${fbUser.uid}/messages`));
         }
 
         window.deleteResponse = async (msgId) => {
@@ -3608,19 +3619,21 @@ const firebaseConfig = {
         window.currentMatchDoc = null;
 
         async function initAuth() {
-            if (fbUser) return;
+            if (authInitialized && fbUser) return;
             return new Promise(resolve => {
+                if (authInitialized) return resolve();
                 const unsubscribe = onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        fbUser = user;
-                        unsubscribe();
-                        resolve();
-                    }
-                });
-                setTimeout(() => {
+                    fbUser = user;
+                    authInitialized = true;
                     unsubscribe();
                     resolve();
-                }, 5000);
+                });
+                // Shorter timeout for faster UI response
+                setTimeout(() => {
+                    unsubscribe();
+                    authInitialized = true;
+                    resolve();
+                }, 3000);
             });
         }
 
@@ -3647,54 +3660,69 @@ const firebaseConfig = {
 
             try {
                 const matchRef = collection(db, 'artifacts', appId, 'public', 'data', 'matchmaking');
-                // Simplifying query to avoid composite index requirement
                 const q = query(matchRef, where('status', '==', 'waiting'));
 
-                matchmakingUnsubscribe = onSnapshot(q, (snapshot) => {
-                    console.log("Matchmaking snapshot received, docs:", snapshot.size);
-                    let availableHost = null;
+                matchmakingUnsubscribe = onSnapshot(q, async (snapshot) => {
+                    if (hasJoinedOrHosted) return;
+
+                    let availableHostDoc = null;
                     const now = Date.now();
                     let activeCount = 0;
 
                     snapshot.forEach(docSnap => {
                         const data = docSnap.data();
                         const age = now - data.timestamp;
-                        
-                        // Filter by mode in memory to avoid needing a composite index
-                        if (data.mode === mode && data.uid !== fbUser.uid && age < 120000) {
-                            availableHost = data.gameId;
+                        if (data.mode === mode && data.uid !== fbUser.uid && age < 60000) {
+                            availableHostDoc = docSnap;
                         }
                         activeCount++;
                     });
 
                     document.getElementById('active-games-count').innerText = `Active Games: ${activeCount}`;
 
-                    if (!hasJoinedOrHosted) {
-                        // Check if we found a host or if we should host ourselves
-                        const shouldHost = availableHost || snapshot.empty || !snapshot.docs.some(d => d.data().mode === mode && d.data().uid !== fbUser.uid);
+                    if (availableHostDoc) {
+                        hasJoinedOrHosted = true;
+                        const hostData = availableHostDoc.data();
+                        console.log("Attempting to join host:", hostData.uid);
                         
-                        if (shouldHost) {
-                            hasJoinedOrHosted = true;
-                            if (availableHost) {
-                                console.log("Joining available host:", availableHost);
+                        // Use a transaction to prevent race conditions
+                        try {
+                            const success = await runTransaction(db, async (transaction) => {
+                                const freshDoc = await transaction.get(availableHostDoc.ref);
+                                if (!freshDoc.exists() || freshDoc.data().status !== 'waiting') {
+                                    return false;
+                                }
+                                transaction.update(availableHostDoc.ref, { status: 'playing' });
+                                return true;
+                            });
+
+                            if (success) {
                                 document.getElementById('matchmaking-status-text').innerText = "Opponent found! Connecting...";
-                                joinGame(availableHost);
+                                joinGame(hostData.gameId);
                                 if (matchmakingUnsubscribe) { matchmakingUnsubscribe(); matchmakingUnsubscribe = null; }
                             } else {
-                                console.log("No host found, hosting global game...");
+                                // Someone else grabbed it, reset and keep looking
+                                hasJoinedOrHosted = false;
+                                console.log("Lobby was already taken, continuing search...");
+                            }
+                        } catch (err) {
+                            console.error("Transaction failed:", err);
+                            hasJoinedOrHosted = false;
+                        }
+                    } else if (snapshot.empty || !snapshot.docs.some(d => d.data().mode === mode && d.data().uid !== fbUser.uid)) {
+                        // No host found, wait a bit then host ourselves if still nothing
+                        setTimeout(() => {
+                            if (!hasJoinedOrHosted && !availableHostDoc) {
+                                hasJoinedOrHosted = true;
+                                console.log("No host found after wait, hosting global game...");
                                 document.getElementById('matchmaking-status-text').innerText = "Creating a lobby...";
                                 hostGlobalGame(mode);
                                 if (matchmakingUnsubscribe) { matchmakingUnsubscribe(); matchmakingUnsubscribe = null; }
                             }
-                        }
+                        }, 2000);
                     }
                 }, (error) => {
-                    console.error("Matchmaking error:", error);
-                    if (error.code === 'failed-precondition') {
-                        window.showNotification("Matchmaking failed: Missing Firestore Index.");
-                    } else {
-                        window.showNotification("Matchmaking failed.");
-                    }
+                    handleFirestoreError(error, OperationType.LIST, `artifacts/${appId}/matchmaking`);
                     window.showView('view-main-menu');
                 });
 
