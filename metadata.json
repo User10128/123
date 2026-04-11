@@ -1,0 +1,5 @@
+{
+  "name": "Checkers",
+  "description": "A modern, sleek checkers game with global matchmaking, AI opponents, and social features.",
+  "requestFramePermissions": []
+}
