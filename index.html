@@ -1869,8 +1869,8 @@ const firebaseConfig = {
                 let wildRules = null;
                 if (mode === 'wild') wildRules = window.getDailyWildRules();
 
-                await setDoc(gameRef, {
-                    board: window.initBoard(),
+await setDoc(gameRef, {
+                    board: JSON.stringify(window.initBoard()),
                     turn: window.P1,
                     p1: { uid: fbUser.uid, displayName: info.displayName, friendCode: info.friendCode, points: info.playerPoints || 5 },
                     p2: null,
@@ -2017,8 +2017,8 @@ const firebaseConfig = {
                     window.gameState.lastSyncTime = data.timestamp;
                     
                     // If it's the opponent's turn or just changed to our turn
-                    if (data.turn !== window.gameState.myPlayer || (data.lastMove && JSON.stringify(data.lastMove) !== JSON.stringify(window.gameState.lastMove))) {
-                         window.gameState.board = data.board;
+if (data.turn !== window.gameState.myPlayer || (data.lastMove && JSON.stringify(data.lastMove) !== JSON.stringify(window.gameState.lastMove))) {
+                         window.gameState.board = typeof data.board === 'string' ? JSON.parse(data.board) : data.board;
                          window.gameState.turn = data.turn;
                          window.gameState.mustJumpPiece = data.mustJumpPiece;
                          window.gameState.lastMove = data.lastMove;
@@ -2046,8 +2046,8 @@ const firebaseConfig = {
         window.syncMoveToFirebase = (board, turnEnds, mustJumpPiece, move) => {
             if (currentGameId) {
                 const gameRef = doc(db, 'artifacts', appId, 'games', currentGameId);
-                updateDoc(gameRef, {
-                    board: board,
+updateDoc(gameRef, {
+                    board: JSON.stringify(board),
                     turn: turnEnds ? (window.gameState.turn === window.P1 ? window.P2 : window.P1) : window.gameState.turn,
                     mustJumpPiece: turnEnds ? null : mustJumpPiece,
                     lastMove: move,
@@ -2070,8 +2070,8 @@ const firebaseConfig = {
         window.restartGameFirebase = () => {
             if (currentGameId) {
                 const gameRef = doc(db, 'artifacts', appId, 'games', currentGameId);
-                updateDoc(gameRef, {
-                    board: window.initBoard(),
+updateDoc(gameRef, {
+                    board: JSON.stringify(window.initBoard()),
                     turn: window.P1,
                     mustJumpPiece: null,
                     lastMove: null,
@@ -3785,8 +3785,8 @@ window.startGlobalMatch = async (mode = 'standard') => {
                 let wildRules = null;
                 if (mode === 'wild') wildRules = window.getDailyWildRules();
 
-                await setDoc(gameRef, {
-                    board: window.initBoard(),
+await setDoc(gameRef, {
+                    board: JSON.stringify(window.initBoard()),
                     turn: window.P1,
                     p1: { uid: fbUser.uid, displayName: info.displayName, friendCode: info.friendCode, points: info.playerPoints || 5 },
                     p2: null,
