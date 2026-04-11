@@ -208,10 +208,6 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
                     Global Matchmaking
                 </button>
-                <button onclick="showView('view-online-setup')" class="btn-primary flex items-center justify-center gap-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                    Play with Friends
-                </button>
             </div>
 
             <button onclick="openModal('modal-rules')" class="glass-btn w-max mx-auto px-5 py-2 mt-4 text-sm flex items-center gap-2">
@@ -357,54 +353,6 @@
         </div>
     </div>
 
-    <!-- ONLINE SETUP VIEW -->
-    <div id="view-online-setup" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
-        <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-6 text-center">
-            <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Play with Friends</h2>
-            
-            <div class="flex flex-col gap-4">
-                <div class="flex flex-col gap-1">
-                    <span class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Your Friend Code</span>
-                    <div class="flex items-center justify-center gap-3">
-                        <span id="display-my-friend-code" class="text-2xl font-bold text-white tracking-widest">--------</span>
-                        <button onclick="copyMyFriendCode()" class="text-teal-500 hover:text-teal-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                        </button>
-                    </div>
-                </div>
-
-                <button onclick="openModal('modal-social'); window.switchSocialTab('friends')" class="btn-primary w-full flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    Invite from Friends List
-                </button>
-            </div>
-
-            <div class="relative py-4">
-                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-700/50"></div></div>
-                <div class="relative flex justify-center"><span class="bg-slate-800/80 px-4 text-[10px] text-slate-500 uppercase tracking-widest font-bold">OR INVITE BY CODE</span></div>
-            </div>
-
-            <div class="flex flex-col gap-4">
-                <div class="flex gap-2">
-                    <input type="text" id="invite-friend-code-input" class="glass-input flex-1 text-center text-xl font-bold uppercase tracking-widest" placeholder="FRIEND CODE" maxlength="8">
-                    <button onclick="window.inviteByFriendCode()" class="glass-btn px-6 hover:text-teal-300">Invite</button>
-                </div>
-                <p class="text-[10px] text-slate-500 italic">Enter a friend's 8-digit code to send them a game invite</p>
-            </div>
-
-            <div id="host-id-container" class="hidden flex flex-col gap-2 mt-2 p-4 bg-teal-500/5 rounded-xl border border-teal-500/20">
-                <span class="text-[10px] text-teal-400 uppercase tracking-widest font-bold">Active Game Lobby</span>
-                <div class="flex items-center justify-center gap-3">
-                    <input type="text" id="host-id-display" class="bg-transparent border-none text-center text-xl font-bold text-white w-32" readonly>
-                    <button onclick="copyLobbyLink()" class="text-teal-500 hover:text-teal-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                    </button>
-                </div>
-                <p class="text-[9px] text-teal-500/60">Waiting for friend to join...</p>
-            </div>
-        </div>
-    </div>
-
     <!-- GLOBAL MATCHMAKING CHOICE VIEW -->
     <div id="view-global-matchmaking-choice" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
         <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-6 text-center">
@@ -430,18 +378,32 @@
     <!-- GLOBAL MATCHMAKING VIEW -->
     <div id="view-searching" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
         <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-6 text-center">
-            <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light">Matchmaking</h2>
+            <h2 id="searching-title" class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light">Matchmaking</h2>
             <div class="relative w-24 h-24 mx-auto flex items-center justify-center">
                 <div class="absolute inset-0 rounded-full border-t-2 border-teal-400 animate-spin"></div>
                 <div class="absolute inset-2 rounded-full border-r-2 border-teal-300 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
             </div>
+            
+            <div id="searching-lobby-info" class="hidden flex flex-col gap-2 p-4 bg-teal-500/5 rounded-xl border border-teal-500/20">
+                <span class="text-[10px] text-teal-400 uppercase tracking-widest font-bold">Lobby Code</span>
+                <div class="flex items-center justify-center gap-3">
+                    <span id="searching-lobby-code" class="text-2xl font-bold text-white tracking-widest">------</span>
+                    <button onclick="copySearchingLobbyLink()" class="text-teal-500 hover:text-teal-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    </button>
+                </div>
+            </div>
+
             <div id="active-games-count" class="text-[10px] text-teal-500/60 uppercase tracking-widest font-bold">Active Games: ...</div>
             <p class="text-slate-300 font-medium tracking-wide animate-pulse" id="matchmaking-status-text">Searching for an opponent...</p>
+            
             <div id="reconnect-container" class="hidden flex flex-col gap-2">
                 <p class="text-xs text-slate-400 italic">Connection taking longer than expected...</p>
                 <button onclick="window.startGlobalMatch()" class="btn-primary py-2 text-sm">Attempt Reconnection</button>
             </div>
+
+            <button onclick="cancelMatchmaking()" class="glass-btn w-full py-3 mt-2 text-xs uppercase tracking-widest font-bold border-red-500/20 text-red-400 hover:bg-red-500/10">Cancel</button>
         </div>
     </div>
 
@@ -1880,7 +1842,7 @@ const firebaseConfig = {
             // No longer throwing to prevent blocking the user
         }
 
-        window.startHostFirebase = async () => {
+        window.startHostFirebase = async (isPublic = false, mode = 'standard') => {
             if (!authInitialized || !fbUser) {
                 window.showNotification("Connecting to servers...");
                 await initAuth();
@@ -1890,8 +1852,11 @@ const firebaseConfig = {
                 }
             }
 
-            document.getElementById('host-id-container').classList.remove('hidden');
-            document.getElementById('host-id-display').value = "Generating...";
+            window.showView('view-searching');
+            document.getElementById('searching-title').innerText = isPublic ? "Matchmaking" : "Private Lobby";
+            document.getElementById('matchmaking-status-text').innerText = isPublic ? `Looking for ${mode} players...` : `Waiting for friend...`;
+            document.getElementById('searching-lobby-info').classList.remove('hidden');
+            document.getElementById('searching-lobby-code').innerText = "Generating...";
             
             try {
                 const gameId = Math.floor(100000 + Math.random() * 900000).toString();
@@ -1901,6 +1866,9 @@ const firebaseConfig = {
                 const info = window.getMyInfo ? window.getMyInfo() : { displayName: 'Player 1', friendCode: '' };
                 const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
                 
+                let wildRules = null;
+                if (mode === 'wild') wildRules = window.getDailyWildRules();
+
                 await setDoc(gameRef, {
                     board: window.initBoard(),
                     turn: window.P1,
@@ -1910,12 +1878,12 @@ const firebaseConfig = {
                     restartRequested: 0,
                     chat: null,
                     status: 'waiting',
-                    wildRules: window.gameState.wildRules,
+                    wildRules: wildRules || window.gameState.wildRules,
                     timestamp: Date.now()
                 });
 
-                document.getElementById('host-id-display').value = gameId;
-                window.showNotification('Host Code Generated!');
+                document.getElementById('searching-lobby-code').innerText = gameId;
+                window.showNotification('Lobby Created!');
 
                 // Send invite if pending
                 if (pendingInviteUid) {
@@ -1925,20 +1893,30 @@ const firebaseConfig = {
                         fromId: fbUser.uid,
                         code: gameId,
                         timestamp: Date.now()
-                    });
+                    }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/users/${pendingInviteUid}/invites`));
                     window.showNotification(`Invite sent to ${pendingInviteName}!`);
                     pendingInviteUid = null;
                     pendingInviteName = null;
                 }
 
-                window.setupGameListenerFirebase(gameId);
-                window.startGame('online', window.P1, window.gameState.wildRules);
+                if (isPublic) {
+                    const matchRef = doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', fbUser.uid);
+                    await setDoc(matchRef, {
+                        uid: fbUser.uid,
+                        gameId: gameId,
+                        status: 'waiting',
+                        timestamp: Date.now(),
+                        mode: mode
+                    }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/public/data/matchmaking/${fbUser.uid}`));
+                    window.currentMatchDoc = matchRef;
+                }
 
-            } catch(e) {
-                console.error(e);
-                handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/games`);
-                document.getElementById('host-id-display').value = "Error";
-                window.showNotification('Failed to host game. Check connection.');
+                window.setupGameListenerFirebase(gameId);
+                window.startGame('online', window.P1, wildRules || window.gameState.wildRules);
+            } catch (e) {
+                console.error("Host failed", e);
+                window.showNotification("Failed to create lobby.");
+                window.showView('view-main-menu');
             }
         };
 
@@ -3014,8 +2992,7 @@ const firebaseConfig = {
             window.showNotification(`Inviting ${friendName}...`);
             pendingInviteUid = friendId;
             pendingInviteName = friendName;
-            window.showView('view-online-setup');
-            await window.startHostFirebase();
+            await window.startHostFirebase(false);
         };
 
         window.inviteByFriendCode = async () => {
@@ -3050,12 +3027,30 @@ const firebaseConfig = {
             }
         };
 
-        window.copyMyFriendCode = () => {
-            const code = document.getElementById('display-my-friend-code').innerText;
-            if (code && code !== "--------") {
-                navigator.clipboard.writeText(code);
-                window.showNotification("Friend code copied!");
+        window.copySearchingLobbyLink = () => {
+            const code = document.getElementById('searching-lobby-code').innerText;
+            if (code && code !== "------") {
+                const url = `${window.location.origin}${window.location.pathname}?code=${code}`;
+                navigator.clipboard.writeText(url);
+                window.showNotification("Lobby link copied!");
             }
+        };
+
+        window.cancelMatchmaking = async () => {
+            if (matchmakingUnsubscribe) {
+                matchmakingUnsubscribe();
+                matchmakingUnsubscribe = null;
+            }
+            if (window.currentMatchDoc) {
+                await deleteDoc(window.currentMatchDoc).catch(()=>{});
+                window.currentMatchDoc = null;
+            }
+            if (currentGameId && isHost) {
+                const gameRef = doc(db, 'artifacts', appId, 'games', currentGameId);
+                await deleteDoc(gameRef).catch(()=>{});
+                currentGameId = null;
+            }
+            window.showView('view-main-menu');
         };
         function showInviteToast(name, code, docId) {
             const toast = document.createElement('div');
@@ -3851,11 +3846,7 @@ const firebaseConfig = {
             const urlParams = new URLSearchParams(window.location.search);
             const code = urlParams.get('code');
             if (code && code.length === 6) {
-                showView('view-online-setup');
-                document.getElementById('join-id-input').value = code.toUpperCase();
-                setTimeout(() => {
-                    joinGame();
-                }, 500);
+                window.joinGameFirebase(code);
             }
         }
 
