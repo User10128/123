@@ -363,31 +363,44 @@
             <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Play with Friends</h2>
             
             <div class="flex flex-col gap-4">
-                <button onclick="startHost()" class="btn-primary w-full">Create Game (Host)</button>
-                <div id="host-id-container" class="hidden flex flex-col gap-2 mt-2">
-                    <span class="text-sm text-slate-400 uppercase tracking-widest">Your Code</span>
-                    <input type="text" id="host-id-display" class="glass-input text-center text-xl font-bold" readonly>
-                    <div class="flex gap-2 mt-1">
-                        <button onclick="copyLobbyLink()" class="glass-btn flex-1 py-2 text-xs flex items-center justify-center gap-2 border-teal-500/30 text-teal-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                            Copy Lobby Link
+                <div class="flex flex-col gap-1">
+                    <span class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Your Friend Code</span>
+                    <div class="flex items-center justify-center gap-3">
+                        <span id="display-my-friend-code" class="text-2xl font-bold text-white tracking-widest">--------</span>
+                        <button onclick="copyMyFriendCode()" class="text-teal-500 hover:text-teal-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                         </button>
                     </div>
-                    <p class="text-[10px] text-teal-500/50 mt-1">Friends can join via code or link</p>
                 </div>
+
+                <button onclick="openModal('modal-social'); window.switchSocialTab('friends')" class="btn-primary w-full flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Invite from Friends List
+                </button>
             </div>
 
             <div class="relative py-4">
                 <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-700/50"></div></div>
-                <div class="relative flex justify-center"><span class="bg-slate-800/80 px-4 text-sm text-slate-500 uppercase tracking-widest">OR</span></div>
+                <div class="relative flex justify-center"><span class="bg-slate-800/80 px-4 text-[10px] text-slate-500 uppercase tracking-widest font-bold">OR INVITE BY CODE</span></div>
             </div>
 
             <div class="flex flex-col gap-4">
-                <span class="text-sm text-slate-400 uppercase tracking-widest">Join a Game</span>
-                <input type="text" id="join-id-input" class="glass-input text-center text-xl font-bold uppercase" placeholder="ENTER CODE" maxlength="6">
-                <button onclick="joinGame()" class="btn-primary w-full border-teal-500/50 text-teal-300">
-                    <span id="join-btn-text">Connect to Game</span>
-                </button>
+                <div class="flex gap-2">
+                    <input type="text" id="invite-friend-code-input" class="glass-input flex-1 text-center text-xl font-bold uppercase tracking-widest" placeholder="FRIEND CODE" maxlength="8">
+                    <button onclick="window.inviteByFriendCode()" class="glass-btn px-6 hover:text-teal-300">Invite</button>
+                </div>
+                <p class="text-[10px] text-slate-500 italic">Enter a friend's 8-digit code to send them a game invite</p>
+            </div>
+
+            <div id="host-id-container" class="hidden flex flex-col gap-2 mt-2 p-4 bg-teal-500/5 rounded-xl border border-teal-500/20">
+                <span class="text-[10px] text-teal-400 uppercase tracking-widest font-bold">Active Game Lobby</span>
+                <div class="flex items-center justify-center gap-3">
+                    <input type="text" id="host-id-display" class="bg-transparent border-none text-center text-xl font-bold text-white w-32" readonly>
+                    <button onclick="copyLobbyLink()" class="text-teal-500 hover:text-teal-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    </button>
+                </div>
+                <p class="text-[9px] text-teal-500/60">Waiting for friend to join...</p>
             </div>
         </div>
     </div>
@@ -2623,6 +2636,8 @@ const firebaseConfig = {
 
                 document.getElementById('account-uid').innerText = friendCode;
                 document.getElementById('account-display-name').innerText = currentDisplayName;
+                const displayCodeEl = document.getElementById('display-my-friend-code');
+                if (displayCodeEl) displayCodeEl.innerText = friendCode;
             } catch (e) { console.error("Profile update failed", e); }
         }
 
@@ -2995,25 +3010,52 @@ const firebaseConfig = {
             }
         };
 
-        window.inviteFriend = async (friendId) => {
-            window.showNotification("Generating code & inviting...");
+        window.inviteFriend = async (friendId, friendName = 'Friend') => {
+            window.showNotification(`Inviting ${friendName}...`);
+            pendingInviteUid = friendId;
+            pendingInviteName = friendName;
             window.showView('view-online-setup');
-            window.startHost();
-            
-            setTimeout(async () => {
-                const code = document.getElementById('host-id-display').value;
-                if (code && code !== "Generating..." && code !== "Error") {
-                    try {
-                        const inviteRef = doc(collection(db, 'artifacts', appId, 'users', friendId, 'invites'));
-                        await setDoc(inviteRef, {
-                            fromName: fbUser.displayName || 'A Friend',
-                            code: code,
-                            timestamp: Date.now()
-                        }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/users/${friendId}/invites`));
-                        window.showNotification("Invite sent!");
-                    } catch(e) { console.error(e); }
+            await window.startHostFirebase();
+        };
+
+        window.inviteByFriendCode = async () => {
+            const code = document.getElementById('invite-friend-code-input').value.trim().toUpperCase();
+            if (!code || code.length !== 8) {
+                window.showNotification("Please enter an 8-digit friend code");
+                return;
+            }
+
+            window.showNotification("Looking up friend...");
+            try {
+                const codeSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'friendCodes', code));
+                if (!codeSnap.exists()) {
+                    window.showNotification("Friend code not found");
+                    return;
                 }
-            }, 1000);
+                const friendUid = codeSnap.data().uid;
+                if (friendUid === fbUser.uid) {
+                    window.showNotification("You cannot invite yourself");
+                    return;
+                }
+                
+                // Get name if possible
+                let friendName = 'Friend';
+                const profSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'profiles', friendUid));
+                if (profSnap.exists()) friendName = profSnap.data().displayName || 'Friend';
+                
+                window.inviteFriend(friendUid, friendName);
+            } catch (e) {
+                console.error(e);
+                window.showNotification("Error looking up friend");
+            }
+        };
+
+        window.copyMyFriendCode = () => {
+            const code = document.getElementById('display-my-friend-code').innerText;
+            if (code && code !== "--------") {
+                navigator.clipboard.writeText(code);
+                window.showNotification("Friend code copied!");
+            }
         };
         function showInviteToast(name, code, docId) {
             const toast = document.createElement('div');
@@ -3050,8 +3092,6 @@ const firebaseConfig = {
             document.getElementById(`accept-${docId}`).onclick = () => {
                 removeToast();
                 deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'invites', docId)).catch(e => handleFirestoreError(e, OperationType.DELETE, `artifacts/${appId}/users/${fbUser.uid}/invites/${docId}`));
-                window.showView('online-setup');
-                document.getElementById('join-id-input').value = code;
                 window.joinGame(code);
             };
             document.getElementById(`decline-${docId}`).onclick = () => {
@@ -3820,10 +3860,7 @@ const firebaseConfig = {
         }
 
         window.inviteFriendToGame = (uid, name) => {
-            pendingInviteUid = uid;
-            pendingInviteName = name;
-            showView('view-online-setup');
-            startHost();
+            window.inviteFriend(uid, name);
         };
 
         async function updateHeartbeat() {
@@ -3852,6 +3889,11 @@ const firebaseConfig = {
                 updateAccountUI();
                 updateHeartbeat();
                 
+                const displayCodeEl = document.getElementById('display-my-friend-code');
+                if (displayCodeEl) {
+                    displayCodeEl.innerText = isRegisteredUser ? "Loading..." : "Login Required";
+                }
+
                 if (isRegisteredUser) {
                     await updatePublicProfile(true);
                     setupInvitesListener();
