@@ -3692,6 +3692,7 @@ const firebaseConfig = {
             document.getElementById('reconnect-container').classList.add('hidden');
             
             let hasJoinedOrHosted = false;
+            const searchStartTime = Date.now();
 
             try {
                 const matchRef = collection(db, 'artifacts', appId, 'public', 'data', 'matchmaking');
@@ -3707,6 +3708,7 @@ const firebaseConfig = {
                     snapshot.forEach(docSnap => {
                         const data = docSnap.data();
                         const age = now - data.timestamp;
+                        console.log("Checking host:", data.uid, "Mode:", data.mode, "Age:", age);
                         if (data.mode === mode && data.uid !== fbUser.uid && age < 60000) {
                             availableHostDoc = docSnap;
                         }
