@@ -1942,6 +1942,7 @@ window.joinGameFirebase = async (overrideId = null) => {
             if (btnText) btnText.innerText = "Connecting...";
 
             try {
+                // THIS IS THE LINE THAT WAS MISSING CAUSING THE CRASH:
                 const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
                 const gameSnap = await getDoc(gameRef).catch(e => handleFirestoreError(e, OperationType.GET, `artifacts/${appId}/games/${gameId}`));
                 
@@ -1980,18 +1981,7 @@ window.joinGameFirebase = async (overrideId = null) => {
             }
         };
 
-                await updateDoc(gameRef, {
-                    p2: { uid: fbUser.uid, displayName: info.displayName, friendCode: info.friendCode, points: info.playerPoints || 5 },
-                    status: 'playing',
-                    timestamp: Date.now()
-                }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/games/${gameId}`));
-
-                window.setupGameListenerFirebase(gameId);
-                window.startGame('online', window.P2, gameData.wildRules);
-                window.showNotification('Connected to Game!');
-                btnText.innerText = "Connect to Game";
-
-window.setupGameListenerFirebase = (gameId) => {
+        window.setupGameListenerFirebase = (gameId) => {
             if (gameUnsubscribe) gameUnsubscribe();
             
             const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
@@ -2032,7 +2022,6 @@ window.setupGameListenerFirebase = (gameId) => {
                     
                     // If it's the opponent's turn or just changed to our turn
                     if (data.turn !== window.gameState.myPlayer || (data.lastMove && JSON.stringify(data.lastMove) !== JSON.stringify(window.gameState.lastMove))) {
-                         // Parse the JSON board back into a 2D array here!
                          window.gameState.board = typeof data.board === 'string' ? JSON.parse(data.board) : data.board;
                          window.gameState.turn = data.turn;
                          window.gameState.mustJumpPiece = data.mustJumpPiece;
