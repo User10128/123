@@ -1991,10 +1991,11 @@ window.joinGameFirebase = async (overrideId = null) => {
                 window.showNotification('Connected to Game!');
                 btnText.innerText = "Connect to Game";
 
-        window.setupGameListenerFirebase = (gameId) => {
+window.setupGameListenerFirebase = (gameId) => {
             if (gameUnsubscribe) gameUnsubscribe();
             
             const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
+            
             gameUnsubscribe = onSnapshot(gameRef, (snapshot) => {
                 if (!snapshot.exists()) {
                     window.showNotification("Game closed");
@@ -2030,7 +2031,8 @@ window.joinGameFirebase = async (overrideId = null) => {
                     window.gameState.lastSyncTime = data.timestamp;
                     
                     // If it's the opponent's turn or just changed to our turn
-if (data.turn !== window.gameState.myPlayer || (data.lastMove && JSON.stringify(data.lastMove) !== JSON.stringify(window.gameState.lastMove))) {
+                    if (data.turn !== window.gameState.myPlayer || (data.lastMove && JSON.stringify(data.lastMove) !== JSON.stringify(window.gameState.lastMove))) {
+                         // Parse the JSON board back into a 2D array here!
                          window.gameState.board = typeof data.board === 'string' ? JSON.parse(data.board) : data.board;
                          window.gameState.turn = data.turn;
                          window.gameState.mustJumpPiece = data.mustJumpPiece;
@@ -2047,11 +2049,11 @@ if (data.turn !== window.gameState.myPlayer || (data.lastMove && JSON.stringify(
                     }
 
                     if (data.chat && data.chat.timestamp > (window.gameState.lastChatTime || 0)) {
-                    window.gameState.lastChatTime = data.chat.timestamp;
-                    if (data.chat.uid !== fbUser.uid) {
-                        window.showNotification("Opponent: " + data.chat.text);
+                        window.gameState.lastChatTime = data.chat.timestamp;
+                        if (data.chat.uid !== fbUser.uid) {
+                            window.showNotification("Opponent: " + data.chat.text);
+                        }
                     }
-                }
                 }
             }, (error) => handleFirestoreError(error, OperationType.GET, `artifacts/${appId}/games/${gameId}`));
         };
