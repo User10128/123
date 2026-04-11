@@ -1991,13 +1991,6 @@ window.joinGameFirebase = async (overrideId = null) => {
                 window.showNotification('Connected to Game!');
                 btnText.innerText = "Connect to Game";
 
-            } catch(e) {
-                console.error(e);
-                window.showNotification('Failed to join');
-                btnText.innerText = "Connect to Game";
-            }
-        };
-
         window.setupGameListenerFirebase = (gameId) => {
             if (gameUnsubscribe) gameUnsubscribe();
             
