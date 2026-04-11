@@ -863,10 +863,20 @@
 
         function showNotification(msg) {
             const notif = document.getElementById('notification-toast');
-            document.getElementById('notification-msg').innerText = msg;
+            const msgEl = document.getElementById('notification-msg');
+            msgEl.innerText = msg;
             notif.classList.remove('translate-y-[-150%]', 'opacity-0');
-            setTimeout(() => {
+            
+            // Clear any existing timeout to prevent overlapping clears
+            if (window.notifTimeout) clearTimeout(window.notifTimeout);
+            if (window.notifClearTimeout) clearTimeout(window.notifClearTimeout);
+
+            window.notifTimeout = setTimeout(() => {
                 notif.classList.add('translate-y-[-150%]', 'opacity-0');
+                // Clear text after it fades out
+                window.notifClearTimeout = setTimeout(() => {
+                    msgEl.innerText = '';
+                }, 500);
             }, 3500);
         }
 
@@ -1854,7 +1864,6 @@ const firebaseConfig = {
   messagingSenderId: "778086491027",
   appId: "1:778086491027:web:c315fd9d97aebae6087e66"
 };
-
         
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -3716,47 +3725,54 @@ const firebaseConfig = {
 
             try {
                 const matchRef = collection(db, 'artifacts', appId, 'public', 'data', 'matchmaking');
-            matchmakingUnsubscribe = onSnapshot(matchRef, (snapshot) => {
-                console.log("Matchmaking snapshot received, docs:", snapshot.size);
-                let availableHost = null;
-                const now = Date.now();
-                let activeCount = 0;
+                // Simplifying query to avoid composite index requirement
+                const q = query(matchRef, where('status', '==', 'waiting'));
 
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    const age = now - data.timestamp;
-                    
-                    if (data.status === 'waiting' && (age < 120000) && (data.mode === mode) && data.uid !== fbUser.uid) {
-                        availableHost = data.gameId;
+                matchmakingUnsubscribe = onSnapshot(q, (snapshot) => {
+                    console.log("Matchmaking snapshot received, docs:", snapshot.size);
+                    let availableHost = null;
+                    const now = Date.now();
+                    let activeCount = 0;
+
+                    snapshot.forEach(docSnap => {
+                        const data = docSnap.data();
+                        const age = now - data.timestamp;
+                        
+                        // Filter by mode in memory to avoid needing a composite index
+                        if (data.mode === mode && data.uid !== fbUser.uid && age < 120000) {
+                            availableHost = data.gameId;
+                        }
                         activeCount++;
-                    } else if (data.status === 'playing' && (age < 3600000)) { 
-                        activeCount++;
-                    } else if (age >= 120000 && data.status === 'waiting') {
-                        deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', docSnap.id)).catch(()=>{});
-                    }
-                });
+                    });
 
-                document.getElementById('active-games-count').innerText = `Active Games: ${activeCount}`;
+                    document.getElementById('active-games-count').innerText = `Active Games: ${activeCount}`;
 
-                if (!hasJoinedOrHosted) {
-                    if (availableHost || snapshot.size === 0 || !snapshot.docs.some(d => d.data().status === 'waiting' && d.data().mode === mode && d.data().uid !== fbUser.uid)) {
-                        hasJoinedOrHosted = true;
-                        if (availableHost) {
-                            console.log("Joining available host:", availableHost);
-                            document.getElementById('matchmaking-status-text').innerText = "Opponent found! Connecting...";
-                            joinGame(availableHost);
-                            if (matchmakingUnsubscribe) { matchmakingUnsubscribe(); matchmakingUnsubscribe = null; }
-                        } else {
-                            console.log("No host found, hosting global game...");
-                            document.getElementById('matchmaking-status-text').innerText = "Creating a lobby...";
-                            hostGlobalGame(mode);
-                            if (matchmakingUnsubscribe) { matchmakingUnsubscribe(); matchmakingUnsubscribe = null; }
+                    if (!hasJoinedOrHosted) {
+                        // Check if we found a host or if we should host ourselves
+                        const shouldHost = availableHost || snapshot.empty || !snapshot.docs.some(d => d.data().mode === mode && d.data().uid !== fbUser.uid);
+                        
+                        if (shouldHost) {
+                            hasJoinedOrHosted = true;
+                            if (availableHost) {
+                                console.log("Joining available host:", availableHost);
+                                document.getElementById('matchmaking-status-text').innerText = "Opponent found! Connecting...";
+                                joinGame(availableHost);
+                                if (matchmakingUnsubscribe) { matchmakingUnsubscribe(); matchmakingUnsubscribe = null; }
+                            } else {
+                                console.log("No host found, hosting global game...");
+                                document.getElementById('matchmaking-status-text').innerText = "Creating a lobby...";
+                                hostGlobalGame(mode);
+                                if (matchmakingUnsubscribe) { matchmakingUnsubscribe(); matchmakingUnsubscribe = null; }
+                            }
                         }
                     }
-                }
-            }, (error) => {
+                }, (error) => {
                     console.error("Matchmaking error:", error);
-                    window.showNotification("Matchmaking failed.");
+                    if (error.code === 'failed-precondition') {
+                        window.showNotification("Matchmaking failed: Missing Firestore Index.");
+                    } else {
+                        window.showNotification("Matchmaking failed.");
+                    }
                     window.showView('view-main-menu');
                 });
 
