@@ -1878,7 +1878,7 @@ const firebaseConfig = {
                     restartRequested: 0,
                     chat: null,
                     status: 'waiting',
-                    wildRules: wildRules || window.gameState.wildRules,
+                    wildRules: wildRules || window.gameState.wildRules || null,
                     timestamp: Date.now()
                 });
 
