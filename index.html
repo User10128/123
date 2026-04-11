@@ -780,7 +780,7 @@
             const globalChoiceView = document.getElementById('view-global-matchmaking-choice');
             if ((onlineSetupView && !onlineSetupView.classList.contains('hidden')) || 
                 (globalChoiceView && !globalChoiceView.classList.contains('hidden'))) {
-                window.location.reload();
+                showView('view-main-menu');
                 return;
             }
 
@@ -788,14 +788,9 @@
             if (navigationStack.length > 1) {
                 navigationStack.pop();
                 const prevView = navigationStack[navigationStack.length - 1];
-                if (prevView === 'view-main-menu') {
-                    window.location.reload();
-                    return;
-                }
                 showView(prevView, false);
             } else {
-                // If we are at the root, ensure we are on main menu and reload
-                window.location.reload();
+                showView('view-main-menu');
             }
         };
 
@@ -820,17 +815,16 @@
             msgEl.innerText = msg;
             notif.classList.remove('translate-y-[-150%]', 'opacity-0');
             
-            // Clear any existing timeout to prevent overlapping clears
             if (window.notifTimeout) clearTimeout(window.notifTimeout);
             if (window.notifClearTimeout) clearTimeout(window.notifClearTimeout);
 
             window.notifTimeout = setTimeout(() => {
                 notif.classList.add('translate-y-[-150%]', 'opacity-0');
-                // Clear text after it fades out
+                // Clear text after it fades out completely
                 window.notifClearTimeout = setTimeout(() => {
                     msgEl.innerText = '';
-                }, 500);
-            }, 3500);
+                }, 400); // Slightly less than the transition duration
+            }, 3000);
         }
 
         let confirmCallback = null;
@@ -1904,7 +1898,7 @@ const firebaseConfig = {
                     status: 'waiting',
                     wildRules: window.gameState.wildRules,
                     timestamp: Date.now()
-                }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/games/${gameId}`));
+                });
 
                 document.getElementById('host-id-display').value = gameId;
                 window.showNotification('Host Code Generated!');
@@ -1917,7 +1911,7 @@ const firebaseConfig = {
                         fromId: fbUser.uid,
                         code: gameId,
                         timestamp: Date.now()
-                    }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/users/${pendingInviteUid}/invites/${fbUser.uid}`));
+                    });
                     window.showNotification(`Invite sent to ${pendingInviteName}!`);
                     pendingInviteUid = null;
                     pendingInviteName = null;
@@ -1928,7 +1922,9 @@ const firebaseConfig = {
 
             } catch(e) {
                 console.error(e);
-                window.showNotification('Failed to host game');
+                handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/games`);
+                document.getElementById('host-id-display').value = "Error";
+                window.showNotification('Failed to host game. Check connection.');
             }
         };
 
@@ -3710,42 +3706,49 @@ const firebaseConfig = {
         };
 
         async function hostGlobalGame(mode = 'standard') {
-            const gameId = Math.floor(100000 + Math.random() * 900000).toString();
-            currentGameId = gameId;
-            isHost = true;
+            try {
+                const gameId = Math.floor(100000 + Math.random() * 900000).toString();
+                currentGameId = gameId;
+                isHost = true;
 
-            const info = window.getMyInfo ? window.getMyInfo() : { displayName: 'Player 1', friendCode: '' };
-            const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
-            
-            let wildRules = null;
-            if (mode === 'wild') wildRules = window.getDailyWildRules();
+                const info = window.getMyInfo ? window.getMyInfo() : { displayName: 'Player 1', friendCode: '' };
+                const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
+                
+                let wildRules = null;
+                if (mode === 'wild') wildRules = window.getDailyWildRules();
 
-            await setDoc(gameRef, {
-                board: window.initBoard(),
-                turn: window.P1,
-                p1: { uid: fbUser.uid, displayName: info.displayName, friendCode: info.friendCode, points: info.playerPoints || 5 },
-                p2: null,
-                lastMove: null,
-                restartRequested: 0,
-                chat: null,
-                status: 'waiting',
-                wildRules: wildRules,
-                timestamp: Date.now()
-            }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/games/${gameId}`));
+                await setDoc(gameRef, {
+                    board: window.initBoard(),
+                    turn: window.P1,
+                    p1: { uid: fbUser.uid, displayName: info.displayName, friendCode: info.friendCode, points: info.playerPoints || 5 },
+                    p2: null,
+                    lastMove: null,
+                    restartRequested: 0,
+                    chat: null,
+                    status: 'waiting',
+                    wildRules: wildRules,
+                    timestamp: Date.now()
+                });
 
-            const matchRef = doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', fbUser.uid);
-            await setDoc(matchRef, {
-                uid: fbUser.uid,
-                gameId: gameId,
-                status: 'waiting',
-                timestamp: Date.now(),
-                mode: mode
-            }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/public/data/matchmaking/${fbUser.uid}`));
+                const matchRef = doc(db, 'artifacts', appId, 'public', 'data', 'matchmaking', fbUser.uid);
+                await setDoc(matchRef, {
+                    uid: fbUser.uid,
+                    gameId: gameId,
+                    status: 'waiting',
+                    timestamp: Date.now(),
+                    mode: mode
+                });
 
-            window.currentMatchDoc = matchRef;
-            window.setupGameListenerFirebase(gameId);
-            window.startGame('online', window.P1, wildRules);
-            document.getElementById('matchmaking-status-text').innerText = "Waiting for an opponent...";
+                window.currentMatchDoc = matchRef;
+                window.setupGameListenerFirebase(gameId);
+                window.startGame('online', window.P1, wildRules);
+                document.getElementById('matchmaking-status-text').innerText = "Waiting for an opponent...";
+            } catch (e) {
+                console.error(e);
+                handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/matchmaking`);
+                window.showNotification('Failed to create global lobby.');
+                window.showView('view-main-menu');
+            }
         }
 
         window.cancelMatchmaking = () => {
