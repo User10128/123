@@ -2085,6 +2085,23 @@ updateDoc(gameRef, {
             }
         };
 
+window.quitGameFirebase = async () => {
+            if (currentGameId) {
+                const gameRef = doc(db, 'artifacts', appId, 'games', currentGameId);
+                await deleteDoc(gameRef).catch(()=>{});
+            }
+            if (window.currentMatchDoc) {
+                await deleteDoc(window.currentMatchDoc).catch(()=>{});
+                window.currentMatchDoc = null;
+            }
+            currentGameId = null;
+            if (gameUnsubscribe) { 
+                gameUnsubscribe(); 
+                gameUnsubscribe = null; 
+            }
+            window.showView('view-main-menu');
+        };
+        
         // ------------------ AUTH & INITIALIZATION ------------------
         window.getMyInfo = () => {
             if (!fbUser || !isRegisteredUser) return { displayName: "Guest", friendCode: null, playerPoints: 5 };
@@ -3696,6 +3713,7 @@ window.startGlobalMatch = async (mode = 'standard') => {
             document.getElementById('reconnect-container').classList.add('hidden');
             
             let hasJoinedOrHosted = false;
+            let fallbackTimer = null;
 
             try {
                 const matchRef = collection(db, 'artifacts', appId, 'public', 'data', 'matchmaking');
@@ -3705,14 +3723,11 @@ window.startGlobalMatch = async (mode = 'standard') => {
                     if (hasJoinedOrHosted) return;
 
                     let availableHostDoc = null;
-                    const now = Date.now();
                     let activeCount = 0;
 
                     snapshot.forEach(docSnap => {
                         const data = docSnap.data();
-                        const age = now - data.timestamp;
-                        console.log("Checking host:", data.uid, "Mode:", data.mode, "Age:", age);
-                        if (data.mode === mode && data.uid !== fbUser.uid && age < 60000) {
+                        if (data.mode === mode && data.uid !== fbUser.uid) {
                             availableHostDoc = docSnap;
                         }
                         activeCount++;
@@ -3721,11 +3736,10 @@ window.startGlobalMatch = async (mode = 'standard') => {
                     document.getElementById('active-games-count').innerText = `Active Games: ${activeCount}`;
 
                     if (availableHostDoc) {
+                        if (fallbackTimer) clearTimeout(fallbackTimer);
                         hasJoinedOrHosted = true;
                         const hostData = availableHostDoc.data();
-                        console.log("Attempting to join host:", hostData.uid);
                         
-                        // Use a transaction to prevent race conditions
                         try {
                             const success = await runTransaction(db, async (transaction) => {
                                 const freshDoc = await transaction.get(availableHostDoc.ref);
@@ -3741,7 +3755,6 @@ window.startGlobalMatch = async (mode = 'standard') => {
                                 joinGame(hostData.gameId);
                                 if (matchmakingUnsubscribe) { matchmakingUnsubscribe(); matchmakingUnsubscribe = null; }
                             } else {
-                                // Someone else grabbed it, reset and keep looking
                                 hasJoinedOrHosted = false;
                                 console.log("Lobby was already taken, continuing search...");
                             }
@@ -3749,26 +3762,27 @@ window.startGlobalMatch = async (mode = 'standard') => {
                             console.error("Transaction failed:", err);
                             hasJoinedOrHosted = false;
                         }
+                    } else {
+                        if (!fallbackTimer) {
+                            fallbackTimer = setTimeout(() => {
+                                if (!hasJoinedOrHosted) {
+                                    hasJoinedOrHosted = true;
+                                    console.log("No host found after wait, hosting global game...");
+                                    document.getElementById('matchmaking-status-text').innerText = "Creating a lobby...";
+                                    hostGlobalGame(mode);
+                                    
+                                    if (matchmakingUnsubscribe) { 
+                                        matchmakingUnsubscribe(); 
+                                        matchmakingUnsubscribe = null; 
+                                    }
+                                }
+                            }, 2000);
+                        }
                     }
                 }, (error) => {
                     handleFirestoreError(error, OperationType.LIST, `artifacts/${appId}/matchmaking`);
                     window.showView('view-main-menu');
                 });
-
-                // INDEPENDENT TIMER: Wait 2 seconds. If we haven't joined a game, host our own.
-                setTimeout(() => {
-                    if (!hasJoinedOrHosted) {
-                        hasJoinedOrHosted = true;
-                        console.log("No host found after wait, hosting global game...");
-                        document.getElementById('matchmaking-status-text').innerText = "Creating a lobby...";
-                        hostGlobalGame(mode);
-                        
-                        if (matchmakingUnsubscribe) { 
-                            matchmakingUnsubscribe(); 
-                            matchmakingUnsubscribe = null; 
-                        }
-                    }
-                }, 2000);
 
             } catch (error) {
                 console.error("Matchmaking error:", error);
@@ -3821,20 +3835,6 @@ await setDoc(gameRef, {
                 window.showNotification('Failed to create global lobby.');
                 window.showView('view-main-menu');
             }
-        }
-
-        window.cancelMatchmaking = () => {
-            if (matchmakingUnsubscribe) {
-                matchmakingUnsubscribe();
-                matchmakingUnsubscribe = null;
-            }
-            if (window.currentMatchDoc) {
-                deleteDoc(window.currentMatchDoc).catch(()=>{});
-                window.currentMatchDoc = null;
-            }
-            window.gameState.wildRules = null;
-            updateWildIndicator();
-            window.showView('view-main-menu');
         }
 
         window.addEventListener('beforeunload', () => {
