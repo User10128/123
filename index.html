@@ -133,11 +133,6 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
             <span class="hidden sm:inline">Leaderboard</span>
         </button>
-        <button id="btn-notifications" onclick="window.showNotificationsModal()" class="glass-btn p-2 sm:px-4 flex items-center gap-2 relative hidden" title="Notifications">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
-            <span class="hidden sm:inline">Notifications</span>
-            <div id="notif-dot-top" class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-slate-900 hidden"></div>
-        </button>
         <button onclick="window.showSocialHub()" class="glass-btn p-2 sm:px-4 flex items-center gap-2" title="Social">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             <span class="hidden sm:inline">Social</span>
@@ -530,39 +525,6 @@
             </div>
             <button id="btn-add-friend-from-profile" class="btn-primary w-full hidden">Add Friend</button>
             <button id="btn-delete-friend-from-profile" class="glass-btn w-full hidden text-red-400 border-red-900/40 hover:bg-red-900/20">Delete Friend</button>
-        </div>
-    </div>
-
-    <!-- Notifications Modal -->
-    <div id="modal-notifications" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[110] hidden flex items-center justify-center p-4">
-        <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-md w-full flex flex-col gap-6 max-h-[90vh]">
-            <div class="flex justify-between items-center border-b border-teal-500/20 pb-4">
-                <h2 class="text-xl text-teal-400 font-light tracking-widest uppercase">Notifications</h2>
-                <button onclick="closeModal('modal-notifications')" class="text-slate-400 hover:text-teal-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-            </div>
-            
-            <div class="flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar">
-                <div id="responses-container" class="flex flex-col gap-3 hidden">
-                    <h3 class="text-[10px] text-teal-500 uppercase tracking-widest font-bold">Responses</h3>
-                    <div id="responses-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
-                        <!-- Responses loaded here -->
-                    </div>
-                </div>
-                <div class="flex flex-col gap-3">
-                    <h3 class="text-[10px] text-teal-500 uppercase tracking-widest font-bold">Email responses</h3>
-                    <div id="notif-messages-list" class="flex flex-col gap-2">
-                        <p class="text-slate-500 text-xs italic">No new messages.</p>
-                    </div>
-                </div>
-                <div class="flex flex-col gap-3">
-                    <h3 class="text-[10px] text-teal-500 uppercase tracking-widest font-bold">Badge Alerts</h3>
-                    <div id="notif-badges-list" class="flex flex-col gap-2">
-                        <p class="text-slate-500 text-xs italic">No new badges.</p>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
