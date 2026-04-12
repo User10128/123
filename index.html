@@ -925,14 +925,15 @@
                         }
                     }
                 }
-            } else if (layout === 'center_clump') {
+} else if (layout === 'center_clump') {
                 const spots = [];
                 for (let r = 2; r < 6; r++) {
                     for (let c = 0; c < 8; c++) {
                         if ((r + c) % 2 === 1) spots.push({r, c});
                     }
                 }
-                for (let i = 0; i < 12; i++) {
+                // FIXED: Added && spots.length >= 2 to prevent undefined pops
+                for (let i = 0; i < 12 && spots.length >= 2; i++) {
                     const p1 = spots.shift();
                     b[p1.r][p1.c] = allKings ? P1_KING : P1;
                     const p2 = spots.pop();
