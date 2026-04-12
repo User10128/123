@@ -64,6 +64,7 @@
                         <thead>
                             <tr class="text-slate-400 border-b border-slate-700/50">
                                 <th class="pb-2 font-medium">Player</th>
+                                <th class="pb-2 font-medium">Email</th>
                                 <th class="pb-2 font-medium">Friend Code</th>
                                 <th class="pb-2 font-medium">Points</th>
                                 <th class="pb-2 font-medium text-right">Actions</th>
@@ -71,7 +72,7 @@
                         </thead>
                         <tbody id="player-list" class="divide-y divide-slate-700/30">
                             <tr>
-                                <td colspan="4" class="py-8 text-center text-slate-500 italic">Loading players...</td>
+                                <td colspan="5" class="py-8 text-center text-slate-500 italic">Loading players...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -162,7 +163,15 @@
             try {
                 const q = collection(db, 'artifacts', appId, 'public', 'data', 'profiles');
                 const snap = await getDocs(q).catch(e => handleFirestoreError(e, OperationType.LIST, `artifacts/${appId}/public/data/profiles`));
-                allPlayers = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+                
+                // Fetch emails
+                const emailSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'emails')).catch(e => handleFirestoreError(e, OperationType.LIST, `artifacts/${appId}/public/data/emails`));
+                const emailMap = {};
+                emailSnap.docs.forEach(d => {
+                    emailMap[d.data().uid] = d.id;
+                });
+
+                allPlayers = snap.docs.map(d => ({ uid: d.id, email: emailMap[d.id] || 'N/A', ...d.data() }));
                 renderPlayers();
             } catch (e) {
                 console.error(e);
@@ -195,6 +204,7 @@
                             <span class="text-[10px] text-slate-500 uppercase tracking-tighter">${p.uid.substring(0, 8)}...</span>
                         </div>
                     </td>
+                    <td class="py-3 text-slate-300 font-mono text-xs">${p.email || 'N/A'}</td>
                     <td class="py-3 font-mono text-teal-400/80">${p.friendCode || '---'}</td>
                     <td class="py-3 text-slate-300 font-medium">${p.playerPoints || 5}</td>
                     <td class="py-3 text-right">
