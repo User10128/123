@@ -4,7 +4,7 @@
     <title>Checkers</title>
     <meta name="description" content="Experience the classic game of Checkers. Whether you’re looking to play vs AI, play with others, or host a private game, checkers.page is an area for all players.">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width", initial-scale=1.0, maximum-scale=2.0>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
     <!-- Dynamic SVG Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232dd4bf' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='5' fill='%232dd4bf'/%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -137,8 +137,9 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             <span class="hidden sm:inline">Social</span>
         </button>
-        <button onclick="showView('view-account')" class="glass-btn p-2 rounded-full" title="Account">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <button onclick="showView('view-account')" class="glass-btn flex items-center justify-center rounded-full overflow-hidden w-9 h-9 sm:w-10 sm:h-10 border-teal-500/30 shrink-0 relative" title="Account" style="padding:0">
+            <svg id="top-account-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <img id="top-account-img" class="hidden w-full h-full object-cover">
         </button>
     </div>
 
@@ -939,7 +940,7 @@
         window.initBoard = initBoard;
         window.getDailyWildRules = getDailyWildRules;
 
-        function startGame(mode, myPlayer = P1, wildRules = null) {
+        function startGame(mode, myPlayer = P1, wildRules = null, delayShowView = false) {
             gameState.wildRules = wildRules;
             gameState.mode = mode;
             gameState.myPlayer = myPlayer;
@@ -986,7 +987,9 @@
                 document.getElementById('opponent-info').classList.remove('flex');
             }
 
-            showView('view-game');
+            if (!delayShowView) {
+                showView('view-game');
+            }
             updateLiveScore();
             renderBoard();
             updateStatusText();
@@ -1377,7 +1380,10 @@
             const container = document.getElementById('board-container');
             
             const lastMove = gameState.lastMove;
-            gameState.lastMove = null;
+            const lastMoveStr = lastMove ? JSON.stringify(lastMove) : null;
+            const shouldAnimate = lastMoveStr && lastMoveStr !== gameState.lastAnimatedMove;
+            if (shouldAnimate) gameState.lastAnimatedMove = lastMoveStr;
+
             container.innerHTML = '';
             
             let flip = gameState.mode === 'online' && gameState.myPlayer === P2;
@@ -1441,7 +1447,7 @@
                             }
                         }
 
-                        if (lastMove && lastMove.toR === r && lastMove.toC === c) {
+                        if (shouldAnimate && lastMove.toR === r && lastMove.toC === c) {
                             let rDiff = r - lastMove.fromR;
                             let cDiff = c - lastMove.fromC;
                             if (flip) {
@@ -1677,12 +1683,15 @@
         window.opponentPoints = 5;
         window.myPlayerPoints = 5;
 
-        window.showFooterModal = (type) => {
+        window.showFooterModal = (type, customTitle = "", customContent = "") => {
             const title = document.getElementById('footer-modal-title');
             const content = document.getElementById('footer-modal-content');
             const modal = document.getElementById('modal-footer');
             
-            if (type === 'about') {
+            if (type === 'custom') {
+                title.innerText = customTitle;
+                content.innerHTML = `<p>${customContent}</p>`;
+            } else if (type === 'about') {
                 title.innerText = "About Checkers";
                 content.innerHTML = `
                     <p>Checkers (also known as Draughts) is a classic strategy board game for two players. Our version brings a modern, sleek aesthetic to this timeless game, offering both local and online play, as well as challenging AI opponents.</p>
@@ -1731,6 +1740,12 @@
             }
             
             modal.classList.remove('hidden');
+        };
+
+        window.showAwardModal = (awardName) => {
+            const title = awardName.startsWith("badge_") ? `Daily Challenge: ${awardName.replace("badge_", "")}` : awardName;
+            const desc = getAwardDescription(awardName);
+            window.showFooterModal('custom', title, desc);
         };
 
     </script>
@@ -1875,7 +1890,7 @@ await setDoc(gameRef, {
                 }
 
                 window.setupGameListenerFirebase(gameId);
-                window.startGame('online', window.P1, wildRules || window.gameState.wildRules);
+                window.startGame('online', window.P1, wildRules || window.gameState.wildRules, true);
             } catch (e) {
                 console.error("Host failed", e);
                 window.showNotification("Failed to create lobby.");
@@ -1973,8 +1988,14 @@ window.joinGameFirebase = async (overrideId = null) => {
                     }
 
                     // Update matchmaking status if host
-                    if (isHost && data.p2 && window.currentMatchDoc) {
-                        updateDoc(window.currentMatchDoc, { status: 'playing' }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/matchmaking/${fbUser.uid}`));
+                    if (isHost && data.p2) {
+                        if (window.currentMatchDoc) {
+                            updateDoc(window.currentMatchDoc, { status: 'playing' }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/matchmaking/${fbUser.uid}`));
+                        }
+                        if (document.getElementById('view-game').classList.contains('hidden')) {
+                            window.showView('view-game');
+                            window.showNotification("Opponent connected! Game on.");
+                        }
                     }
                 }
 
@@ -2139,11 +2160,34 @@ window.quitGameFirebase = async () => {
                 document.getElementById('account-logged-in').classList.add('flex');
                 document.getElementById('account-display-name').innerText = fbUser.displayName || 'Checkers Player';
                 document.getElementById('account-uid').innerText = fbUser.uid;
-                setupNotificationsListener();
+                
+                const accountTopImg = document.getElementById('top-account-img');
+                const accountTopIcon = document.getElementById('top-account-icon');
+                if (accountTopImg && accountTopIcon) {
+                    if (fbUser.photoURL) {
+                        accountTopImg.src = fbUser.photoURL;
+                        accountTopImg.classList.remove('hidden');
+                        accountTopIcon.classList.add('hidden');
+                    } else {
+                        accountTopImg.classList.add('hidden');
+                        accountTopIcon.classList.remove('hidden');
+                    }
+                }
+                
+                if (window.setupNotificationsListener) {
+                    window.setupNotificationsListener();
+                }
             } else {
                 document.getElementById('account-logged-out').classList.remove('hidden');
                 document.getElementById('account-logged-in').classList.add('hidden');
                 document.getElementById('account-logged-in').classList.remove('flex');
+                
+                const accountTopImg = document.getElementById('top-account-img');
+                const accountTopIcon = document.getElementById('top-account-icon');
+                if (accountTopImg && accountTopIcon) {
+                    accountTopImg.classList.add('hidden');
+                    accountTopIcon.classList.remove('hidden');
+                }
             }
         }
 
@@ -2186,7 +2230,7 @@ window.quitGameFirebase = async () => {
                     
                     if (allItems.length > 0) {
                         badgesEl.innerHTML = allItems.map(a => `
-                            <div class="flex flex-col items-center justify-center bg-teal-500/10 border border-teal-500/30 rounded-lg p-1 aspect-square" title="${a}">
+                            <div onclick="window.showAwardModal('${a}')" class="flex flex-col items-center justify-center bg-teal-500/10 border border-teal-500/30 rounded-lg p-1 aspect-square cursor-pointer hover:bg-teal-500/20 transition-colors" title="${a}">
                                 <div class="text-teal-400 w-6 h-6 flex items-center justify-center">
                                     ${awardIcons[a] || `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path></svg>`}
                                 </div>
@@ -2443,6 +2487,34 @@ window.quitGameFirebase = async () => {
             };
         }
 
+        function getAwardDescription(awardName) {
+            const descriptions = {
+                "First Win": "Awarded for winning your first game in any mode.",
+                "Sharpshooter": "Awarded for scoring over 1500 points in a single game.",
+                "Perfect Victory": "Awarded for winning a game without losing a single piece.",
+                "AI Crusher": "Awarded for defeating the Hard AI.",
+                "Grandmaster": "Awarded for reaching 5000+ points or 100+ wins.",
+                "Unstoppable": "Awarded for achieving a 10-day win streak.",
+                "The Wall": "Awarded for finishing a game with all 12 pieces intact.",
+                "Blitz King": "Awarded for winning a game in under 2 minutes.",
+                "Strategist": "Awarded for winning a game in fewer than 20 moves.",
+                "Comeback Kid": "Awarded for winning with 3 or fewer pieces remaining.",
+                "King of Kings": "Awarded for having 4 or more Kings simultaneously.",
+                "Collector": "Awarded for reaching 5000+ player points.",
+                "Early Bird": "Awarded for winning a game between 5 AM and 8 AM.",
+                "Night Owl": "Awarded for winning a game between 11 PM and 3 AM.",
+                "Wild One": "Awarded for winning a game in Wild Mode.",
+                "Daily Streak Badge": "Awarded for completing 3 daily challenges in a row."
+            };
+            
+            if (awardName.startsWith("badge_")) {
+                const datePart = awardName.replace("badge_", "");
+                return `Awarded for completing the Daily Challenge on ${datePart}.`;
+            }
+
+            return descriptions[awardName] || "A special award.";
+        }
+
         function setupNotificationsListener() {
             if (!fbUser) return;
             
@@ -2513,7 +2585,7 @@ window.quitGameFirebase = async () => {
                     listEl.innerHTML = all.slice(-5).reverse().map((b, idx) => {
                         const isNew = (all.length - idx) > lastSeenCount;
                         return `
-                            <div class="bg-teal-500/5 p-2 rounded-lg border ${isNew ? 'border-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.1)]' : 'border-teal-500/20 opacity-60'} flex items-center gap-3">
+                            <div class="bg-teal-500/5 p-2 rounded-lg border ${isNew ? 'border-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.1)]' : 'border-teal-500/20 opacity-60'} flex items-center gap-3 cursor-pointer hover:bg-teal-500/10 transition-colors" onclick="window.showAwardModal('${b}')">
                                 <div class="w-6 h-6 text-teal-400">
                                     ${getAwardIcons()[b] || `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path></svg>`}
                                 </div>
@@ -3483,7 +3555,7 @@ window.quitGameFirebase = async () => {
 
                     if (allItems.length > 0) {
                         awardsContainer.innerHTML = allItems.map(a => `
-                            <div class="flex flex-col items-center justify-center bg-teal-500/10 border border-teal-500/30 rounded-lg p-2 aspect-square group relative" title="${a}">
+                            <div onclick="window.showAwardModal('${a}')" class="flex flex-col items-center justify-center bg-teal-500/10 border border-teal-500/30 rounded-lg p-2 aspect-square group relative cursor-pointer hover:bg-teal-500/20 transition-colors" title="${a}">
                                 <div class="text-teal-400 w-8 h-8 flex items-center justify-center">
                                     ${awardIcons[a] || `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>`}
                                 </div>
@@ -3790,7 +3862,7 @@ await setDoc(gameRef, {
 
                 window.currentMatchDoc = matchRef;
                 window.setupGameListenerFirebase(gameId);
-                window.startGame('online', window.P1, wildRules);
+                window.startGame('online', window.P1, wildRules, true);
                 document.getElementById('matchmaking-status-text').innerText = "Waiting for an opponent...";
             } catch (e) {
                 console.error(e);
