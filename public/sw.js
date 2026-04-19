@@ -1,3 +1,11 @@
+// --- DevTools Easter Egg ---
+console.log(
+  "%cLooking for bugs or secrets?", 
+  "color: #00ffcc; font-size: 16px; font-weight: bold; font-family: sans-serif; padding: 8px;"
+);
+console.log("%cThe AI is currently calculating your next move... or maybe it's just watching.");
+// ---------------------------
+
 const CACHE_NAME = 'checkers-v1';
 const ASSETS = [
   '/',
