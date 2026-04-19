@@ -78,8 +78,19 @@
                 <!-- Message will be injected by JavaScript -->
             </p>
             
-            <a href="/" class="inline-flex items-center justify-center px-12 py-5 text-lg font-bold text-white transition-all duration-300 rounded-2xl bg-blue-600 hover:bg-blue-500 shadow-xl shadow-blue-900/30 hover:shadow-blue-600/50 transform hover:-translate-y-1 active:scale-95">
-                Go Home
+            <a href="/" class="group relative inline-flex items-center justify-center">
+                <!-- Glowing animated aura -->
+                <div class="absolute -inset-1.5 bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 rounded-3xl blur-md opacity-40 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
+                
+                <!-- Actual button -->
+                <div class="relative flex items-center gap-3 px-12 py-5 bg-blue-600/90 hover:bg-blue-500/90 backdrop-blur-xl rounded-2xl transition-all duration-300 transform group-hover:-translate-y-1 group-active:scale-95 border border-white/20 shadow-xl shadow-blue-900/50">
+                    <span class="text-lg font-bold text-white tracking-wide">Go Home</span>
+                    
+                    <!-- Animated Arrow Icon -->
+                    <svg class="w-6 h-6 text-cyan-200 transition-all duration-300 transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </div>
             </a>
         </div>
 
