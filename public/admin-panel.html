@@ -50,7 +50,43 @@
                 <!-- Sent Messages Section (Removed) -->
             </div>
 
-            <!-- Player Management Section -->
+            <!-- Poll Management Section -->
+            <div class="glass-panel p-6 rounded-2xl mt-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-b border-teal-500/20 pb-2">
+                    <h2 class="text-xl text-teal-300 font-semibold">Poll Management</h2>
+                </div>
+                
+                <div class="mb-6 bg-slate-800/50 p-4 rounded-xl border border-teal-500/10">
+                    <h3 class="text-teal-400 font-medium mb-3">Create New Poll</h3>
+                    <input type="text" id="poll-question" class="glass-input w-full mb-3" placeholder="Poll Question">
+                    <div class="space-y-2 mb-4">
+                        <input type="text" id="poll-opt-1" class="glass-input w-full text-sm" placeholder="Option 1 (Required)">
+                        <input type="text" id="poll-opt-2" class="glass-input w-full text-sm" placeholder="Option 2 (Required)">
+                        <input type="text" id="poll-opt-3" class="glass-input w-full text-sm" placeholder="Option 3 (Optional)">
+                        <input type="text" id="poll-opt-4" class="glass-input w-full text-sm" placeholder="Option 4 (Optional)">
+                        <input type="text" id="poll-opt-5" class="glass-input w-full text-sm" placeholder="Option 5 (Optional)">
+                    </div>
+                    <button id="create-poll-btn" class="btn-primary w-full sm:w-auto">Publish Poll</button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <h3 class="text-teal-400 font-medium mb-3">Active Polls</h3>
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="text-slate-400 border-b border-slate-700/50">
+                                <th class="pb-2 font-medium">Question</th>
+                                <th class="pb-2 font-medium">Votes</th>
+                                <th class="pb-2 font-medium text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="poll-list" class="divide-y divide-slate-700/30">
+                            <tr>
+                                <td colspan="3" class="py-8 text-center text-slate-500 italic">Loading polls...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             <div class="glass-panel p-6 rounded-2xl mt-8">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-b border-teal-500/20 pb-2">
                     <h2 class="text-xl text-teal-300 font-semibold">Player Management</h2>
@@ -147,6 +183,7 @@
 
         let currentUser = null;
         let allPlayers = [];
+        let allPolls = [];
 
         onAuthStateChanged(auth, (user) => {
             const isAdmin = user && (user.email === 'billlokey@gmail.com' || user.email === 'email-control-panel@checkers.page');
@@ -158,10 +195,101 @@
             document.getElementById('auth-loading').classList.add('hidden');
             document.getElementById('admin-content').classList.remove('hidden');
             loadPlayers();
+            loadPolls();
         });
 
         document.getElementById('refresh-players-btn').onclick = () => loadPlayers();
         document.getElementById('player-search').oninput = (e) => renderPlayers(e.target.value);
+
+        // --- POLLS ---
+        document.getElementById('create-poll-btn').onclick = async () => {
+            const question = document.getElementById('poll-question').value.trim();
+            const opts = [
+                document.getElementById('poll-opt-1').value.trim(),
+                document.getElementById('poll-opt-2').value.trim(),
+                document.getElementById('poll-opt-3').value.trim(),
+                document.getElementById('poll-opt-4').value.trim(),
+                document.getElementById('poll-opt-5').value.trim()
+            ].filter(o => o.length > 0);
+
+            if (!question || opts.length < 2) {
+                alert("Please provide a question and at least 2 options.");
+                return;
+            }
+
+            try {
+                const pollData = {
+                    question,
+                    options: opts,
+                    votes: Object.fromEntries(opts.map(o => [o, 0])),
+                    voters: [],
+                    createdAt: Date.now()
+                };
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'polls'), pollData);
+                alert("Poll published!");
+                document.getElementById('poll-question').value = '';
+                [1,2,3,4,5].forEach(i => document.getElementById(`poll-opt-${i}`).value = '');
+                loadPolls();
+            } catch (e) {
+                console.error(e);
+                alert("Failed to create poll: " + e.message);
+            }
+        };
+
+        async function loadPolls() {
+            const listEl = document.getElementById('poll-list');
+            try {
+                const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'polls'), orderBy('createdAt', 'desc'));
+                const snap = await getDocs(q);
+                allPolls = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderPolls();
+            } catch(e) {
+                console.error(e);
+                listEl.innerHTML = `<tr><td colspan="3" class="py-8 text-center text-red-400">Error loading polls: ${e.message}</td></tr>`;
+            }
+        }
+
+        function renderPolls() {
+            const listEl = document.getElementById('poll-list');
+            if (allPolls.length === 0) {
+                listEl.innerHTML = `<tr><td colspan="3" class="py-8 text-center text-slate-500 italic">No active polls.</td></tr>`;
+                return;
+            }
+
+            listEl.innerHTML = '';
+            allPolls.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-slate-700/30 hover:bg-slate-800/30 transition-colors';
+                const totalVotes = p.voters ? p.voters.length : 0;
+                tr.innerHTML = `
+                    <td class="py-3">
+                        <div class="font-bold text-teal-100">${p.question}</div>
+                        <div class="text-xs text-slate-400">${p.options.join(', ')}</div>
+                    </td>
+                    <td class="py-3 text-slate-300 font-medium">${totalVotes}</td>
+                    <td class="py-3 text-right">
+                        <button onclick="window.deletePoll('${p.id}')" 
+                                class="text-xs bg-red-500/10 text-red-400 border border-red-500/30 px-3 py-1 rounded-lg hover:bg-red-500/20 transition-all">
+                            Delete
+                        </button>
+                    </td>
+                `;
+                listEl.appendChild(tr);
+            });
+        }
+
+        window.deletePoll = async (id) => {
+            if (!confirm("Delete this poll forever?")) return;
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'polls', id));
+                loadPolls();
+            } catch (e) {
+                console.error(e);
+                alert("Failed: " + e.message);
+            }
+        };
+
+        // --- PLAYERS ---
 
         async function loadPlayers() {
             const listEl = document.getElementById('player-list');
