@@ -220,7 +220,7 @@
             <span class="opacity-20">|</span>
             <a href="https://checkers.page/service" target="_blank" class="hover:text-teal-400 transition-colors">Terms of Service</a>
             <span class="opacity-20">|</span>
-            <button onclick="window.showFooterModal('contact')" class="hover:text-teal-400 transition-colors">Contact</button>
+            <button onclick="window.showFooterModal('contact')" class="hover:text-teal-400 transition-colors">Features</button>
         </div>
     </div>
 
@@ -1728,14 +1728,35 @@
                     <p>We reserve the right to terminate your access to the game at any time, for any reason, without notice.</p>
                 `;
             } else if (type === 'contact') {
-                title.innerText = "Contact Us";
+                title.innerText = "Features";
                 content.innerHTML = `
-                    <p>If you have any questions or concerns about our Checkers game, please feel free to contact us.</p>
+                    <p>These are the links to other features we provide for you to have a more pleasant experience at our site.</p>
                     <div class="bg-slate-800/50 p-4 rounded-xl border border-teal-500/20 mt-4">
                         <p class="text-teal-300 font-bold">Email:</p>
                         <p class="text-slate-300">help@checkers.page</p>
                     </div>
-                    <p class="mt-4">We aim to respond to all inquiries within 48 hours.</p>
+                    
+                                        <div class="bg-slate-800/50 p-4 rounded-xl border border-teal-500/20 mt-4">
+                        <p class="text-teal-300 font-bold">Polls</p>
+                        <p class="text-slate-300">checkers.page/polls</p>
+                    </div>
+                    
+                                                            <div class="bg-slate-800/50 p-4 rounded-xl border border-teal-500/20 mt-4">
+                        <p class="text-teal-300 font-bold">Total Social</p>
+                        <p class="text-slate-300">checkers.page/social</p>
+                        
+                        <div class="bg-slate-800/50 p-4 rounded-xl border border-teal-500/20 mt-4">
+                        <p class="text-teal-300 font-bold">Devs</p>
+                        <p class="text-slate-300">dev.checkers.page</p>
+
+                        <div class="bg-slate-800/50 p-4 rounded-xl border border-teal-500/20 mt-4">
+                        <p class="text-teal-300 font-bold">Beta</p>
+                        <p class="text-slate-300">beta.dev.checkers.page</p>
+
+                        <div class="bg-slate-800/50 p-4 rounded-xl border border-teal-500/20 mt-4">
+                        <p class="text-teal-300 font-bold">Stratagies page</p>
+                        <p class="text-slate-300">checkers.page/stratagies</p>
+                    </div>
                 `;
             }
             
