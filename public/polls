@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Polls - Checkers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { 
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(45, 212, 191, 0.15);
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+        }
+        .btn-primary {
+            background: rgba(20, 184, 166, 0.1);
+            color: #5eead4;
+            border: 1px solid rgba(20, 184, 166, 0.4);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background: rgba(20, 184, 166, 0.25);
+            transform: translateY(-1px);
+        }
+        .btn-outline {
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.2s ease;
+        }
+        .btn-outline:hover {
+            background: rgba(148, 163, 184, 0.1);
+            color: #f8fafc;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 sm:p-8 bg-[#0f172a] text-[#f8fafc]">
+
+    <div id="auth-loading" class="fixed inset-0 flex items-center justify-center bg-[#0f172a] z-[100]">
+        <div class="flex flex-col items-center gap-4">
+            <div class="w-12 h-12 border-4 border-teal-400 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-teal-400 font-medium tracking-widest uppercase animate-pulse">Loading Polls...</p>
+        </div>
+    </div>
+
+    <div id="polls-content" class="hidden max-w-3xl mx-auto pb-12">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+            <h1 class="text-3xl font-bold text-teal-400 tracking-wider">COMMUNITY POLLS</h1>
+            <button onclick="window.location.href='index.html'" class="btn-primary flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                Back to Game
+            </button>
+        </div>
+
+        <div id="polls-container" class="space-y-6">
+            <!-- Polls injected here -->
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, query, orderBy, getDocs, updateDoc, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
+          authDomain: "checkers-matchmaking-5ac55.firebaseapp.com",
+          projectId: "checkers-matchmaking-5ac55",
+          storageBucket: "checkers-matchmaking-5ac55.firebasestorage.app",
+          messagingSenderId: "778086491027",
+          appId: "1:778086491027:web:c315fd9d97aebae6087e66"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+        const appId = 'checkers-app';
+
+        let currentUser = null;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-loading').classList.add('hidden');
+                document.getElementById('polls-content').classList.remove('hidden');
+                loadPolls();
+            } else {
+                try {
+                    await signInAnonymously(auth);
+                } catch (e) {
+                    console.error("Auth failed:", e);
+                    alert("Authentication failed. Cannot load polls.");
+                }
+            }
+        });
+
+        async function loadPolls() {
+            const container = document.getElementById('polls-container');
+            container.innerHTML = '<div class="text-center text-teal-400 py-8 animate-pulse">Fetching latest polls...</div>';
+            
+            try {
+                const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'polls'), orderBy('createdAt', 'desc'));
+                const snap = await getDocs(q);
+                
+                if (snap.empty) {
+                    container.innerHTML = '<div class="glass-panel p-8 text-center rounded-2xl text-slate-400">There are no active polls at the moment.</div>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                snap.docs.forEach(docSnap => {
+                    const poll = docSnap.data();
+                    const pollId = docSnap.id;
+                    const hasVoted = poll.voters && poll.voters.includes(currentUser.uid);
+                    
+                    const el = document.createElement('div');
+                    el.className = 'glass-panel p-6 sm:p-8 rounded-2xl relative overflow-hidden';
+                    
+                    let html = `
+                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500/50 to-transparent"></div>
+                        <h2 class="text-2xl font-semibold text-teal-300 mb-6">${poll.question}</h2>
+                    `;
+
+                    if (hasVoted) {
+                        html += '<div class="space-y-3 mb-6">';
+                        const totalVotes = poll.voters ? poll.voters.length : 0;
+                        poll.options.forEach(opt => {
+                            const optVotes = poll.votes ? (poll.votes[opt] || 0) : 0;
+                            const percentage = totalVotes === 0 ? 0 : Math.round((optVotes / totalVotes) * 100);
+                            html += `
+                                <div class="relative w-full bg-slate-800/50 rounded-lg overflow-hidden border border-slate-700/50">
+                                    <div class="absolute top-0 left-0 h-full bg-teal-500/20 transition-all duration-1000 ease-out" style="width: ${percentage}%"></div>
+                                    <div class="relative flex justify-between items-center p-4 z-10">
+                                        <span class="font-medium text-slate-200">${opt}</span>
+                                        <span class="text-teal-400 font-bold">${percentage}% <span class="text-xs text-slate-500 font-normal">(${optVotes})</span></span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div><div class="text-sm text-teal-500/80 font-medium">✨ You have voted on this poll</div>';
+                    } else {
+                        html += '<div class="flex flex-col gap-3">';
+                        poll.options.forEach((opt, idx) => {
+                            html += `
+                                <button onclick="window.votePoll('${pollId}', '${opt.replace(/'/g, "\\'")}')" 
+                                        class="text-left w-full p-4 rounded-xl border border-teal-500/30 bg-teal-500/5 hover:bg-teal-500/15 text-slate-100 transition-all font-medium flex items-center justify-between group">
+                                    <span>${opt}</span>
+                                    <span class="hidden group-hover:inline-block text-teal-400 text-sm">Vote &rarr;</span>
+                                </button>
+                            `;
+                        });
+                        html += '</div>';
+                    }
+
+                    el.innerHTML = html;
+                    container.appendChild(el);
+                });
+                
+            } catch(e) {
+                console.error(e);
+                container.innerHTML = `<div class="glass-panel p-8 text-center rounded-2xl text-red-400 border-red-500/30">Failed to load polls: ${e.message}</div>`;
+            }
+        }
+
+        window.votePoll = async (pollId, option) => {
+            if (!currentUser) return;
+            
+            // Optimistic UI to prevent double click
+            document.getElementById('polls-container').style.opacity = '0.5';
+            document.getElementById('polls-container').style.pointerEvents = 'none';
+
+            try {
+                const pollRef = doc(db, 'artifacts', appId, 'public', 'data', 'polls', pollId);
+                
+                // Construct the update object specifically for the field path
+                const updateData = {};
+                updateData[`votes.${option}`] = increment(1);
+                updateData['voters'] = arrayUnion(currentUser.uid);
+                
+                await updateDoc(pollRef, updateData);
+                
+                // Reload polls to show results
+                await loadPolls();
+            } catch(e) {
+                console.error("Voting failed:", e);
+                alert("Failed to cast vote: " + e.message);
+            } finally {
+                document.getElementById('polls-container').style.opacity = '1';
+                document.getElementById('polls-container').style.pointerEvents = 'auto';
+            }
+        };
+
+    </script>
+</body>
+</html>
