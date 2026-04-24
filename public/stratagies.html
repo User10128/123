@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkers Strategies - Learn to Win</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { 
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(45, 212, 191, 0.15);
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+        }
+        .btn-primary {
+            background: rgba(20, 184, 166, 0.1);
+            color: #5eead4;
+            border: 1px solid rgba(20, 184, 166, 0.4);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background: rgba(20, 184, 166, 0.25);
+            transform: translateY(-1px);
+        }
+        p {
+            line-height: 1.7;
+        }
+        li {
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 sm:p-8 bg-[#0f172a] text-[#f8fafc]">
+
+    <div class="max-w-4xl mx-auto pb-12">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-teal-400 tracking-wider uppercase">Checkers Strategies</h1>
+                <p class="text-slate-400 mt-2 text-sm">Master the board and outsmart your opponents</p>
+            </div>
+            <button onclick="window.location.href='index.html'" class="btn-primary flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                Back to Game
+            </button>
+        </div>
+
+        <div class="space-y-8">
+            <!-- Strategy 1 -->
+            <div class="glass-panel p-6 sm:p-8 rounded-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500/50 to-transparent"></div>
+                <h2 class="text-2xl font-semibold text-teal-300 mb-4 flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-500"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                    1. Control the Center
+                </h2>
+                <p class="text-slate-300 mb-4">
+                    Just like in chess, controlling the center of the board is vital in checkers. Pieces on the edge of the board are safe from being jumped, but they are also severely restricted in their movement. A piece in the center commands more squares and offers greater flexibility. 
+                </p>
+                <p class="text-slate-300 mb-4">
+                    Try to inch your pieces toward the middle squares to dominate the board and restrict your opponent's moves. When you control the center, you dictate the flow of the game, forcing your opponent to react rather than attack.
+                </p>
+                <ul class="list-disc pl-5 text-slate-400 space-y-2">
+                    <li>Avoid moving pieces to the sides early in the game unless absolutely necessary to avoid capture.</li>
+                    <li>Use your center pieces as a wedge to break up your opponent's formation.</li>
+                </ul>
+            </div>
+
+            <!-- Strategy 2 -->
+            <div class="glass-panel p-6 sm:p-8 rounded-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500/50 to-transparent"></div>
+                <h2 class="text-2xl font-semibold text-teal-300 mb-4 flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-500"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    2. Maintain Your Back Row
+                </h2>
+                <p class="text-slate-300 mb-4">
+                    Your back row (the row closest to you) is your last line of defense. As long as you have pieces occupying your back row, it is completely impossible for your opponent to crown their pieces into Kings. 
+                </p>
+                <p class="text-slate-300 mb-4">
+                    Kings are incredibly powerful because they can move backward and forward, drastically changing the math of the board. You should keep your back row solid for as long as possible to deny this advantage to your opponent.
+                </p>
+                <ul class="list-disc pl-5 text-slate-400 space-y-2">
+                    <li>Only move an original back row piece when you are forced to, or if it guarantees capturing an opponent's piece without sacrificing your defense.</li>
+                    <li>Wait for the endgame when the board opens up to move these essential defenders.</li>
+                </ul>
+            </div>
+
+            <!-- Strategy 3 -->
+            <div class="glass-panel p-6 sm:p-8 rounded-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500/50 to-transparent"></div>
+                <h2 class="text-2xl font-semibold text-teal-300 mb-4 flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-500"><path d="m11.99 16 3-3-3-3M5.99 16l3-3-3-3"></path><path d="M2.99 13v-2l18 0v2"></path></svg>
+                    3. Move in Groups (Tandem Formations)
+                </h2>
+                <p class="text-slate-300 mb-4">
+                    A lone piece is an easy target. Whenever you advance a piece towards the opponent's side, make sure it is backed up by another piece. This creates a blockade. If your opponent tries to jump your leading piece, they will land directly in front of your trailing piece, allowing you to counter-jump them immediately.
+                </p>
+                <ul class="list-disc pl-5 text-slate-400 space-y-2">
+                    <li>Create "bridges" or paired columns out of your pieces to make them immune to easy captures.</li>
+                    <li>Never send a piece out into enemy territory without a safety net unless you are setting a calculated trap.</li>
+                </ul>
+            </div>
+
+            <!-- Strategy 4 -->
+            <div class="glass-panel p-6 sm:p-8 rounded-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500/50 to-transparent"></div>
+                <h2 class="text-2xl font-semibold text-teal-300 mb-4 flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-500"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    4. Trade When You Are Ahead
+                </h2>
+                <p class="text-slate-300 mb-4">
+                    Because you are forced to jump in checkers, you can use trades (sacrificing one piece to capture one piece) to your extreme advantage. If you have 8 pieces and your opponent has 7, trading pieces creates a situation where you have 7 and they have 6. While a 1-piece advantage might not seem huge, a ratio of 7 to 6 is much stronger than 8 to 7. 
+                </p>
+                <p class="text-slate-300 mb-4">
+                    If you manage to shrink the board down to 3 vs 2, the game is heavily skewed in your favor. Use forced jumps to whittle down your opponent's ranks when you hold the material advantage.
+                </p>
+            </div>
+
+            <!-- Strategy 5 -->
+            <div class="glass-panel p-6 sm:p-8 rounded-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500/50 to-transparent"></div>
+                <h2 class="text-2xl font-semibold text-teal-300 mb-4 flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-500"><path d="M5 12s2.545-5 7-5c4.454 0 7 5 7 5s-2.546 5-7 5c-4.455 0-7-5-7-5z"></path><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path><path d="M21 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2"></path><path d="M21 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2"></path></svg>
+                    5. Don't Be Afraid to Sacrifice
+                </h2>
+                <p class="text-slate-300 mb-4">
+                    Sacrificing a piece isn't just for defense. You can intentionally position a piece to be jumped if it lures the opponent into a vulnerable position. Many advanced checkers tactics revolve around offering a single piece to the opponent so that in the subsequent turn, you can execute a double-jump or secure a dominant position on the board.
+                </p>
+                <p class="text-slate-300 mb-4">
+                    Look 2 to 3 moves ahead: "If I let them jump me here, where will they land? Can I jump them back for two?"
+                </p>
+            </div>
+
+            <!-- Strategy 6 -->
+            <div class="glass-panel p-6 sm:p-8 rounded-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500/50 to-transparent"></div>
+                <h2 class="text-2xl font-semibold text-teal-300 mb-4 flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-500"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    6. The Endgame: Chasing with Kings
+                </h2>
+                <p class="text-slate-300 mb-4">
+                    When both players are whittled down to a few Kings, it can sometimes feel like an endless game of cat and mouse. The primary strategy to trap an opponent's King is to force them towards the edges of the board. 
+                </p>
+                <ul class="list-disc pl-5 text-slate-400 space-y-2">
+                    <li>Never chase blindly into the center of the board. </li>
+                    <li>Use your Kings together to form a "wall" that slowly pushes the opponent's pieces into the corners. Once cornered, they will be forced to move into your attacking path.</li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
