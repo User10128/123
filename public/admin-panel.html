@@ -356,8 +356,8 @@
             
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', uid);
-                await updateDoc(docRef, { hiddenFromLeaderboard: true }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/profiles/${uid}`));
-                alert(`${name} has been hidden from leaderboards.`);
+                await updateDoc(docRef, { hiddenFromLeaderboard: true, playerPoints: 0 }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/profiles/${uid}`));
+                alert(`${name} has been reset directly on the leaderboard.`);
                 loadPlayers();
             } catch (e) {
                 console.error(e);
