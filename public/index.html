@@ -506,6 +506,20 @@
         </div>
     </div>
 
+    <div id="modal-waiting-opponent" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[110] hidden flex items-center justify-center p-4">
+        <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-sm w-full text-center flex flex-col gap-6">
+            <h2 class="text-2xl text-teal-400 font-light tracking-widest uppercase">Waiting</h2>
+            
+            <div class="relative w-16 h-16 mx-auto flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full border-t-2 border-teal-400 animate-spin"></div>
+            </div>
+            
+            <p class="text-slate-300 text-sm animate-pulse">Waiting for an opponent to join...</p>
+
+            <button onclick="cancelMatchmaking()" class="glass-btn w-full py-3 mt-2 text-xs uppercase tracking-widest font-bold border-red-500/20 text-red-400 hover:bg-red-500/10">Cancel Game</button>
+        </div>
+    </div>
+
     <div id="modal-player-profile" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[110] hidden flex items-center justify-center p-4">
         <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-sm w-full text-center flex flex-col gap-6">
             <div class="flex justify-between items-center border-b border-teal-500/20 pb-4">
@@ -1380,7 +1394,7 @@
             const container = document.getElementById('board-container');
             
             const lastMove = gameState.lastMove;
-            const lastMoveStr = lastMove ? JSON.stringify(lastMove) : null;
+            const lastMoveStr = lastMove ? `${lastMove.fromR},${lastMove.fromC}->${lastMove.toR},${lastMove.toC}` : null;
             const shouldAnimate = lastMoveStr && lastMoveStr !== gameState.lastAnimatedMove;
             if (shouldAnimate) gameState.lastAnimatedMove = lastMoveStr;
 
@@ -2016,8 +2030,9 @@ window.joinGameFirebase = async (overrideId = null) => {
                         if (window.currentMatchDoc) {
                             updateDoc(window.currentMatchDoc, { status: 'playing' }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/matchmaking/${fbUser.uid}`));
                         }
-                        if (document.getElementById('view-game').classList.contains('hidden')) {
-                            window.showView('view-game');
+                        const waitingModal = document.getElementById('modal-waiting-opponent');
+                        if (waitingModal && !waitingModal.classList.contains('hidden')) {
+                            closeModal('modal-waiting-opponent');
                             window.showNotification("Opponent connected! Game on.");
                         }
                     }
@@ -2029,7 +2044,10 @@ window.joinGameFirebase = async (overrideId = null) => {
                     window.gameState.lastSyncTime = data.timestamp;
                     
                     // If it's the opponent's turn or just changed to our turn
-                    if (data.turn !== window.gameState.myPlayer || (data.lastMove && JSON.stringify(data.lastMove) !== JSON.stringify(window.gameState.lastMove))) {
+                    let newMoveSig = data.lastMove ? `${data.lastMove.fromR},${data.lastMove.fromC}->${data.lastMove.toR},${data.lastMove.toC}` : null;
+                    let oldMoveSig = window.gameState.lastMove ? `${window.gameState.lastMove.fromR},${window.gameState.lastMove.fromC}->${window.gameState.lastMove.toR},${window.gameState.lastMove.toC}` : null;
+                    
+                    if (data.turn !== window.gameState.myPlayer || newMoveSig !== oldMoveSig) {
                          window.gameState.board = typeof data.board === 'string' ? JSON.parse(data.board) : data.board;
                          window.gameState.turn = data.turn;
                          window.gameState.mustJumpPiece = data.mustJumpPiece;
@@ -3130,6 +3148,7 @@ window.quitGameFirebase = async () => {
                 await deleteDoc(gameRef).catch(()=>{});
                 currentGameId = null;
             }
+            closeModal('modal-waiting-opponent');
             window.showView('view-main-menu');
         };
         function showInviteToast(name, code, docId) {
@@ -3886,8 +3905,8 @@ await setDoc(gameRef, {
 
                 window.currentMatchDoc = matchRef;
                 window.setupGameListenerFirebase(gameId);
-                window.startGame('online', window.P1, wildRules, true);
-                document.getElementById('matchmaking-status-text').innerText = "Waiting for an opponent...";
+                window.startGame('online', window.P1, wildRules, false);
+                openModal('modal-waiting-opponent');
             } catch (e) {
                 console.error(e);
                 handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/matchmaking`);
