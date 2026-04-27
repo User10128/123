@@ -2035,6 +2035,12 @@ window.joinGameFirebase = async (overrideId = null) => {
                         closeModal('modal-waiting-opponent');
                         window.showNotification("Opponent connected! Game on.");
                     }
+                    if (document.getElementById('view-game').classList.contains('hidden')) {
+                        window.showView('view-game');
+                        window.showNotification("Opponent connected! Game on.");
+                        window.renderBoard();
+                        window.updateStatusText();
+                    }
                 }
             }
 
@@ -2324,35 +2330,7 @@ window.quitGameFirebase = async () => {
             } catch (e) { console.error(e); }
         };
 
-        window.deleteFriend = async (friendId, friendName) => {
-            window.showConfirm(`Are you sure you want to remove ${friendName || 'this player'} from your friends list?`, async () => {
-                try {
-                    // 1. Remove from my list
-                    const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
-                    await updateDoc(myPrivRef, {
-                        friends: arrayRemove(friendId)
-                    }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/users/${fbUser.uid}/private/data`));
 
-                    // 2. Notify friend to remove me
-                    const friendMsgRef = collection(db, 'artifacts', appId, 'users', friendId, 'messages');
-                    await addDoc(friendMsgRef, {
-                        type: 'friendship_removed',
-                        fromUid: fbUser.uid,
-                        fromName: fbUser.displayName || 'A player',
-                        timestamp: Date.now(),
-                        processed: false,
-                        read: false
-                    }).catch(e => handleFirestoreError(e, OperationType.CREATE, `artifacts/${appId}/users/${friendId}/messages`));
-
-                    window.showNotification("Friend removed.");
-                    closeModal('modal-player-profile');
-                    window.renderFriendsList();
-                } catch (e) {
-                    console.error("Failed to delete friend:", e);
-                    window.showNotification("Failed to remove friend.");
-                }
-            });
-        };
 
         window.showSocialHub = () => {
             document.getElementById('modal-social').classList.remove('hidden');
@@ -2771,9 +2749,9 @@ window.quitGameFirebase = async () => {
             window.showNotification("Signed out.");
         };
 
-        window.deleteFriend = async (friendId) => {
+        window.deleteFriend = async (friendId, friendName = 'this player') => {
             if (!isRegisteredUser || !fbUser) return;
-            showConfirm("Are you sure you want to remove this friend?", async () => {
+            window.showConfirm(`Are you sure you want to remove ${friendName} from your friends list?`, async () => {
                 try {
                     // 1. Immediately notify the other user (prioritize speed)
                     const theirMessagesRef = collection(db, 'artifacts', appId, 'users', friendId, 'messages');
@@ -2790,15 +2768,16 @@ window.quitGameFirebase = async () => {
 
                     // 2. Remove from my friends list locally
                     const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
-                    const updatePromise = updateDoc(myPrivRef, {
+                    const updatePromise = setDoc(myPrivRef, {
                         friends: arrayRemove(friendId)
-                    });
+                    }, { merge: true });
 
                     // Wait for both but show success quickly
                     await Promise.all([notifyPromise, updatePromise]);
 
                     window.showNotification("Friend removed successfully.");
                     window.renderFriendsList();
+                    closeModal('modal-player-profile');
                     if (document.getElementById('modal-social').classList.contains('hidden') === false) {
                         window.switchSocialTab('friends');
                     }
@@ -2891,9 +2870,9 @@ window.quitGameFirebase = async () => {
 
                 // 2. Update my friends list locally
                 const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
-                const updatePromise = updateDoc(myPrivRef, {
+                const updatePromise = setDoc(myPrivRef, {
                     friends: arrayUnion(fromUid)
-                }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/users/${fbUser.uid}/private/data`));
+                }, { merge: true }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/users/${fbUser.uid}/private/data`));
 
                 // 3. Delete the request
                 const deletePromise = deleteDoc(doc(db, 'artifacts', appId, 'users', fbUser.uid, 'friendRequests', requestId)).catch(e => handleFirestoreError(e, OperationType.DELETE, `artifacts/${appId}/users/${fbUser.uid}/friendRequests/${requestId}`));
@@ -2971,7 +2950,7 @@ window.quitGameFirebase = async () => {
                                 </div>
                                 <div class="flex items-center gap-2">
                                     ${isOnline ? `<button onclick="window.inviteFriend('${fid}')" class="text-xs bg-teal-500/20 text-teal-300 px-3 py-2 rounded hover:bg-teal-500/40">Invite</button>` : `<span class="text-xs text-slate-500">Offline</span>`}
-                                    <button onclick="window.deleteFriend('${fid}')" class="p-2 bg-red-500/20 text-red-400 rounded hover:bg-red-500/40" title="Remove Friend">
+                                    <button onclick="window.deleteFriend('${fid}', '${fData.displayName || 'this player'}')" class="p-2 bg-red-500/20 text-red-400 rounded hover:bg-red-500/40" title="Remove Friend">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
                                     </button>
                                 </div>
@@ -3039,9 +3018,9 @@ window.quitGameFirebase = async () => {
                                 console.log("Processing friendship_accepted from:", data.fromUid);
                                 // Add them to my friends list using arrayUnion for speed
                                 const myPrivRef = doc(db, 'artifacts', appId, 'users', fbUser.uid, 'private', 'data');
-                                await updateDoc(myPrivRef, {
+                                await setDoc(myPrivRef, {
                                     friends: arrayUnion(data.fromUid)
-                                }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/users/${fbUser.uid}/private/data`));
+                                }, { merge: true }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/users/${fbUser.uid}/private/data`));
                                 window.showNotification(`New Friend: ${data.fromName || 'Player'}`);
                                 window.renderFriendsList();
                                 // Mark as processed
