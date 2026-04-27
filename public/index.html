@@ -1998,80 +1998,85 @@ window.joinGameFirebase = async (overrideId = null) => {
             }
         };
 
+        window.processGameSnapshot = (snapshot) => {
+            if (!snapshot.exists()) {
+                window.showNotification("Game closed");
+                window.quitGameFromEnd();
+                return;
+            }
+
+            const data = snapshot.data();
+            
+            // Sync opponent info
+            const opponent = isHost ? data.p2 : data.p1;
+            if (opponent) {
+                window.gameState.opponentInfo = { displayName: opponent.displayName, friendCode: opponent.friendCode };
+                window.opponentPoints = opponent.points || 5;
+                const optNameEl = document.getElementById('opponent-name');
+                if (optNameEl) optNameEl.innerText = opponent.displayName || "Unknown Player";
+                
+                if (opponent.friendCode && isRegisteredUser) {
+                    const addBtn = document.getElementById('btn-add-friend-opponent');
+                    if (addBtn) {
+                        addBtn.classList.remove('hidden');
+                        addBtn.onclick = () => {
+                            window.addFriendByCode(opponent.friendCode);
+                        };
+                    }
+                }
+
+                // Update matchmaking status if host
+                if (isHost && data.p2) {
+                    if (window.currentMatchDoc) {
+                        updateDoc(window.currentMatchDoc, { status: 'playing' }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/matchmaking/${fbUser?.uid}`));
+                    }
+                    const waitingModal = document.getElementById('modal-waiting-opponent');
+                    if (waitingModal && !waitingModal.classList.contains('hidden')) {
+                        closeModal('modal-waiting-opponent');
+                        window.showNotification("Opponent connected! Game on.");
+                    }
+                }
+            }
+
+            // Sync board and turn
+            if (data.timestamp > (window.gameState.lastSyncTime || 0)) {
+                window.gameState.lastSyncTime = data.timestamp;
+                
+                // If it's the opponent's turn or just changed to our turn
+                let newMoveSig = data.lastMove ? `${data.lastMove.fromR},${data.lastMove.fromC}->${data.lastMove.toR},${data.lastMove.toC}` : null;
+                let oldMoveSig = window.gameState.lastMove ? `${window.gameState.lastMove.fromR},${window.gameState.lastMove.fromC}->${window.gameState.lastMove.toR},${window.gameState.lastMove.toC}` : null;
+                
+                if (data.turn !== window.gameState.myPlayer || newMoveSig !== oldMoveSig) {
+                     window.gameState.board = typeof data.board === 'string' ? JSON.parse(data.board) : data.board;
+                     window.gameState.turn = data.turn;
+                     window.gameState.mustJumpPiece = data.mustJumpPiece;
+                     window.gameState.lastMove = data.lastMove;
+                     window.checkWinCondition();
+                     window.renderBoard();
+                     window.updateStatusText();
+                }
+
+                if (data.restartRequested && data.restartRequested > (window.gameState.lastRestartRequest || 0)) {
+                    window.gameState.lastRestartRequest = data.restartRequested;
+                    window.startGame('online', window.gameState.myPlayer, data.wildRules);
+                    window.showNotification("Match Restarted!");
+                }
+
+                if (data.chat && data.chat.timestamp > (window.gameState.lastChatTime || 0)) {
+                    window.gameState.lastChatTime = data.chat.timestamp;
+                    if (data.chat.uid !== fbUser?.uid) {
+                        window.showNotification("Opponent: " + data.chat.text);
+                    }
+                }
+            }
+        };
+
         window.setupGameListenerFirebase = (gameId) => {
             if (gameUnsubscribe) gameUnsubscribe();
             
             const gameRef = doc(db, 'artifacts', appId, 'games', gameId);
             
-            gameUnsubscribe = onSnapshot(gameRef, (snapshot) => {
-                if (!snapshot.exists()) {
-                    window.showNotification("Game closed");
-                    window.quitGameFromEnd();
-                    return;
-                }
-
-                const data = snapshot.data();
-                
-                // Sync opponent info
-                const opponent = isHost ? data.p2 : data.p1;
-                if (opponent) {
-                    window.gameState.opponentInfo = { displayName: opponent.displayName, friendCode: opponent.friendCode };
-                    window.opponentPoints = opponent.points || 5;
-                    document.getElementById('opponent-name').innerText = opponent.displayName || "Unknown Player";
-                    
-                    if (opponent.friendCode && isRegisteredUser) {
-                        document.getElementById('btn-add-friend-opponent').classList.remove('hidden');
-                        document.getElementById('btn-add-friend-opponent').onclick = () => {
-                            window.addFriendByCode(opponent.friendCode);
-                        };
-                    }
-
-                    // Update matchmaking status if host
-                    if (isHost && data.p2) {
-                        if (window.currentMatchDoc) {
-                            updateDoc(window.currentMatchDoc, { status: 'playing' }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/matchmaking/${fbUser.uid}`));
-                        }
-                        const waitingModal = document.getElementById('modal-waiting-opponent');
-                        if (waitingModal && !waitingModal.classList.contains('hidden')) {
-                            closeModal('modal-waiting-opponent');
-                            window.showNotification("Opponent connected! Game on.");
-                        }
-                    }
-                }
-
-                // Sync board and turn
-                if (data.timestamp > (window.gameState.lastSyncTime || 0)) {
-                    const oldSyncTime = window.gameState.lastSyncTime || 0;
-                    window.gameState.lastSyncTime = data.timestamp;
-                    
-                    // If it's the opponent's turn or just changed to our turn
-                    let newMoveSig = data.lastMove ? `${data.lastMove.fromR},${data.lastMove.fromC}->${data.lastMove.toR},${data.lastMove.toC}` : null;
-                    let oldMoveSig = window.gameState.lastMove ? `${window.gameState.lastMove.fromR},${window.gameState.lastMove.fromC}->${window.gameState.lastMove.toR},${window.gameState.lastMove.toC}` : null;
-                    
-                    if (data.turn !== window.gameState.myPlayer || newMoveSig !== oldMoveSig) {
-                         window.gameState.board = typeof data.board === 'string' ? JSON.parse(data.board) : data.board;
-                         window.gameState.turn = data.turn;
-                         window.gameState.mustJumpPiece = data.mustJumpPiece;
-                         window.gameState.lastMove = data.lastMove;
-                         window.checkWinCondition();
-                         window.renderBoard();
-                         window.updateStatusText();
-                    }
-
-                    if (data.restartRequested && data.restartRequested > (window.gameState.lastRestartRequest || 0)) {
-                        window.gameState.lastRestartRequest = data.restartRequested;
-                        window.startGame('online', window.gameState.myPlayer, data.wildRules);
-                        window.showNotification("Match Restarted!");
-                    }
-
-                    if (data.chat && data.chat.timestamp > (window.gameState.lastChatTime || 0)) {
-                        window.gameState.lastChatTime = data.chat.timestamp;
-                        if (data.chat.uid !== fbUser.uid) {
-                            window.showNotification("Opponent: " + data.chat.text);
-                        }
-                    }
-                }
-            }, (error) => handleFirestoreError(error, OperationType.GET, `artifacts/${appId}/games/${gameId}`));
+            gameUnsubscribe = onSnapshot(gameRef, window.processGameSnapshot, (error) => handleFirestoreError(error, OperationType.GET, `artifacts/${appId}/games/${gameId}`));
         };
 
         window.syncMoveToFirebase = (board, turnEnds, mustJumpPiece, move) => {
@@ -3977,6 +3982,17 @@ await setDoc(gameRef, {
                 await updateDoc(profileRef, {
                     lastSeen: Date.now()
                 }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/profiles/${fbUser.uid}`));
+            }
+
+            // Also check game state if waiting for opponent's move or keeping sync
+            if (currentGameId && window.gameState && window.gameState.mode === 'online') {
+                try {
+                    const gameRef = doc(db, 'artifacts', appId, 'games', currentGameId);
+                    const gameSnap = await getDoc(gameRef);
+                    if (window.processGameSnapshot) {
+                        window.processGameSnapshot(gameSnap);
+                    }
+                } catch(e) {}
             }
         }
         setInterval(updateHeartbeat, 30000);
