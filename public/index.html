@@ -185,6 +185,7 @@
 
     <!-- MAIN MENU VIEW -->
     <div id="view-main-menu" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
+        <div id="pc-greeting" class="absolute top-8 left-1/2 -translate-x-1/2 hidden md:block text-teal-300/80 italic font-light tracking-[0.2em] text-sm pointer-events-none"></div>
         <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-8 text-center relative overflow-hidden">
             <div class="absolute -top-12 -right-12 w-40 h-40 bg-teal-400/10 rounded-full blur-3xl"></div>
             <div class="absolute -bottom-12 -left-12 w-40 h-40 bg-teal-800/20 rounded-full blur-3xl"></div>
@@ -843,7 +844,7 @@
             // Warm up
             nextRand(); nextRand(); nextRand();
 
-            const layouts = ['random', 'checkerboard_swap', 'center_clump', 'edge_huggers', 'inverted'];
+            const layouts = ['random', 'checkerboard_swap', 'center_clump', 'edge_huggers'];
             const layoutIdx = Math.floor(nextRand() * layouts.length);
 
             let rules = {
@@ -937,15 +938,6 @@
                     b[p1.r][p1.c] = allKings ? P1_KING : P1;
                     const p2 = spots.pop();
                     b[p2.r][p2.c] = allKings ? P2_KING : P2;
-                }
-            } else if (layout === 'inverted') {
-                for (let r = 0; r < 8; r++) {
-                    for (let c = 0; c < 8; c++) {
-                        if ((r + c) % 2 === 1) {
-                            if (r < 3) b[r][c] = allKings ? P1_KING : P1;
-                            else if (r > 4) b[r][c] = allKings ? P2_KING : P2;
-                        }
-                    }
                 }
             } else {
                 for (let r = 0; r < 8; r++) {
@@ -2204,7 +2196,24 @@ window.quitGameFirebase = async () => {
 
         // ------------------ ACCOUNT & FRIENDS ------------------
 
+        function updateGreeting() {
+            const greetingEl = document.getElementById('pc-greeting');
+            if (!greetingEl) return;
+            const hour = new Date().getHours();
+            let timeOfDay = 'morning';
+            if (hour >= 12 && hour < 17) timeOfDay = 'afternoon';
+            else if (hour >= 17) timeOfDay = 'evening';
+            
+            let nameString = "";
+            if (isRegisteredUser && fbUser && fbUser.displayName) {
+                nameString = ", " + fbUser.displayName;
+            }
+            
+            greetingEl.innerText = `Good ${timeOfDay}${nameString}`;
+        }
+
         function updateAccountUI() {
+            updateGreeting();
             if (isRegisteredUser && fbUser) {
                 document.getElementById('account-logged-out').classList.add('hidden');
                 document.getElementById('account-logged-in').classList.remove('hidden');
@@ -3330,7 +3339,24 @@ window.quitGameFirebase = async () => {
         }
 
         window.recordWin = async (mode, score, difficulty, isPerfect) => {
-            if (!fbUser || !score) return;
+            const challenge = getDailyChallenge();
+            const today = new Date().toISOString().split('T')[0];
+
+            if (!isRegisteredUser || !fbUser) {
+                if (challenge.check(window.gameState)) {
+                    document.getElementById('daily-challenge-text').innerText = "Daily Challenge Completed! Sign in to save your badge.";
+                    const banner = document.getElementById('daily-challenge-banner');
+                    if (banner) {
+                        banner.classList.remove('bg-teal-500/10', 'border-teal-500/30');
+                        banner.classList.add('bg-green-500/10', 'border-green-500/30');
+                        const icon = document.getElementById('challenge-status-icon');
+                        if (icon) icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-400"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+                    }
+                    window.showNotification("Daily Challenge Complete! Sign in to save.");
+                }
+                return;
+            }
+            if (!score) return;
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
                 const docSnap = await getDoc(docRef).catch(e => handleFirestoreError(e, OperationType.GET, `artifacts/${appId}/public/data/profiles/${fbUser.uid}`));
@@ -3648,11 +3674,6 @@ window.quitGameFirebase = async () => {
         };
 
         window.showLeaderboardView = () => {
-            if (!isRegisteredUser) {
-                window.showNotification("Sign in to view the Leaderboard!");
-                window.showView('view-account');
-                return;
-            }
             window.showView('view-leaderboard');
             window.switchLeaderboardTab('global');
         };
@@ -3741,7 +3762,7 @@ window.quitGameFirebase = async () => {
                 }
 
                 let html = profiles.map((p, i) => `
-                    <div onclick="window.showPlayerProfile('${p.uid || ''}')" class="flex justify-between items-center border-b border-slate-700/50 py-3 px-2 cursor-pointer hover:bg-teal-500/10 transition-colors ${p.displayName === fbUser.displayName ? 'bg-teal-900/20 rounded' : ''}">
+                    <div onclick="window.showPlayerProfile('${p.uid || ''}')" class="flex justify-between items-center border-b border-slate-700/50 py-3 px-2 cursor-pointer hover:bg-teal-500/10 transition-colors ${fbUser && p.uid === fbUser.uid ? 'bg-teal-900/20 rounded' : ''}">
                         <div class="flex items-center gap-3">
                             <span class="text-teal-500 font-bold w-6">${i+1}.</span>
                             <span class="font-medium text-slate-200">${p.displayName || 'Player'}</span>
