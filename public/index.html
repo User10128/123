@@ -2024,23 +2024,38 @@ window.joinGameFirebase = async (overrideId = null) => {
                         };
                     }
                 }
+            }
 
-                // Update matchmaking status if host
-                if (isHost && data.p2) {
-                    if (window.currentMatchDoc) {
-                        updateDoc(window.currentMatchDoc, { status: 'playing' }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/matchmaking/${fbUser?.uid}`));
-                    }
-                    const waitingModal = document.getElementById('modal-waiting-opponent');
-                    if (waitingModal && !waitingModal.classList.contains('hidden')) {
-                        closeModal('modal-waiting-opponent');
-                        window.showNotification("Opponent connected! Game on.");
-                    }
-                    if (document.getElementById('view-game').classList.contains('hidden')) {
-                        window.showView('view-game');
-                        window.showNotification("Opponent connected! Game on.");
-                        window.renderBoard();
-                        window.updateStatusText();
-                    }
+            // Consistently transition both players into the game view once data.p1 and data.p2 exist
+            if (data.p1 && data.p2) {
+                if (isHost && window.currentMatchDoc) {
+                    updateDoc(window.currentMatchDoc, { status: 'playing' }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/matchmaking/${fbUser?.uid}`));
+                    window.currentMatchDoc = null; // Prevent repeated updates
+                }
+
+                let wasWaiting = false;
+                
+                const waitingModal = document.getElementById('modal-waiting-opponent');
+                if (waitingModal && !waitingModal.classList.contains('hidden')) {
+                    closeModal('modal-waiting-opponent');
+                    wasWaiting = true;
+                }
+
+                const searchView = document.getElementById('view-searching');
+                if (searchView && !searchView.classList.contains('hidden')) {
+                    wasWaiting = true;
+                }
+
+                const gameView = document.getElementById('view-game');
+                if (gameView && gameView.classList.contains('hidden')) {
+                    wasWaiting = true;
+                }
+
+                if (wasWaiting) {
+                    window.showView('view-game');
+                    window.showNotification("Opponent connected! Game on.");
+                    window.renderBoard();
+                    window.updateStatusText();
                 }
             }
 
