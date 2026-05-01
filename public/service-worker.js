@@ -1,27 +1,26 @@
-const CACHE_NAME = 'v1';
+const CACHE_NAME = 'checkers-v1';
+// No slashes at the start helps with Cloudflare routing
 const ASSETS = [
-  './',
-  './index.html',
-  './offline.html'
+  'index.html',
+  'offline.html'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      // We add them one by one so if one fails, the others might stay
+      // This forces the browser to fetch a fresh copy from the server to save
       return Promise.all(
-        ASSETS.map(url => cache.add(url).catch(err => console.log('failed:', url)))
+        ASSETS.map(asset => cache.add(new Request(asset, {cache: 'reload'})))
       );
     })
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => {
-        return caches.match('./offline.html');
-      })
+      fetch(event.request).catch(() => caches.match('offline.html'))
     );
   }
 });
