@@ -4035,8 +4035,10 @@ await setDoc(gameRef, {
         });
 <script data-cfasync="false">
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js');
+    navigator.serviceWorker.register('service-worker.js').then((reg) => {
+      // Force an update check immediately
+      reg.update();
+      console.log('SW Registered');
     });
   }
 </script>
