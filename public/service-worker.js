@@ -1,5 +1,5 @@
 const CACHE_NAME = 'checkers-v1';
-const OFFLINE_PAGE = '/offline.html';
+const OFFLINE_PAGE = 'offline.html';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
