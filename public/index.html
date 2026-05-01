@@ -4033,9 +4033,11 @@ await setDoc(gameRef, {
                 updateAccountUI();
             }
         });
-<script>
+<script data-cfasync="false">
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js');
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js');
+    });
   }
 </script>
     </script>
