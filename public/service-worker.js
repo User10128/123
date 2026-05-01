@@ -17,10 +17,12 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
+// Bare-bones fetch listener in service-worker.js
 self.addEventListener('fetch', (event) => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match('offline.html'))
-    );
-  }
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      // If ANY request fails, try to return the offline page
+      return caches.match('offline.html');
+    })
+  );
 });
