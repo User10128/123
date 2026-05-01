@@ -4034,11 +4034,22 @@ await setDoc(gameRef, {
             }
         });
 <script data-cfasync="false">
+  // data-cfasync="false" tells Cloudflare NOT to touch this script
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js').then((reg) => {
-      // Force an update check immediately
-      reg.update();
-      console.log('SW Registered');
+    window.addEventListener('load', async () => {
+      try {
+        // We add a random number to the end to force Cloudflare to send a fresh copy
+        const version = Math.random();
+        const registration = await navigator.serviceWorker.register('service-worker.js?v=' + version);
+        
+        // This line forces the browser to check for updates immediately
+        registration.update();
+        
+        console.log('SW Registered');
+      } catch (e) {
+        // If it fails, this will show as an alert on your screen
+        alert('Service Worker failed to save: ' + e.message);
+      }
     });
   }
 </script>
