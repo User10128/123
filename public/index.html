@@ -4036,10 +4036,19 @@ await setDoc(gameRef, {
         });
     </script>
 <script>
+  // 1. Kill any old, stuck service workers
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    for(let registration of registrations) {
+      registration.unregister();
+    }
+  });
+
+  // 2. Register the new version
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-      // Use an absolute path here as well
-      navigator.serviceWorker.register('/service-worker.js');
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw-v2.js')
+        .then(reg => alert('NEW Worker Active!'))
+        .catch(err => alert('Registration Error: ' + err));
     });
   }
 </script>
