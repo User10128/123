@@ -4043,6 +4043,15 @@ await setDoc(gameRef, {
     });
   }
 </script>
+    <script>
+  navigator.serviceWorker.register('/service-worker.js')
+    .then(reg => {
+      alert('SW Registered! Scope: ' + reg.scope);
+    })
+    .catch(err => {
+      alert('SW Registration FAILED: ' + err);
+    });
+</script>
     
 </body>
 </html>
