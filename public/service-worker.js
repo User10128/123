@@ -1,8 +1,7 @@
 const CACHE_NAME = 'offline-cache-v5';
 const OFFLINE_URLS = [
-  '/',     // The root URL
-  '/index.html',
-  '/public/index.html'  // Your actual file
+  '/public/',     // The root URL
+  '/public/offline.html'  // Your actual file
 ];
 
 // 1. Install Event: Save your files into the cache
