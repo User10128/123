@@ -23,15 +23,20 @@ self.addEventListener('activate', (event) => {
 
 // 3. Fetch Event: Look in Cache FIRST, then Network
 self.addEventListener('fetch', (event) => {
-    event.respondWith(
-        caches.match(event.request).then((cachedResponse) => {
-            // Return the cached file if found, otherwise try the network
-            return cachedResponse || fetch(event.request).catch(() => {
-                // If both fail (offline & not in cache), return index.html
-                if (event.request.mode === 'navigate') {
-                    return caches.match('/public/offline.html');
-                }
-            });
-        })
-    );
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      // 1. If it's in the cache, return it immediately
+      if (response) {
+        return response;
+      }
+
+      // 2. If not in cache, try the network
+      return fetch(event.request).catch(() => {
+        // 3. If network fails AND it's a page request, show offline.html
+        if (event.request.mode === 'navigate' || (event.request.method === 'GET' && event.request.headers.get('accept').includes('text/html'))) {
+          return caches.match('/public/offline.html');
+        }
+      });
+    })
+  );
 });
