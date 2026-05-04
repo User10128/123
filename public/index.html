@@ -4038,14 +4038,10 @@ await setDoc(gameRef, {
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      // We point to the root where sw-v2.js actually lives
-      navigator.serviceWorker.register('/sw-v2.js')
-        .then(reg => {
-          console.log('SW Registered at: ', reg.scope);
-        })
-        .catch(err => {
-          alert('Registration Failed: ' + err);
-        });
+      // Look for the worker in the current directory
+      navigator.serviceWorker.register('sw-v2.js')
+        .then(reg => console.log('Success! Scope:', reg.scope))
+        .catch(err => alert('Registration Error: ' + err));
     });
   }
 </script>
