@@ -1,42 +1,28 @@
-const CACHE_NAME = 'offline-cache-v11';
-const OFFLINE_URLS = [
+const CACHE_NAME = 'offline-auto-v12';
+const FILES_TO_CACHE = [
   './',
   './index.html',
-  './offline.html',
+  './offline.html' // MUST match your file name exactly
 ];
 
-
-// 1. Install Event: Save your files into the cache
+// 1. AUTOMATICALLY cache files on load
 self.addEventListener('install', (event) => {
-    self.skipWaiting();
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(OFFLINE_URLS);
-        })
-    );
-});
-
-// 2. Activate Event: Take control of the page immediately
-self.addEventListener('activate', (event) => {
-    event.waitUntil(self.clients.claim());
-});
-
-// 3. Fetch Event: Look in Cache FIRST, then Network
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      // 1. If it's in the cache, return it immediately
-      if (response) {
-        return response;
-      }
-
-      // 2. If not in cache, try the network
-      return fetch(event.request).catch(() => {
-        // 3. If network fails AND it's a page request, show offline.html
-        if (event.request.mode === 'navigate' || (event.request.method === 'GET' && event.request.headers.get('accept').includes('text/html'))) {
-          return caches.match('./offline.html');
-        }
-      });
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('Pre-caching offline page...');
+      return cache.addAll(FILES_TO_CACHE);
     })
   );
+  self.skipWaiting(); // Forces it to activate immediately
+});
+
+// 2. AUTOMATICALLY show offline page if internet is down
+self.addEventListener('fetch', (event) => {
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match('./offline.html'); // Falls back to offline file
+      })
+    );
+  }
 });
