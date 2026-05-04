@@ -28,7 +28,7 @@ self.addEventListener('fetch', (event) => {
             return cachedResponse || fetch(event.request).catch(() => {
                 // If both fail (offline & not in cache), return index.html
                 if (event.request.mode === 'navigate') {
-                    return caches.match('/index.html');
+                    return caches.match('/public/index.html');
                 }
             });
         })
