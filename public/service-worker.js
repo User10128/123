@@ -1,4 +1,4 @@
-const CACHE_NAME = 'offline-cache-v7';
+const CACHE_NAME = 'offline-cache-v8';
 const OFFLINE_URLS = [
   '/public/offline.html'  // Your actual file
 ];
