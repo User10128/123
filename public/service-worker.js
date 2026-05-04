@@ -1,21 +1,24 @@
-const CACHE_NAME = 'offline-auto-v15';
+const CACHE_NAME = 'offline-v13';
 const FILES_TO_CACHE = [
-  './',
-  './index.html',
-  './offline.html' // MUST match your file name exactly
-  './background.html'
+  './', 
+  './index.html', 
+  './offline.html'
 ];
 
-// 1. AUTOMATICALLY cache files on load
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Pre-caching offline page...');
-      return cache.addAll(FILES_TO_CACHE);
+      // Use map to catch errors on individual files
+      return Promise.all(
+        FILES_TO_CACHE.map((url) => {
+          return cache.add(url).catch((err) => console.error('Failed to cache:', url, err));
+        })
+      );
     })
   );
-  self.skipWaiting(); // Forces it to activate immediately
+  self.skipWaiting();
 });
+
 
 // 2. AUTOMATICALLY show offline page if internet is down
 self.addEventListener('fetch', (event) => {
