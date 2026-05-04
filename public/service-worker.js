@@ -1,8 +1,9 @@
-const CACHE_NAME = 'offline-auto-v12';
+const CACHE_NAME = 'offline-auto-v15';
 const FILES_TO_CACHE = [
   './',
   './index.html',
   './offline.html' // MUST match your file name exactly
+  './background.html'
 ];
 
 // 1. AUTOMATICALLY cache files on load
