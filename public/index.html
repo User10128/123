@@ -4053,7 +4053,7 @@ await setDoc(gameRef, {
   }
 </script>
     <script>
-  navigator.serviceWorker.register('/service-worker.js')
+  navigator.serviceWorker.register('/sw.v2.js')
     .then(reg => {
       alert('SW Registered! Scope: ' + reg.scope);
     })
