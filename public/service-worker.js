@@ -1,7 +1,10 @@
 const CACHE_NAME = 'offline-cache-v9';
 const OFFLINE_URLS = [
-  '/public/offline.html'  // Your actual file
+  '/public/',
+  '/public/index.html',
+  '/public/offline.html',
 ];
+
 
 // 1. Install Event: Save your files into the cache
 self.addEventListener('install', (event) => {
