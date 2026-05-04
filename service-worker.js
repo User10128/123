@@ -1,49 +1,47 @@
-const CACHE_NAME = 'offline-v14';
+const CACHE_NAME = 'checkers-v15';
 const FILES_TO_CACHE = [
   '/',
   '/index.html',
   '/offline.html'
 ];
 
-// 1. Install Event: Cache files atomically
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      // cache.addAll is atomic. If one file fails, the whole cache fails.
-      // This prevents the silent failures you were experiencing.
-      return cache.addAll(FILES_TO_CACHE);
-    })
-  );
-  // Force the waiting service worker to become the active service worker
-  self.skipWaiting();
-});
-
-// 2. Activate Event: Clean up old caches and take control
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
+      console.log('Attempting to cache files...');
+      // Using a loop instead of addAll to prevent one tiny failure 
+      // from breaking the entire installation.
       return Promise.all(
-        cacheNames.map((cacheName) => {
-          // Delete any cache that isn't the current v14
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
+        FILES_TO_CACHE.map((url) => {
+          return fetch(url).then((response) => {
+            if (!response.ok) throw new Error('Not OK for ' + url);
+            return cache.put(url, response);
+          }).catch(err => console.error('Failed to cache:', url, err));
         })
       );
     })
   );
-  // Take control of all pages immediately without waiting for a refresh
-  self.clients.claim();
 });
 
-// 3. Fetch Event: Serve the offline page if the network fails
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keyList) => {
+      return Promise.all(keyList.map((key) => {
+        if (key !== CACHE_NAME) {
+          return caches.delete(key);
+        }
+      }));
+    })
+  );
+  return self.clients.claim();
+});
+
 self.addEventListener('fetch', (event) => {
-  // Only intercept requests for HTML pages
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() => {
-        // Fetch failed (user is offline), return the cached offline page
-        return caches.match('/offline.html');
+        return caches.match('/offline.html') || caches.match('/');
       })
     );
   }
