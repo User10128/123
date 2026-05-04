@@ -22,10 +22,12 @@ self.addEventListener('install', (event) => {
 
 // 2. AUTOMATICALLY show offline page if internet is down
 self.addEventListener('fetch', (event) => {
+  // Only handle "navigate" (opening a new page) requests
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() => {
-        return caches.match('./offline.html'); // Falls back to offline file
+        // This is the fallback that opens AUTOMATICALLY when network fails
+        return caches.match('./offline.html');
       })
     );
   }
