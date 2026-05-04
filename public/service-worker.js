@@ -1,35 +1,35 @@
-const CACHE_NAME = 'offline-cache-v4'; // Incrementing version forces a fresh start
-const OFFLINE_URL = '/offline.html'; 
+const CACHE_NAME = 'offline-cache-v5';
+const OFFLINE_URLS = [
+  '/',           // The root URL
+  '/index.html'  // Your actual file
+];
 
+// 1. Install Event: Save your files into the cache
 self.addEventListener('install', (event) => {
     self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            return cache.add(OFFLINE_URL);
+            return cache.addAll(OFFLINE_URLS);
         })
     );
 });
 
+// 2. Activate Event: Take control of the page immediately
 self.addEventListener('activate', (event) => {
     event.waitUntil(self.clients.claim());
 });
 
-// The fix: Intercept requests and fallback to cache if the network fails
+// 3. Fetch Event: Look in Cache FIRST, then Network
 self.addEventListener('fetch', (event) => {
-    // Only intercept navigation requests (opening the page)
-    if (event.request.mode === 'navigate') {
-        event.respondWith(
-            fetch(event.request).catch(() => {
-                // This catch only runs when offline
-                return caches.match(OFFLINE_URL);
-            })
-        );
-    } else {
-        // For images/scripts, try network, but fall back to cache if available
-        event.respondWith(
-            caches.match(event.request).then((response) => {
-                return response || fetch(event.request);
-            })
-        );
-    }
+    event.respondWith(
+        caches.match(event.request).then((cachedResponse) => {
+            // Return the cached file if found, otherwise try the network
+            return cachedResponse || fetch(event.request).catch(() => {
+                // If both fail (offline & not in cache), return index.html
+                if (event.request.mode === 'navigate') {
+                    return caches.match('/index.html');
+                }
+            });
+        })
+    );
 });
