@@ -1,8 +1,8 @@
-const CACHE_NAME = 'offline-cache-v9';
+const CACHE_NAME = 'offline-cache-v10';
 const OFFLINE_URLS = [
-  '/public/',
-  '/public/index.html',
-  '/public/offline.html',
+  './public/',
+  './public/index.html',
+  './public/offline.html',
 ];
 
 
@@ -34,7 +34,7 @@ self.addEventListener('fetch', (event) => {
       return fetch(event.request).catch(() => {
         // 3. If network fails AND it's a page request, show offline.html
         if (event.request.mode === 'navigate' || (event.request.method === 'GET' && event.request.headers.get('accept').includes('text/html'))) {
-          return caches.match('/public/offline.html');
+          return caches.match('./public/offline.html');
         }
       });
     })
