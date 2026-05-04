@@ -1,4 +1,4 @@
-const CACHE_NAME = 'offline-cache-v3'; // Incrementing version forces a fresh start
+const CACHE_NAME = 'offline-cache-v4'; // Incrementing version forces a fresh start
 const OFFLINE_URL = '/offline.html'; 
 
 self.addEventListener('install', (event) => {
