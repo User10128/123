@@ -1,22 +1,35 @@
-const CACHE_NAME = 'offline-cache-v1';
-const OFFLINE_URL = '/offline.html'; // Change this to the specific file you want cached
+const CACHE_NAME = 'offline-cache-v3'; // Incrementing version forces a fresh start
+const OFFLINE_URL = '/offline.html'; 
 
-// 1. Install Event: Save the file to the browser's cache immediately
 self.addEventListener('install', (event) => {
+    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            console.log('Opened cache and adding:', OFFLINE_URL);
             return cache.add(OFFLINE_URL);
         })
     );
 });
 
-// 2. Fetch Event: Intercept requests and serve the cached file if the network fails
+self.addEventListener('activate', (event) => {
+    event.waitUntil(self.clients.claim());
+});
+
+// The fix: Intercept requests and fallback to cache if the network fails
 self.addEventListener('fetch', (event) => {
-    event.respondWith(
-        fetch(event.request).catch(() => {
-            // This 'catch' triggers only if the network request fails (offline)
-            return caches.match(OFFLINE_URL);
-        })
-    );
+    // Only intercept navigation requests (opening the page)
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request).catch(() => {
+                // This catch only runs when offline
+                return caches.match(OFFLINE_URL);
+            })
+        );
+    } else {
+        // For images/scripts, try network, but fall back to cache if available
+        event.respondWith(
+            caches.match(event.request).then((response) => {
+                return response || fetch(event.request);
+            })
+        );
+    }
 });
