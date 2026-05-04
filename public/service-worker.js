@@ -1,6 +1,5 @@
 const CACHE_NAME = 'offline-cache-v5';
 const OFFLINE_URLS = [
-  '/public/',     // The root URL
   '/public/offline.html'  // Your actual file
 ];
 
