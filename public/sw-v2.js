@@ -1,10 +1,9 @@
 const CACHE_NAME = 'checkers-final-v1';
-const OFFLINE_URL = '/offline.html';
+const OFFLINE_URL = '/offline.html'; // Use the public-facing URL
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      // We only cache the offline page for now to ensure success
       return cache.add(new Request(OFFLINE_URL, {cache: 'reload'}));
     })
   );
