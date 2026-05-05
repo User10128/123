@@ -1411,6 +1411,53 @@
             const content = document.getElementById('footer-modal-content');
             const modal = document.getElementById('modal-footer');
             
+            if (type === 'about') {
+                title.innerText = "About Checkers";
+                content.innerHTML = `
+                    <p>Checkers (also known as Draughts) is a classic strategy board game for two players. Our version brings a modern, sleek aesthetic to this timeless game, offering both local and online play, as well as challenging AI opponents.</p>
+                    <h3 class="text-teal-400 font-bold mt-4">Features</h3>
+                    <ul class="list-disc list-inside text-slate-300 space-y-1 mt-2">
+                        <li>Local Multiplayer on one device</li>
+                        <li>Advanced AI with multiple difficulties</li>
+                        <li>Daily Challenges & Achievement Badges</li>
+                        <li>Fully Offline & Installable PWA</li>
+                    </ul>
+                    <p class="mt-4 italic text-slate-400 text-sm">Developed with passion for the strategy gaming community.</p>
+                `;
+            } else if (type === 'privacy') {
+                title.innerText = "Privacy Policy";
+                content.innerHTML = `
+                    <p>Your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your personal information when you use our Checkers game.</p>
+                    <h3 class="text-teal-400 font-bold mt-4">1. Information We Collect</h3>
+                    <p>We collect information you provide directly to us, such as your username, email address (if you sign up), and game statistics. We also collect data about your interactions with the game.</p>
+                    <h3 class="text-teal-400 font-bold mt-4">2. How We Use Your Information</h3>
+                    <p>We use the information we collect to provide, maintain, and improve our game, to save your progress, and to display leaderboards.</p>
+                    <h3 class="text-teal-400 font-bold mt-4">3. Data Security</h3>
+                    <p>We take reasonable measures to protect your personal information from loss, theft, misuse, and unauthorized access.</p>
+                `;
+            } else if (type === 'terms') {
+                title.innerText = "Terms of Service";
+                content.innerHTML = `
+                    <p>By using our Checkers game, you agree to be bound by these Terms of Service. Please read them carefully.</p>
+                    <h3 class="text-teal-400 font-bold mt-4">1. Use of the Game</h3>
+                    <p>You may use the game for your personal, non-commercial use only. You agree not to use the game for any illegal or unauthorized purpose.</p>
+                    <h3 class="text-teal-400 font-bold mt-4">2. User Content</h3>
+                    <p>You are responsible for any content you post in the game, such as your username. You agree not to post any content that is offensive, defamatory, or violates the rights of others.</p>
+                    <h3 class="text-teal-400 font-bold mt-4">3. Termination</h3>
+                    <p>We reserve the right to terminate your access to the game at any time, for any reason, without notice.</p>
+                `;
+            } else if (type === 'contact') {
+                title.innerText = "Contact Us";
+                content.innerHTML = `
+                    <p>If you have any questions or concerns about our Checkers game, please feel free to contact us.</p>
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-teal-500/20 mt-4">
+                        <p class="text-teal-300 font-bold">Email:</p>
+                        <p class="text-slate-300">help@checkers.page</p>
+                    </div>
+                    <p class="mt-4">We aim to respond to all inquiries within 48 hours.</p>
+                `;
+            }
+            
             modal.classList.remove('hidden');
         };
 
@@ -1631,9 +1678,21 @@
         }
     </script>
         <script>
-    // Automatically send them back to the home page when internet returns
-    window.addEventListener('online', () => {
-        window.location.href = './index';
+    // 1. Function to redirect to the offline page
+    function redirectToOffline() {
+        if (!navigator.onLine) {
+            window.location.href = './offline.html';
+        }
+    }
+
+    // 2. Check immediately when the page loads
+    window.addEventListener('load', () => {
+        redirectToOffline();
+    });
+
+    // 3. Listen for the connection dropping while the user is on the site
+    window.addEventListener('offline', () => {
+        redirectToOffline();
     });
 </script>
 </body>
