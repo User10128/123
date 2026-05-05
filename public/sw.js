@@ -1,9 +1,11 @@
-const CACHE_NAME = 'ugdvsygbvierwo647we';
+const CACHE_NAME = '43rvnr98eqncwiiuxweiy8exw';
 
 // 1. LIST ALL FILES: Add every file you want available offline here.
 const urlsToCache = [
     '/',
     '/index.html',
+    '/background.png',
+    '/favicon.png',
     '/offline',     // The page you want to redirect to
 ];
 
@@ -34,7 +36,7 @@ self.addEventListener('fetch', event => {
                 return fetch(event.request).catch(() => {
                     // IF BOTH FAIL (Offline & not cached), 
                     // redirect/show the offline.html file
-                    return caches.match('/offline.html');
+                    return caches.match('/offline');
                 });
             })
     );
