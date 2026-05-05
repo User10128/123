@@ -4038,8 +4038,9 @@ await setDoc(gameRef, {
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      // Adding /public/ ensures the browser finds the file
-      navigator.serviceWorker.register('/public/service-worker.js')
+      // Trying the relative path first. If you access your site 
+      // at checkers.page/index.html, this will find the worker.
+      navigator.serviceWorker.register('./service-worker.js')
         .then(reg => {
           alert('SYSTEM: Service Worker Connected!');
         })
@@ -4049,8 +4050,6 @@ await setDoc(gameRef, {
     });
   }
 </script>
-
-
     
 </body>
 </html>
