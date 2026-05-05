@@ -1,6 +1,5 @@
-const CACHE_NAME = 'site-assets-v3'; // Increased version to force an update
+const CACHE_NAME = 'site-assets-v2'; // Bumped to v2 to force an update
 
-// 1. CACHE ALL FILES: This ensures they are ready to be used when offline
 const urlsToCache = [
     './',
     './index.html',
@@ -11,15 +10,13 @@ const urlsToCache = [
     './article.html',
     './background.png',
     './favicon.png',
-    './firebase-blueprint.json',
-    './manifest.json',
-    './metadata.json',
+    './logo.png',
     './polls.html',
     './privacy.html',
     './service.html',
-    './sitemap.xml',
     './social.html',
-    './stratagies.html' // Matching your "stratagies" spelling
+    './stratagies.html', // Matched the spelling in your sidebar
+    './manifest.json'
 ];
 
 self.addEventListener('install', event => {
@@ -35,23 +32,22 @@ self.addEventListener('activate', event => {
     event.waitUntil(self.clients.claim());
 });
 
-// 2. THE "FORCE TO OFFLINE PAGE" LOGIC
 self.addEventListener('fetch', event => {
-    // Only apply this logic to "navigate" requests (loading a new page)
-    if (event.request.mode === 'navigate') {
-        event.respondWith(
-            fetch(event.request).catch(() => {
-                // If the network fails (offline), ignore the cache for the requested 
-                // page and show the offline.html file instead.
-                return caches.match('./offline.html');
-            })
-        );
-    } else {
-        // For images, CSS, and other assets, use the cache to stay fast.
-        event.respondWith(
-            caches.match(event.request).then(response => {
-                return response || fetch(event.request);
-            })
-        );
-    }
+    // We only want to "redirect" for actual web pages (navigation)
+    event.respondWith(
+        caches.match(event.request).then(cachedResponse => {
+            // 1. If it's in the cache, serve it
+            if (cachedResponse) {
+                return cachedResponse;
+            }
+
+            // 2. If not, try the network
+            return fetch(event.request).catch(() => {
+                // 3. If network fails AND it's a page request, show offline.html
+                if (event.request.mode === 'navigate') {
+                    return caches.match('./offline.html');
+                }
+            });
+        })
+    );
 });
