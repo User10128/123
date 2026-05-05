@@ -4,7 +4,7 @@ const CACHE_NAME = 'ugdvsygbvierwo647we';
 const urlsToCache = [
     '/',
     '/index.html',
-    '/offline.html',     // The page you want to redirect to
+    '/offline',     // The page you want to redirect to
 ];
 
 self.addEventListener('install', event => {
