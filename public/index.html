@@ -26,7 +26,7 @@
             -webkit-tap-highlight-color: transparent; 
             background-color: #0f172a;
             overflow-x: hidden;
-            position: relative;
+            position: relative; 
         }
 
         /* Background Animation */
@@ -4040,7 +4040,7 @@ await setDoc(gameRef, {
     window.addEventListener('load', () => {
       // Trying the relative path first. If you access your site 
       // at checkers.page/index.html, this will find the worker.
-      navigator.serviceWorker.register('./service-worker.js')
+      navigator.serviceWorker.register('./sw-v2.js')
         .then(reg => {
           alert('SYSTEM: Service Worker Connected!');
         })
