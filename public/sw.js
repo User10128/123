@@ -1,8 +1,11 @@
-const CACHE_NAME = 'offline-cache-v1';
+const CACHE_NAME = 'offline-cache-v2';
 
 // We use './' to handle slightly different folder structures
 const urlsToCache = [
     './',
+    './background.png',
+    './favicon.png',
+    './offline.html
     './index.html'
 ];
 
