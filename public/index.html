@@ -4038,13 +4038,18 @@ await setDoc(gameRef, {
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      // Look for the worker in the current directory
-      navigator.serviceWorker.register('sw-v2.js')
-        .then(reg => console.log('Success! Scope:', reg.scope))
-        .catch(err => alert('Registration Error: ' + err));
+      // Adding ?v=1 forces the browser to bypass any old cached versions
+      navigator.serviceWorker.register('/service-worker.js?v=1')
+        .then(reg => {
+          alert('SYSTEM: Service Worker Connected!');
+        })
+        .catch(err => {
+          alert('SYSTEM ERROR: ' + err);
+        });
     });
   }
 </script>
+
     
 </body>
 </html>
