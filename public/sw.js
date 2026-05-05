@@ -1,22 +1,10 @@
-const CACHE_NAME = 'site-assets-v2'; // Bumped to v2 to force an update
+const CACHE_NAME = 'site-assets-v1';
 
+// 1. LIST ALL FILES: Add every file you want available offline here.
 const urlsToCache = [
-    './',
-    './index.html',
-    './offline.html',
-    './404.html',
-    './about.html',
-    './admin-panel.html',
-    './article.html',
-    './background.png',
-    './favicon.png',
-    './logo.png',
-    './polls.html',
-    './privacy.html',
-    './service.html',
-    './social.html',
-    './stratagies.html', // Matched the spelling in your sidebar
-    './manifest.json'
+    '/',
+    '/index.html',
+    '/offline.html',     // The page you want to redirect to
 ];
 
 self.addEventListener('install', event => {
@@ -32,22 +20,22 @@ self.addEventListener('activate', event => {
     event.waitUntil(self.clients.claim());
 });
 
+// 2. THE "REDIRECT" LOGIC:
 self.addEventListener('fetch', event => {
-    // We only want to "redirect" for actual web pages (navigation)
     event.respondWith(
-        caches.match(event.request).then(cachedResponse => {
-            // 1. If it's in the cache, serve it
-            if (cachedResponse) {
-                return cachedResponse;
-            }
-
-            // 2. If not, try the network
-            return fetch(event.request).catch(() => {
-                // 3. If network fails AND it's a page request, show offline.html
-                if (event.request.mode === 'navigate') {
-                    return caches.match('./offline.html');
+        caches.match(event.request)
+            .then(response => {
+                // Return the file if it's in the cache
+                if (response) {
+                    return response;
                 }
-            });
-        })
+                
+                // If not in cache, try the network
+                return fetch(event.request).catch(() => {
+                    // IF BOTH FAIL (Offline & not cached), 
+                    // redirect/show the offline.html file
+                    return caches.match('/offline.html');
+                });
+            })
     );
 });
