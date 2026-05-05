@@ -1,41 +1,43 @@
-const CACHE_NAME = 'offline-cache-v2';
+const CACHE_NAME = 'site-assets-v3';
 
-// We use './' to handle slightly different folder structures
+// 1. LIST ALL FILES: Add every file you want available offline here.
 const urlsToCache = [
     './',
-    './background.png',
-    './favicon.png',
-    './offline.html
-    './index.html'
+    './index.html',
+    './offline.html',     // The page you want to redirect to
+    './404.html',       // Your Javascript
+    './logo.png'          // Your Images
 ];
 
-// 1. Install Event
 self.addEventListener('install', event => {
-    // Force the service worker to activate immediately
-    self.skipWaiting(); 
+    self.skipWaiting();
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                return cache.addAll(urlsToCache);
-            })
-            .catch(err => console.log('Cache failed:', err))
+        caches.open(CACHE_NAME).then(cache => {
+            return cache.addAll(urlsToCache);
+        })
     );
 });
 
-// 2. Activate Event: Take control of the page immediately
 self.addEventListener('activate', event => {
     event.waitUntil(self.clients.claim());
 });
 
-// 3. Fetch Event
+// 2. THE "REDIRECT" LOGIC:
 self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request)
             .then(response => {
+                // Return the file if it's in the cache
                 if (response) {
-                    return response; // Return from cache
+                    return response;
                 }
-                return fetch(event.request); // Return from network
+                
+                // If not in cache, try the network
+                return fetch(event.request).catch(() => {
+                    // IF BOTH FAIL (Offline & not cached), 
+                    // redirect/show the offline.html file
+                    return caches.match('/offline.html');
+                });
             })
     );
 });
