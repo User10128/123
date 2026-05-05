@@ -4035,5 +4035,20 @@ await setDoc(gameRef, {
             }
         });
     </script>   
+    <script>
+        // Check if the browser supports service workers
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // Register the service worker
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered successfully.');
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
