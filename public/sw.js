@@ -1,32 +1,38 @@
 const CACHE_NAME = 'offline-cache-v1';
 
-// Add the URLs you want to cache here
+// We use './' to handle slightly different folder structures
 const urlsToCache = [
-    '/',
-    '/index.html'
+    './',
+    './index.html'
 ];
 
-// 1. Install Event: Opens the cache and adds the files
+// 1. Install Event
 self.addEventListener('install', event => {
+    // Force the service worker to activate immediately
+    self.skipWaiting(); 
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
                 return cache.addAll(urlsToCache);
             })
+            .catch(err => console.log('Cache failed:', err))
     );
 });
 
-// 2. Fetch Event: Intercepts requests and serves from cache if available
+// 2. Activate Event: Take control of the page immediately
+self.addEventListener('activate', event => {
+    event.waitUntil(self.clients.claim());
+});
+
+// 3. Fetch Event
 self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request)
             .then(response => {
-                // Return the cached response if found
                 if (response) {
-                    return response;
+                    return response; // Return from cache
                 }
-                // Otherwise, fetch it from the network
-                return fetch(event.request);
+                return fetch(event.request); // Return from network
             })
     );
 });
