@@ -4038,8 +4038,8 @@ await setDoc(gameRef, {
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      // Adding ?v=1 forces the browser to bypass any old cached versions
-      navigator.serviceWorker.register('/service-worker.js?v=1')
+      // Adding /public/ ensures the browser finds the file
+      navigator.serviceWorker.register('/public/service-worker.js')
         .then(reg => {
           alert('SYSTEM: Service Worker Connected!');
         })
@@ -4049,6 +4049,7 @@ await setDoc(gameRef, {
     });
   }
 </script>
+
 
     
 </body>
