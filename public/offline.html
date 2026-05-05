@@ -1679,5 +1679,21 @@
             };
         }
     </script>
+    <script>
+    // 1. Function to redirect to the home page
+    const redirectToHome = () => {
+        window.location.href = '/index';
+    };
+
+    // 2. Check if the user is already online when the page loads
+    if (navigator.onLine) {
+        redirectToHome();
+    }
+
+    // 3. Listen for the 'online' event (triggered when connection returns)
+    window.addEventListener('online', () => {
+        redirectToHome();
+    });
+</script>
 </body>
 </html>
