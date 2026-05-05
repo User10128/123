@@ -1,4 +1,4 @@
-const CACHE_NAME = 'site-assets-v1';
+const CACHE_NAME = 'ugdvsygbvierwo647we';
 
 // 1. LIST ALL FILES: Add every file you want available offline here.
 const urlsToCache = [
