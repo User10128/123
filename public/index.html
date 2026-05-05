@@ -4034,22 +4034,6 @@ await setDoc(gameRef, {
                 updateAccountUI();
             }
         });
-    </script>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      // Trying the relative path first. If you access your site 
-      // at checkers.page/index.html, this will find the worker.
-      navigator.serviceWorker.register('./sw-v2.js')
-        .then(reg => {
-          alert('SYSTEM: Service Worker Connected!');
-        })
-        .catch(err => {
-          alert('SYSTEM ERROR: ' + err);
-        });
-    });
-  }
-</script>
-    
+    </script>   
 </body>
 </html>
