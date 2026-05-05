@@ -1690,5 +1690,23 @@
             };
         }
     </script>
+            <script>
+    // 1. Function to redirect to the offline page
+    function redirectToOffline() {
+        if (!navigator.onLine) {
+            window.location.href = './index';
+        }
+    }
+
+    // 2. Check immediately when the page loads
+    window.addEventListener('load', () => {
+        redirectToOffline();
+    });
+
+    // 3. Listen for the connection dropping while the user is on the site
+    window.addEventListener('offline', () => {
+        redirectToOffline();
+    });
+</script>
 </body>
 </html>
