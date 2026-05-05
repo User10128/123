@@ -36,7 +36,7 @@ self.addEventListener('fetch', event => {
                 return fetch(event.request).catch(() => {
                     // IF BOTH FAIL (Offline & not cached), 
                     // redirect/show the offline.html file
-                    return caches.match('/offline.html');
+                    return caches.match('./offline.html');
                 });
             })
     );
