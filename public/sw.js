@@ -1,4 +1,4 @@
-const CACHE_NAME = '43rvnr98eqncwiiuxweiy8exw';
+const CACHE_NAME = 'mayoseis2026';
 
 // 1. LIST ALL FILES: Add every file you want available offline here.
 const urlsToCache = [
