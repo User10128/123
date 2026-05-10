@@ -156,7 +156,7 @@
 
     <!-- Bottom Right Controls -->
     <div class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex gap-3">
-        <button onclick="window.open('https://checkers.page/polls', '_blank')" class="glass-btn p-2 sm:px-4 flex items-center gap-2" title="Open in New Tab">
+        <button onclick="window.open('https://checkers.page/polls', '_blank')" class="hidden sm:flex glass-btn p-2 sm:px-4 items-center gap-2" title="Open in New Tab">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
             <span class="hidden sm:inline">Polls</span>
         </button>
@@ -185,7 +185,7 @@
                 </button>
                 <button onclick="showView('view-main-menu')" class="glass-btn flex items-center justify-center gap-3 py-4 border-teal-500/30 text-teal-300 hover:bg-teal-500/10">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                    Continue
+                    Play as Guest
                 </button>
             </div>
             
@@ -308,6 +308,16 @@
                 <div class="flex flex-col gap-2 mt-2">
                     <button onclick="window.signOutGoogle()" class="glass-btn text-slate-400 hover:text-white py-2 border-slate-700">Sign Out</button>
                     <button onclick="window.deleteAccount()" class="text-[10px] text-red-500/50 hover:text-red-400 uppercase tracking-widest font-bold mt-2">Delete Account</button>
+                </div>
+                
+                <div class="flex flex-col gap-2 border-t border-teal-500/20 pt-4 text-left">
+                    <label class="text-sm text-teal-400 font-light tracking-[0.1em] uppercase">Daily Challenge Notifications</label>
+                    <p class="text-[10px] text-slate-400 mb-1">Receive device notifications at 24:00 UTC.</p>
+                    <select id="notification-setting" onchange="window.saveNotificationSetting(this.value)" class="glass-input text-sm py-2 bg-slate-900 border-teal-500/40 text-slate-300">
+                        <option value="weekly">Once a Week</option>
+                        <option value="daily">Daily</option>
+                        <option value="off">Off</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -968,6 +978,7 @@
         function startGame(mode, myPlayer = P1, wildRules = null, delayShowView = false) {
             gameState.wildRules = wildRules;
             gameState.mode = mode;
+            gameState.wasOnlineGame = false;
             gameState.myPlayer = myPlayer;
             gameState.turn = P1;
             gameState.board = initBoard();
@@ -1234,10 +1245,13 @@
                     let perfectBonus = (myNormals + myKings === 12) ? 2000 : 0; // Reward perfect game
                     
                     let multiplier = 1.0;
-                    if (gameState.mode === 'ai') {
+                    // Check if it started as an online game
+                    const effectiveMode = gameState.wasOnlineGame ? 'online' : gameState.mode;
+                    
+                    if (effectiveMode === 'ai') {
                         if (gameState.aiDifficulty === 'medium') multiplier = 1.5;
                         if (gameState.aiDifficulty === 'hard') multiplier = 2.5;
-                    } else if (gameState.mode === 'online') {
+                    } else if (effectiveMode === 'online') {
                         multiplier = 2.0;
                     }
                     
@@ -1247,10 +1261,11 @@
                     document.getElementById('score-text').classList.remove('hidden');
                     
                     const isPerfect = (myNormals + myKings) === 12;
-                    window.recordWin(gameState.mode, score, gameState.aiDifficulty, isPerfect);
+                    window.recordWin(effectiveMode, score, gameState.aiDifficulty, isPerfect);
                 } else {
                     document.getElementById('score-text').classList.add('hidden');
-                    if (gameState.mode === 'online' && gameState.winner !== gameState.myPlayer) {
+                    const effectiveMode = gameState.wasOnlineGame ? 'online' : gameState.mode;
+                    if (effectiveMode === 'online' && gameState.winner !== gameState.myPlayer) {
                         window.recordLoss();
                     }
                 }
@@ -1544,6 +1559,7 @@
         }
 
         // --- AI LOGIC ---
+        window.makeAIMove = makeAIMove;
         function makeAIMove() {
             if (gameState.winner) return;
             let bestMove = null;
@@ -2010,8 +2026,39 @@ window.joinGameFirebase = async (overrideId = null) => {
 
         window.processGameSnapshot = (snapshot) => {
             if (!snapshot.exists()) {
-                window.showNotification("Game closed");
-                window.quitGameFromEnd();
+                if (window.gameState && window.gameState.mode === 'online' && !window.gameState.winner) {
+                    showConfirm("Opponent left the game. Switch to Hard AI to continue?", () => {
+                        window.gameState.mode = 'ai';
+                        window.gameState.aiDifficulty = 'hard';
+                        window.gameState.wasOnlineGame = true;
+                        if (gameUnsubscribe) {
+                            gameUnsubscribe();
+                            gameUnsubscribe = null;
+                        }
+                        currentGameId = null;
+                        
+                        // Delete match documents just locally clean up state
+                        if (window.currentMatchDoc) {
+                            window.currentMatchDoc = null;
+                        }
+
+                        window.updateStatusText();
+                        window.showNotification("Switched to AI (Hard)");
+                        
+                        const chatBtns = document.querySelectorAll('[id^="btn-chat"]');
+                        chatBtns.forEach(b => b.classList.add('hidden'));
+
+                        if (window.gameState.turn !== window.gameState.myPlayer) {
+                            setTimeout(window.makeAIMove, 500);
+                        }
+                    }, () => {
+                        window.showNotification("Game closed");
+                        window.quitGameFromEnd();
+                    });
+                } else {
+                    window.showNotification("Game closed");
+                    window.quitGameFromEnd();
+                }
                 return;
             }
 
@@ -2272,6 +2319,10 @@ window.quitGameFirebase = async () => {
                 
                 if (window.setupNotificationsListener) {
                     window.setupNotificationsListener();
+                }
+                
+                if (window.setupNotificationTimers) {
+                    window.setupNotificationTimers();
                 }
             } else {
                 document.getElementById('account-logged-out').classList.remove('hidden');
@@ -2702,6 +2753,11 @@ window.quitGameFirebase = async () => {
                     window.myPlayerPoints = data.playerPoints || 5;
                     if (data.friendCode) friendCode = data.friendCode;
                     if (data.displayName) currentDisplayName = data.displayName;
+                    if (data.notificationSetting) {
+                        localStorage.setItem('dailyChallengeNotification', data.notificationSetting);
+                        const selectEl = document.getElementById('notification-setting');
+                        if (selectEl) selectEl.value = data.notificationSetting;
+                    }
                     
                     // Reset hidden flag when user connects
                     if (data.hiddenFromLeaderboard) {
@@ -3393,25 +3449,29 @@ window.quitGameFirebase = async () => {
                     else if (difficulty === 'hard') data.aiHardScore = Math.max(oldHard, score);
                 }
                 if (mode === 'online') {
-                    data.globalScore = Math.max(oldGlobal, score);
-                    
-                    // Points logic
-                    const today = new Date().toISOString().split('T')[0];
-                    if (data.lastPointsDate !== today) {
-                        data.dailyPoints = 0;
-                        data.lastPointsDate = today;
-                    }
+                    if (!window.gameState.wildRules) {
+                        data.globalScore = Math.max(oldGlobal, score);
+                        
+                        // Points logic
+                        const today = new Date().toISOString().split('T')[0];
+                        if (data.lastPointsDate !== today) {
+                            data.dailyPoints = 0;
+                            data.lastPointsDate = today;
+                        }
 
-                    if (data.dailyPoints < 20) {
-                        const oppPoints = window.opponentPoints || 5;
-                        const gain = calculatePoints(data.playerPoints, oppPoints, true);
-                        const actualGain = Math.min(gain, 20 - data.dailyPoints);
-                        data.playerPoints += actualGain;
-                        data.dailyPoints += actualGain;
-                        window.myPlayerPoints = data.playerPoints;
-                        window.showNotification(`+${actualGain} Player Points!`);
+                        if (data.dailyPoints < 20) {
+                            const oppPoints = window.opponentPoints || 5;
+                            const gain = calculatePoints(data.playerPoints, oppPoints, true);
+                            const actualGain = Math.min(gain, 20 - data.dailyPoints);
+                            data.playerPoints += actualGain;
+                            data.dailyPoints += actualGain;
+                            window.myPlayerPoints = data.playerPoints;
+                            window.showNotification(`+${actualGain} Player Points!`);
+                        } else {
+                            window.showNotification("Daily point cap reached (20/20)");
+                        }
                     } else {
-                        window.showNotification("Daily point cap reached (20/20)");
+                        window.showNotification("Wild Mode Win (No player points awarded)");
                     }
                 }
                 
@@ -3499,7 +3559,9 @@ window.quitGameFirebase = async () => {
         };
 
         window.recordLoss = async () => {
-            if (!isRegisteredUser || !fbUser || window.gameState.mode !== 'online') return;
+            const effectiveMode = window.gameState.wasOnlineGame ? 'online' : window.gameState.mode;
+            if (!isRegisteredUser || !fbUser || effectiveMode !== 'online') return;
+            if (window.gameState.wildRules) return; // Do not record points for wild mode
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
                 const docSnap = await getDoc(docRef).catch(e => handleFirestoreError(e, OperationType.GET, `artifacts/${appId}/public/data/profiles/${fbUser.uid}`));
@@ -3685,6 +3747,53 @@ window.quitGameFirebase = async () => {
         window.showLeaderboardView = () => {
             window.showView('view-leaderboard');
             window.switchLeaderboardTab('global');
+        };
+
+        window.saveNotificationSetting = async (val) => {
+            if (val !== 'off') {
+                try {
+                    const perm = await Notification.requestPermission();
+                    if (perm !== 'granted') {
+                        window.showNotification("Notifications blocked by browser.");
+                        document.getElementById('notification-setting').value = 'off';
+                        val = 'off';
+                    }
+                } catch(e) {}
+            }
+            if (fbUser && isRegisteredUser) {
+                const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
+                await updateDoc(profileRef, { notificationSetting: val }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `artifacts/${appId}/public/data/profiles/${fbUser.uid}`));
+            }
+            localStorage.setItem('dailyChallengeNotification', val);
+            window.setupNotificationTimers();
+        };
+
+        window.setupNotificationTimers = () => {
+            if (window.dailyNotifTimer) clearTimeout(window.dailyNotifTimer);
+            const setting = localStorage.getItem('dailyChallengeNotification') || 'weekly';
+            const selectEl = document.getElementById('notification-setting');
+            if (selectEl) selectEl.value = setting;
+            
+            if (setting === 'off') return;
+
+            const now = new Date();
+            const nextMidnightUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+            
+            const timeUntil = nextMidnightUTC.getTime() - now.getTime();
+            window.dailyNotifTimer = setTimeout(() => {
+                if (Notification.permission === 'granted') {
+                    // if weekly, only on Monday
+                    if (setting === 'weekly' && new Date().getUTCDay() !== 1) {
+                        // Skip
+                    } else {
+                        new Notification("New Daily Challenge!", {
+                            body: "A new Checkers daily challenge is available now!",
+                            icon: "/favicon.png"
+                        });
+                    }
+                }
+                window.setupNotificationTimers(); // schedule next
+            }, timeUntil);
         };
 
         window.deleteAccount = async () => {
