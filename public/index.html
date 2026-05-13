@@ -148,10 +148,27 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             <span class="hidden sm:inline">Social</span>
         </button>
-        <button onclick="showView('view-account')" class="glass-btn flex items-center justify-center rounded-full overflow-hidden w-9 h-9 sm:w-10 sm:h-10 border-teal-500/30 shrink-0 relative" title="Account" style="padding:0">
+        <button id="top-account-btn" onclick="window.handleAccountClick()" class="glass-btn flex items-center justify-center rounded-full overflow-hidden w-9 h-9 sm:w-10 sm:h-10 border-teal-500/30 shrink-0 relative" title="Account" style="padding:0">
             <svg id="top-account-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
             <img id="top-account-img" class="hidden w-full h-full object-cover">
         </button>
+        
+        <!-- Account Dropdown Panel -->
+        <div id="account-dropdown-panel" class="hidden absolute top-full right-0 mt-3 glass-panel border border-teal-500/30 rounded-xl shadow-2xl p-4 flex flex-col gap-3 min-w-[200px] text-left transform transition-all origin-top-right z-[100]">
+            <p class="text-xs text-slate-400 font-bold mb-1 border-b border-teal-500/20 pb-2">Signed in as<br><span id="dropdown-uid" class="text-[10px] text-teal-300 select-all font-mono tracking-wider font-normal mt-1 block"></span></p>
+            <button onclick="window.loadPersonalStats(); window.showView('view-stats'); window.closeAccountDropdown();" class="text-sm text-slate-200 hover:text-teal-300 text-left transition-colors flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+                Personal Stats
+            </button>
+            <button onclick="window.showView('view-account'); window.closeAccountDropdown();" class="text-sm text-slate-200 hover:text-teal-300 text-left transition-colors flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                Settings
+            </button>
+            <button onclick="window.signOutGoogle(); window.closeAccountDropdown();" class="text-sm text-red-400 hover:text-red-300 text-left transition-colors flex items-center gap-2 mt-1 border-t border-teal-500/20 pt-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                Sign Out
+            </button>
+        </div>
     </div>
 
     <!-- Bottom Right Controls -->
@@ -248,7 +265,7 @@
     <!-- ACCOUNT & FRIENDS VIEW -->
     <div id="view-account" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
         <div class="glass-panel w-full max-w-md p-8 rounded-2xl flex flex-col gap-6 text-center">
-            <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Account</h2>
+            <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Settings</h2>
             
             <!-- Logged out state -->
             <div id="account-logged-out" class="flex flex-col gap-4">
@@ -288,29 +305,11 @@
                         <input type="text" id="edit-username-input" class="glass-input flex-1 text-sm py-1" placeholder="New Username" onkeydown="if(event.key==='Enter') window.saveUsername(); if(event.key==='Escape') window.cancelEditUsername()">
                         <button onclick="window.saveUsername()" class="glass-btn px-3 text-xs hover:text-teal-300">Save</button>
                     </div>
-                    <div class="flex items-center justify-center gap-2 mt-2">
-                        <span class="text-xs text-slate-400">User ID:</span>
-                        <code id="account-uid" class="text-lg font-bold text-teal-300 bg-slate-900 px-3 py-1 rounded select-all tracking-widest">...</code>
-                    </div>
                 </div>
+                <!-- Hidden element to keep JS references intact -->
+                <code id="account-uid" class="hidden"></code>
 
-                <div class="flex gap-2 justify-center">
-                    <button onclick="window.loadPersonalStats(); showView('view-stats')" class="glass-btn px-4 py-2 text-sm flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
-                        Personal Stats
-                    </button>
-                    <button onclick="openModal('modal-social'); window.switchSocialTab('friends')" class="glass-btn px-4 py-2 text-sm flex items-center gap-2 border-teal-500/30 text-teal-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                        Social Hub
-                    </button>
-                </div>
-
-                <div class="flex flex-col gap-2 mt-2">
-                    <button onclick="window.signOutGoogle()" class="glass-btn text-slate-400 hover:text-white py-2 border-slate-700">Sign Out</button>
-                    <button onclick="window.deleteAccount()" class="text-[10px] text-red-500/50 hover:text-red-400 uppercase tracking-widest font-bold mt-2">Delete Account</button>
-                </div>
-                
-                <div class="flex flex-col gap-2 border-t border-teal-500/20 pt-4 text-left">
+                <div class="flex flex-col gap-2 border-teal-500/20 text-left">
                     <label class="text-sm text-teal-400 font-light tracking-[0.1em] uppercase">Daily Challenge Notifications</label>
                     <p class="text-[10px] text-slate-400 mb-1">Receive device notifications at 24:00 UTC.</p>
                     <select id="notification-setting" onchange="window.saveNotificationSetting(this.value)" class="glass-input text-sm py-2 bg-slate-900 border-teal-500/40 text-slate-300">
@@ -318,6 +317,10 @@
                         <option value="daily">Daily</option>
                         <option value="off">Off</option>
                     </select>
+                </div>
+                
+                <div class="flex flex-col gap-2 border-t border-teal-500/20 pt-4">
+                    <button onclick="window.deleteAccount()" class="text-[10px] text-red-500/50 hover:text-red-400 uppercase tracking-widest font-bold mt-2">Delete Account</button>
                 </div>
             </div>
         </div>
@@ -725,6 +728,46 @@
                 updateUniversalBackButton(id);
             }
         }
+
+        window.closeAccountDropdown = () => {
+            const dp = document.getElementById('account-dropdown-panel');
+            if (dp) dp.classList.add('hidden');
+        };
+
+        window.handleAccountClick = () => {
+            // Check if user is registered
+            if (window.isRegisteredUser && window.isRegisteredUser()) {
+                const dp = document.getElementById('account-dropdown-panel');
+                if (dp) {
+                    if (dp.classList.contains('hidden')) {
+                        dp.classList.remove('hidden');
+                        const dpUid = document.getElementById('dropdown-uid');
+                        const fbFriendCode = document.getElementById('account-uid') ? document.getElementById('account-uid').innerText : null;
+                        
+                        // We want to show the 8-digit friend code. If it's the actual long UID, it means it hasn't loaded yet.
+                        if (dpUid && fbFriendCode && fbFriendCode.length <= 10) {
+                            dpUid.innerText = fbFriendCode;
+                        } else if (dpUid) {
+                            dpUid.innerText = "Loading...";
+                        }
+                    } else {
+                        dp.classList.add('hidden');
+                    }
+                }
+            } else {
+                showView('view-account');
+            }
+        };
+
+        document.addEventListener('click', (e) => {
+            const dp = document.getElementById('account-dropdown-panel');
+            const btn = document.getElementById('top-account-btn');
+            if (dp && !dp.classList.contains('hidden') && btn) {
+                if (!dp.contains(e.target) && !btn.contains(e.target)) {
+                    dp.classList.add('hidden');
+                }
+            }
+        });
 
         function updateUniversalBackButton(viewId) {
             const backBtn = document.getElementById('universal-back-btn');
@@ -4125,6 +4168,7 @@ await setDoc(gameRef, {
             
             authInitialized = true;
             fbUser = user;
+            window.currentUid = user?.uid;
             if (user) {
                 isRegisteredUser = !user.isAnonymous;
                 updateAccountUI();
