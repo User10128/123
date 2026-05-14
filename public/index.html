@@ -173,7 +173,7 @@
 
     <!-- Bottom Right Controls -->
     <div class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex gap-3">
-        <button onclick="window.showLanguagePicker()" class="hidden sm:flex glass-btn p-2 sm:px-4 items-center gap-2" title="Change Language" data-lang-btn="true">
+        <button onclick="window.showLanguagePicker()" class="flex glass-btn p-2 sm:px-4 items-center gap-2" title="Change Language" data-lang-btn="true">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
             <span class="hidden sm:inline" data-orig-text="Language">Language</span>
         </button>
@@ -2782,6 +2782,16 @@ window.quitGameFirebase = async () => {
             }
             
             document.getElementById('notif-dot-top').classList.add('hidden');
+        };
+
+        window.saveLanguageToProfile = async (langId) => {
+            if (!fbUser || !isRegisteredUser) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
+                await setDoc(docRef, { language: langId }, { merge: true });
+            } catch (e) {
+                console.error("Failed to save language to profile", e);
+            }
         };
 
         async function updatePublicProfile(isOnline) {
