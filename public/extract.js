@@ -6,7 +6,7 @@ const regex = />([^<]+)</g;
 let match;
 while ((match = regex.exec(html)) !== null) {
     const text = match[1].trim();
-    if (text && text.length > 1 && /[A-Za-z]/.test(text) && !text.includes('function') && !text.includes('var ')) {
+    if (text && text.length > 1 && /^[A-Z]/.test(text) && !text.includes('function') && !text.includes('var ')) {
         texts.add(text);
     }
 }
