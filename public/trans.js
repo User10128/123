@@ -18,7 +18,7 @@ const translations = {
     "Game Over": { "en-US": "Game Over", "en-GB": "Game Over", "es": "Fin del juego", "fr": "Fin de partie", "de": "Spiel vorbei", "nl": "Spel voorbij" },
     "Play Again": { "en-US": "Play Again", "en-GB": "Play Again", "es": "Jugar de nuevo", "fr": "Rejouer", "de": "Nochmal spielen", "nl": "Opnieuw spelen" },
     "Main Menu": { "en-US": "Main Menu", "en-GB": "Main Menu", "es": "Menú principal", "fr": "Menu principal", "de": "Hauptmenü", "nl": "Hoofdmenu" },
-    "Language": { "en-US": "Language", "en-GB": "Language", "es": "Idioma", "fr": "Langue", "de": "Sprache", "nl": "Taal" },
+    "Language": { "en-US": "Language", "en-GB": "Language", "es": "Idioma", "fr": "Langues", "de": "Sprache", "nl": "Taal" },
     "Matchmaking": { "en-US": "Matchmaking", "en-GB": "Matchmaking", "es": "Búsqueda de partida", "fr": "Recherche de partie", "de": "Spielersuche", "nl": "Matchmaking" },
     "Standard": { "en-US": "Standard", "en-GB": "Standard", "es": "Estándar", "fr": "Standard", "de": "Standard", "nl": "Standaard" },
     "Wild Mode": { "en-US": "Wild Mode", "en-GB": "Wild Mode", "es": "Modo salvaje", "fr": "Mode sauvage", "de": "Wild-Modus", "nl": "Wild-modus" },
@@ -27,7 +27,41 @@ const translations = {
     "Social Hub": { "en-US": "Social Hub", "en-GB": "Social Hub", "es": "Centro social", "fr": "Centre social", "de": "Gespächsmittelpunkt", "nl": "Sociaal centrum" },
     "Settings": { "en-US": "Settings", "en-GB": "Settings", "es": "Ajustes", "fr": "Paramètres", "de": "Einstellungen", "nl": "Instellingen" },
     "Sign In": { "en-US": "Sign In", "en-GB": "Sign In", "es": "Iniciar sesión", "fr": "Se connecter", "de": "Anmelden", "nl": "Aanmelden" },
-    "Sign Out": { "en-US": "Sign Out", "en-GB": "Sign Out", "es": "Cerrar sesión", "fr": "Se déconnecter", "de": "Abmelden", "nl": "Afmelden" }
+    "Sign Out": { "en-US": "Sign Out", "en-GB": "Sign Out", "es": "Cerrar sesión", "fr": "Se déconnecter", "de": "Abmelden", "nl": "Afmelden" },
+    "About": { "en-US": "About", "en-GB": "About", "es": "Acerca de", "fr": "À propos", "de": "Über", "nl": "Over" },
+    "Leaderboard": { "en-US": "Leaderboard", "en-GB": "Leaderboard", "es": "Clasificación", "fr": "Classement", "de": "Bestenliste", "nl": "Scorebord" },
+    "Social": { "en-US": "Social", "en-GB": "Social", "es": "Social", "fr": "Social", "de": "Soziales", "nl": "Sociaal" },
+    "Privacy Policy": { "en-US": "Privacy Policy", "en-GB": "Privacy Policy", "es": "Política de privacidad", "fr": "Politique de confidentialité", "de": "Datenschutzerklärung", "nl": "Privacybeleid" },
+    "Terms of Service": { "en-US": "Terms of Service", "en-GB": "Terms of Service", "es": "Términos de servicio", "fr": "Conditions d'utilisation", "de": "Nutzungsbedingungen", "nl": "Servicevoorwaarden" },
+    "Global Matchmaking": { "en-US": "Global Matchmaking", "en-GB": "Global Matchmaking", "es": "Emparejamiento global", "fr": "Recherche de partie mondiale", "de": "Globale Spielersuche", "nl": "Wereldwijde matchmaking" },
+    "Offline": { "en-US": "Offline", "en-GB": "Offline", "es": "Desconectado", "fr": "Hors ligne", "de": "Offline", "nl": "Offline" },
+    "Online": { "en-US": "Online", "en-GB": "Online", "es": "En línea", "fr": "En ligne", "de": "Online", "nl": "Online" },
+    "Points": { "en-US": "Points", "en-GB": "Points", "es": "Puntos", "fr": "Points", "de": "Punkte", "nl": "Punten" },
+    "Delete Account": { "en-US": "Delete Account", "en-GB": "Delete Account", "es": "Borrar cuenta", "fr": "Supprimer le compte", "de": "Konto löschen", "nl": "Account verwijderen" },
+    "Daily Challenge": { "en-US": "Daily Challenge", "en-GB": "Daily Challenge", "es": "Reto diario", "fr": "Défi quotidien", "de": "Tägliche Herausforderung", "nl": "Dagelijkse uitdaging" },
+    "Requests": { "en-US": "Requests", "en-GB": "Requests", "es": "Peticiones", "fr": "Demandes", "de": "Anfragen", "nl": "Verzoeken" },
+    "Search": { "en-US": "Search", "en-GB": "Search", "es": "Buscar", "fr": "Chercher", "de": "Suchen", "nl": "Zoeken" },
+    "Find People": { "en-US": "Find People", "en-GB": "Find People", "es": "Buscar personas", "fr": "Trouver des personnes", "de": "Personen finden", "nl": "Mensen vinden" },
+    "Chat": { "en-US": "Chat", "en-GB": "Chat", "es": "Chat", "fr": "Chat", "de": "Plaudern", "nl": "Chatten" },
+    "Profile": { "en-US": "Profile", "en-GB": "Profile", "es": "Perfil", "fr": "Profil", "de": "Profil", "nl": "Profiel" },
+    "Good move!": { "en-US": "Good move!", "en-GB": "Good move!", "es": "¡Buen movimiento!", "fr": "Joli coup !", "de": "Guter Zug!", "nl": "Goede zet!" },
+    "Still there?": { "en-US": "Still there?", "en-GB": "Still there?", "es": "¿Sigues ahí?", "fr": "Toujours là ?", "de": "Noch da?", "nl": "Ben je er nog?" },
+    "Play again?": { "en-US": "Play again?", "en-GB": "Play again?", "es": "¿Jugar de nuevo?", "fr": "Rejouer ?", "de": "Nochmal spielen?", "nl": "Opnieuw spelen?" },
+    "Yes!": { "en-US": "Yes!", "en-GB": "Yes!", "es": "¡Sí!", "fr": "Oui !", "de": "Ja!", "nl": "Ja!" },
+    "No.": { "en-US": "No.", "en-GB": "No.", "es": "No.", "fr": "Non.", "de": "Nein.", "nl": "Nee." },
+    "Checkers": { "en-US": "Checkers", "en-GB": "Draughts", "es": "Damas", "fr": "Dames", "de": "Dame", "nl": "Dammen" },
+    "Player 1 Wins!": { "en-US": "Player 1 Wins!", "en-GB": "Player 1 Wins!", "es": "¡El jugador 1 gana!", "fr": "Le joueur 1 gagne !", "de": "Spieler 1 gewinnt!", "nl": "Speler 1 wint!" },
+    "Player 2 Wins!": { "en-US": "Player 2 Wins!", "en-GB": "Player 2 Wins!", "es": "¡El jugador 2 gana!", "fr": "Le joueur 2 gagne !", "de": "Spieler 2 gewinnt!", "nl": "Speler 2 wint!" },
+    "You Win!": { "en-US": "You Win!", "en-GB": "You Win!", "es": "¡Ganaste!", "fr": "Vous avez gagné !", "de": "Du gewinnst!", "nl": "Jij wint!" },
+    "You Lose.": { "en-US": "You Lose.", "en-GB": "You Lose.", "es": "Perdiste.", "fr": "Vous avez perdu.", "de": "Du verlierst.", "nl": "Je verliest." },
+    "It's a Draw!": { "en-US": "It's a Draw!", "en-GB": "It's a Draw!", "es": "¡Es un empate!", "fr": "Match nul !", "de": "Unentschieden!", "nl": "Het is gelijkspel!" },
+    "Opponent Disconnected.": { "en-US": "Opponent Disconnected.", "en-GB": "Opponent Disconnected.", "es": "El oponente se desconectó.", "fr": "Adversaire déconnecté.", "de": "Gegner hat die Verbindung getrennt.", "nl": "Tegenstander is de verbinding kwijt." },
+    "Opponent Abandoned Match.": { "en-US": "Opponent Abandoned Match.", "en-GB": "Opponent Abandoned Match.", "es": "El oponente abandonó la partida.", "fr": "L'adversaire a abandonné le match.", "de": "Gegner hat das Spiel abgebrochen.", "nl": "Tegenstander heeft de wedstrijd verlaten." },
+    "Good morning": { "en-US": "Good morning", "en-GB": "Good morning", "es": "Buenos días", "fr": "Bonjour", "de": "Guten Morgen", "nl": "Goedemorgen" },
+    "Good afternoon": { "en-US": "Good afternoon", "en-GB": "Good afternoon", "es": "Buenas tardes", "fr": "Bon après-midi", "de": "Guten Tag", "nl": "Goedemiddag" },
+    "Good evening": { "en-US": "Good evening", "en-GB": "Good evening", "es": "Buenas noches", "fr": "Bonsoir", "de": "Guten Abend", "nl": "Goedenavond" },
+    "Active Games:": { "en-US": "Active Games:", "en-GB": "Active Games:", "es": "Partidas activas:", "fr": "Parties actives :", "de": "Aktive Spiele:", "nl": "Actieve spellen:" },
+    "Score: ": { "en-US": "Score: ", "en-GB": "Score: ", "es": "Puntuación: ", "fr": "Score : ", "de": "Punktzahl: ", "nl": "Score: " }
 };
 
 const languages = [
@@ -44,8 +78,9 @@ let currentLang = localStorage.getItem('appLang') || 'en-US';
 function walkAndTranslate(node) {
     if (node.nodeType === 3) {
         const text = node.nodeValue.trim();
+        if (!text) return;
         // If we hadn't saved orig text, do it now
-        if (text && !node.parentElement.hasAttribute('data-orig-text')) {
+        if (!node.parentElement.hasAttribute('data-orig-text')) {
             // Check if it matches any known EN string or any known string in translations
             let matchedEnKey = null;
             if (translations[text]) {
@@ -78,6 +113,14 @@ function walkAndTranslate(node) {
         }
     }
 }
+
+window.translatePhrase = function(text) {
+    if (!text) return text;
+    if (translations[text] && translations[text][currentLang]) {
+        return translations[text][currentLang];
+    }
+    return text;
+};
 
 window.applyTranslations = function() {
     walkAndTranslate(document.body);
