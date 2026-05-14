@@ -1235,22 +1235,23 @@
             if (gameState.winner) {
                 let msg = "";
                 let iWon = false;
+                const tp = window.translatePhrase || (s => s);
 
                 if (gameState.mode === 'local') {
-                    msg = `Player ${gameState.winner} Wins!`;
+                    msg = tp(`Player ${gameState.winner} Wins!`);
                 } else if (gameState.mode === 'ai') {
                     if (gameState.winner === P1) {
-                        msg = "You Win!";
+                        msg = tp("You Win!");
                         iWon = true;
                     } else {
-                        msg = "AI Wins!";
+                        msg = tp("AI Wins!");
                     }
                 } else {
                     if (gameState.winner === gameState.myPlayer) {
-                        msg = "You Win!";
+                        msg = tp("You Win!");
                         iWon = true;
                     } else {
-                        msg = "Opponent Wins!";
+                        msg = tp("Opponent Wins!");
                     }
                 }
                 document.getElementById('winner-text').innerText = msg;
@@ -1440,16 +1441,17 @@
             }
 
             let turnStr = "";
+            const tp = window.translatePhrase || (s => s);
             if (gameState.mode === 'local') {
-                turnStr = gameState.turn === P1 ? "Player 1 (Light Teal)" : "Player 2 (Dark Teal)";
+                turnStr = gameState.turn === P1 ? tp("Player 1 (Light Teal)") : tp("Player 2 (Dark Teal)");
             } else if (gameState.mode === 'ai') {
-                turnStr = gameState.turn === P1 ? "Your Turn" : "AI is thinking...";
+                turnStr = gameState.turn === P1 ? tp("Your Turn") : tp("AI is thinking...");
             } else if (gameState.mode === 'online') {
-                turnStr = gameState.turn === gameState.myPlayer ? "Your Turn" : "Opponent's Turn";
+                turnStr = gameState.turn === gameState.myPlayer ? tp("Your Turn") : tp("Opponent's Turn");
             }
 
             if (gameState.mustJumpPiece) {
-                turnStr += " — Jump Forced!";
+                turnStr += tp(" — Jump Forced!");
                 statusEl.classList.add('text-teal-300', 'border-teal-500/50', 'bg-teal-900/30');
                 statusEl.classList.remove('text-slate-300', 'border-slate-700', 'bg-slate-800/50');
             } else {
@@ -2415,8 +2417,11 @@ window.quitGameFirebase = async () => {
                     }
 
                     nameEl.innerText = data.displayName || 'Player';
-                    pointsEl.innerText = `${data.playerPoints || 5} Points`;
-                    statsEl.innerText = `Wins: ${data.wins || 0} | Losses: ${data.losses || 0}`;
+                    const ds = window.translatePhrase ? window.translatePhrase("Points") : "Points";
+                    const wds = window.translatePhrase ? window.translatePhrase("Wins:") : "Wins:";
+                    const lds = window.translatePhrase ? window.translatePhrase("| Losses:") : "| Losses:";
+                    pointsEl.innerText = `${data.playerPoints || 5} ${ds}`;
+                    statsEl.innerText = `${wds} ${data.wins || 0} ${lds} ${data.losses || 0}`;
                     
                     const awardIcons = getAwardIcons();
                     const allItems = [...(data.awards || []), ...(data.badges || [])];
