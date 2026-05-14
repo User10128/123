@@ -1300,7 +1300,8 @@
                     
                     score = Math.floor((baseScore + pieceBonus + timeBonus + efficiencyBonus + perfectBonus) * multiplier);
                     
-                    document.getElementById('score-text').innerText = `Score: ${score}`;
+                    const ds = window.translatePhrase ? window.translatePhrase("Score: ") : "Score: ";
+                    document.getElementById('score-text').innerText = `${ds.trim()} ${score}`;
                     document.getElementById('score-text').classList.remove('hidden');
                     
                     const isPerfect = (myNormals + myKings) === 12;
@@ -2335,7 +2336,8 @@ window.quitGameFirebase = async () => {
                 nameString = ", " + fbUser.displayName;
             }
             
-            greetingEl.innerText = `Good ${timeOfDay}${nameString}`;
+            const greeting = window.translatePhrase ? window.translatePhrase(`Good ${timeOfDay}`) : `Good ${timeOfDay}`;
+            greetingEl.innerText = `${greeting}${nameString}`;
         }
 
         function updateAccountUI() {
@@ -4012,7 +4014,8 @@ window.startGlobalMatch = async (mode = 'standard') => {
                         activeCount++;
                     });
 
-                    document.getElementById('active-games-count').innerText = `Active Games: ${activeCount}`;
+                    const activeGamesStr = window.translatePhrase ? window.translatePhrase("Active Games:") : "Active Games:";
+                    document.getElementById('active-games-count').innerText = `${activeGamesStr} ${activeCount}`;
 
                     if (availableHostDoc) {
                         if (fallbackTimer) clearTimeout(fallbackTimer);
