@@ -138,7 +138,72 @@ Object.assign(translations, {
     "Opponent's Turn": { "en-US": "Opponent's Turn", "en-GB": "Opponent's Turn", "es": "Turno del oponente", "fr": "Tour de l'adversaire", "de": "Gegnerischer Zug", "nl": "Beurt van de tegenstander" },
     " — Jump Forced!": { "en-US": " — Jump Forced!", "en-GB": " — Jump Forced!", "es": " — ¡Salto obligatorio!", "fr": " — Saut forcé !", "de": " — Sprungzwang!", "nl": " — Sprong verplicht!" },
     "AI Wins!": { "en-US": "AI Wins!", "en-GB": "AI Wins!", "es": "¡La IA Gana!", "fr": "L'IA gagne !", "de": "KI gewinnt!", "nl": "AI wint!" },
-    "Opponent Wins!": { "en-US": "Opponent Wins!", "en-GB": "Opponent Wins!", "es": "¡El Oponente Gana!", "fr": "L'adversaire gagne !", "de": "Gegner gewinnt!", "nl": "Tegenstander wint!" }
+    "Opponent Wins!": { "en-US": "Opponent Wins!", "en-GB": "Opponent Wins!", "es": "¡El Oponente Gana!", "fr": "L'adversaire gagne !", "de": "Gegner gewinnt!", "nl": "Tegenstander wint!" },
+    "Checkers Offline": { "en-US": "Checkers Offline", "en-GB": "Draughts Offline", "es": "Damas Offline", "fr": "Dames Hors Ligne", "de": "Dame Offline", "nl": "Dammen Offline" },
+    "About Checkers": { "en-US": "About Checkers", "en-GB": "About Draughts", "es": "Acerca de Damas", "fr": "À propos des Dames", "de": "Über Dame", "nl": "Over Dammen" },
+    "Welcome to Checkers. Your objective is to capture all opponent pieces or block them so they cannot move.": {
+       "en-US": "Welcome to Checkers. Your objective is to capture all opponent pieces or block them so they cannot move.",
+       "en-GB": "Welcome to Draughts. Your objective is to capture all opponent pieces or block them so they cannot move.",
+       "es": "Bienvenido a Damas. Tu objetivo es capturar todas las piezas del oponente o bloquearlas.",
+       "fr": "Bienvenue aux Dames. Votre objectif est de capturer toutes les pièces de l'adversaire ou de les bloquer.",
+       "de": "Willkommen bei Dame. Dein Ziel ist es, alle gegnerischen Steine zu schlagen oder zu blockieren.",
+       "nl": "Welkom bij Dammen. Je doel is om alle vijandelijke stukken te slaan of te blokkeren."
+    },
+    "Checkers (also known as Draughts) is a classic strategy board game for two players. Our version brings a modern, sleek aesthetic to this timeless game, offering both local and online play, as well as challenging AI opponents.": {
+       "en-US": "Checkers (also known as Draughts) is a classic strategy board game for two players. Our version brings a modern, sleek aesthetic to this timeless game, offering both local and online play, as well as challenging AI opponents.",
+       "en-GB": "Draughts is a classic strategy board game for two players. Our version brings a modern, sleek aesthetic to this timeless game, offering both local and online play, as well as challenging AI opponents.",
+       "es": "Damas es un clásico juego de mesa de estrategia para dos jugadores. Nuestra versión aporta una estética moderna.",
+       "fr": "Les Dames sont un jeu de société de stratégie classique pour deux joueurs. Notre version apporte une esthétique moderne.",
+       "de": "Dame ist ein klassisches Strategie-Brettspiel für zwei Spieler. Unsere Version bietet eine moderne Ästhetik.",
+       "nl": "Dammen is een klassiek strategisch bordspel voor twee spelers. Onze versie biedt een moderne, strakke esthetiek."
+    },
+    "Your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your personal information when you use our Checkers game.": {
+       "en-US": "Your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your personal information when you use our Checkers game.",
+       "en-GB": "Your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your personal information when you use our Draughts game.",
+       "es": "Tu privacidad es importante para nosotros. Esta política explica cómo recopilamos y protegemos tu información.",
+       "fr": "Votre vie privée est importante pour nous. Cette politique explique comment nous protégeons vos informations.",
+       "de": "Deine Privatsphäre ist uns wichtig. Diese Richtlinie erklärt, wie wir deine Daten schützen.",
+       "nl": "Jouw privacy is belangrijk voor ons. Dit beleid legt uit hoe wij jouw informatie beschermen."
+    },
+    "By using our Checkers game, you agree to be bound by these Terms of Service. Please read them carefully.": {
+       "en-US": "By using our Checkers game, you agree to be bound by these Terms of Service. Please read them carefully.",
+       "en-GB": "By using our Draughts game, you agree to be bound by these Terms of Service. Please read them carefully.",
+       "es": "Al usar nuestro juego, aceptas estos Términos de servicio. Léelos detenidamente.",
+       "fr": "En utilisant notre jeu, vous acceptez ces Conditions d'utilisation. Lisez-les attentivement.",
+       "de": "Durch die Nutzung unseres Spiels stimmst du diesen Nutzungsbedingungen zu. Bitte lies sie sorgfältig durch.",
+       "nl": "Door ons spel te gebruiken, ga je akkoord met deze Servicevoorwaarden. Lees ze zorgvuldig door."
+    },
+    "If you have any questions or concerns about our Checkers game, please feel free to contact us.": {
+       "en-US": "If you have any questions or concerns about our Checkers game, please feel free to contact us.",
+       "en-GB": "If you have any questions or concerns about our Draughts game, please feel free to contact us.",
+       "es": "Si tienes preguntas o inquietudes, no dudes en contactarnos.",
+       "fr": "Si vous avez des questions ou des préoccupations, n'hésitez pas à nous contacter.",
+       "de": "Wenn du Fragen oder Bedenken hast, kontaktiere uns bitte.",
+       "nl": "Als je vragen of opmerkingen hebt, neem dan gerust contact met ons op."
+    },
+    "A new Checkers daily challenge is available now!": {
+       "en-US": "A new Checkers daily challenge is available now!",
+       "en-GB": "A new Draughts daily challenge is available now!",
+       "es": "¡Un nuevo reto diario disponible ahora!",
+       "fr": "Un nouveau défi quotidien est disponible maintenant !",
+       "de": "Eine neue tägliche Herausforderung ist jetzt verfügbar!",
+       "nl": "Er is nu een nieuwe dagelijkse uitdaging beschikbaar!"
+    },
+    "Checkers Player": {
+       "en-US": "Checkers Player",
+       "en-GB": "Draughts Player",
+       "es": "Jugador de Damas",
+       "fr": "Joueur de Dames",
+       "de": "Dame-Spieler",
+       "nl": "Damspeler"
+    },
+    "Live Score:": { "en-US": "Live Score:", "en-GB": "Live Score:", "es": "Puntos:", "fr": "Score en direct:", "de": "Live-Spielstand:", "nl": "Live score:" },
+    "Random Moves": { "en-US": "Random Moves", "en-GB": "Random Moves", "es": "Movimientos aleatorios", "fr": "Mouvements aléatoires", "de": "Zufällige Züge", "nl": "Willekeurige zetten" },
+    "Basic Tactics": { "en-US": "Basic Tactics", "en-GB": "Basic Tactics", "es": "Tácticas básicas", "fr": "Tactiques de base", "de": "Grundlegende Taktiken", "nl": "Basis tactieken" },
+    "Minimax Logic": { "en-US": "Minimax Logic", "en-GB": "Minimax Logic", "es": "Lógica Minimax", "fr": "Logique Minimax", "de": "Minimax-Logik", "nl": "Minimax logica" },
+    "Something went wrong": { "en-US": "Something went wrong", "en-GB": "Something went wrong", "es": "Algo salió mal", "fr": "Quelque chose s'est mal passé", "de": "Etwas ist schief gelaufen", "nl": "Er is iets misgegaan" },
+    "Reload App": { "en-US": "Reload App", "en-GB": "Reload App", "es": "Recargar app", "fr": "Recharger l'application", "de": "App neu laden", "nl": "App herladen" },
+    "Win games to earn awards!": { "en-US": "Win games to earn awards!", "en-GB": "Win games to earn awards!", "es": "¡Gana juegos para obtener premios!", "fr": "Gagnez pour remporter des prix !", "de": "Gewinne Spiele für Auszeichnungen!", "nl": "Win spellen om prijzen te verdienen!" }
 });
 
 const languages = [
