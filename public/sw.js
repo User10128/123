@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mayoocho2026';
+const CACHE_NAME = 'mayotrece2026';
 
 // 1. LIST ALL FILES: Add every file you want available offline here.
 const urlsToCache = [
@@ -6,7 +6,8 @@ const urlsToCache = [
     '/index.html',
     '/background.png',
     '/favicon.png',
-    '/offline',     // The page you want to redirect to
+    '/offline.html',     // The page you want to redirect to
+    '/trans.js',
 ];
 
 self.addEventListener('install', event => {
@@ -36,7 +37,7 @@ self.addEventListener('fetch', event => {
                 return fetch(event.request).catch(() => {
                     // IF BOTH FAIL (Offline & not cached), 
                     // redirect/show the offline.html file
-                    return caches.match('/offline');
+                    return caches.match('/offline.html');
                 });
             })
     );
