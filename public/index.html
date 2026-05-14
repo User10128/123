@@ -4204,21 +4204,29 @@ await setDoc(gameRef, {
                     setupResponsesListener();
                     
                     // Fetch profile for daily challenge UI and language
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
-                    const docSnap = await getDoc(docRef);
-                    if (docSnap.exists()) {
-                        const dat = docSnap.data();
-                        updateDailyChallengeUI(dat);
-                        if (dat.language && window.setLanguage && dat.language !== localStorage.getItem('appLang')) {
-                            window.setLanguage(dat.language);
+                    try {
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
+                        const docSnap = await getDoc(docRef);
+                        if (docSnap.exists()) {
+                            const dat = docSnap.data();
+                            updateDailyChallengeUI(dat);
+                            if (dat.language && window.setLanguage && dat.language !== localStorage.getItem('appLang')) {
+                                window.setLanguage(dat.language);
+                            }
+                        } else {
+                            updateDailyChallengeUI(null);
                         }
-                    } else {
+                    } catch (err) {
+                        console.error('Failed to load profile logic in auth state changed', err);
                         updateDailyChallengeUI(null);
                     }
                     
                     window.renderFriendsList();
+                } else {
+                    updateDailyChallengeUI(null);
                 }
             } else {
+                updateDailyChallengeUI(null);
                 updateAccountUI();
             }
         });
