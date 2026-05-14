@@ -563,7 +563,7 @@
             </div>
             <div class="flex flex-col gap-2">
                 <div id="profile-modal-points" class="text-2xl text-teal-300 font-bold">0 Points</div>
-                <div id="profile-modal-stats" class="text-xs text-slate-400 uppercase tracking-widest">Wins: 0 | Losses: 0</div>
+                <div id="profile-modal-stats" class="text-xs text-slate-400 uppercase tracking-widest"><span data-orig-text="Wins:">Wins:</span> 0 <span data-orig-text="| Losses:">| Losses:</span> 0</div>
             </div>
             <div class="flex flex-col gap-3">
                 <h3 class="text-[10px] text-slate-500 uppercase tracking-widest font-bold text-left">Badges & Awards</h3>
@@ -1434,7 +1434,8 @@
         function updateStatusText() {
             const statusEl = document.getElementById('turn-status');
             if (gameState.winner) {
-                statusEl.innerText = "Game Over";
+                const tp = window.translatePhrase || (s => s);
+                statusEl.innerText = tp("Game Over");
                 return;
             }
 
