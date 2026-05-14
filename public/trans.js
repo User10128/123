@@ -103,20 +103,20 @@ window.showLanguagePicker = function() {
         modal.className = "fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4 transition-opacity";
         
         let btnsHtml = languages.map(l => 
-            \`<button onclick="window.setLanguage('\${l.id}')" class="btn-primary w-full py-3 mb-2 \${currentLang===l.id?'ring-2 ring-teal-400':''}"><span data-orig-text="\${l.name}">\${l.name}</span></button>\`
+            `<button onclick="window.setLanguage('${l.id}')" class="btn-primary w-full py-3 mb-2 ${currentLang===l.id?'ring-2 ring-teal-400':''}"><span data-orig-text="${l.name}">${l.name}</span></button>`
         ).join('');
         
-        modal.innerHTML = \`
+        modal.innerHTML = `
             <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-sm w-full text-center">
-                <h3 class="text-2xl text-teal-400 mb-6 font-light uppercase tracking-widest" data-orig-text="Language">\${translations["Language"][currentLang] || "Language"}</h3>
+                <h3 class="text-2xl text-teal-400 mb-6 font-light uppercase tracking-widest" data-orig-text="Language">${translations["Language"][currentLang] || "Language"}</h3>
                 <div class="flex flex-col gap-2 max-h-[50vh] overflow-y-auto pr-2 pb-4 pt-2">
-                    \${btnsHtml}
+                    ${btnsHtml}
                 </div>
                 <div class="mt-4 pt-4 border-t border-teal-500/20">
-                    <button onclick="document.getElementById('\${modalAttr}').classList.add('hidden')" class="glass-btn px-6 py-2 w-full" data-orig-text="Cancel">\${translations["Cancel"][currentLang] || "Cancel"}</button>
+                    <button onclick="document.getElementById('${modalAttr}').classList.add('hidden')" class="glass-btn px-6 py-2 w-full" data-orig-text="Cancel">${translations["Cancel"][currentLang] || "Cancel"}</button>
                 </div>
             </div>
-        \`;
+        `;
         document.body.appendChild(modal);
     } else {
         modal.querySelector('h3').innerText = translations["Language"][currentLang] || "Language";
