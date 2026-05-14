@@ -173,9 +173,9 @@
 
     <!-- Bottom Right Controls -->
     <div class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex gap-3">
-        <button onclick="window.open('https://checkers.page/polls', '_blank')" class="hidden sm:flex glass-btn p-2 sm:px-4 items-center gap-2" title="Open in New Tab">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-            <span class="hidden sm:inline">Polls</span>
+        <button onclick="window.showLanguagePicker()" class="hidden sm:flex glass-btn p-2 sm:px-4 items-center gap-2" title="Change Language" data-lang-btn="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            <span class="hidden sm:inline" data-orig-text="Language">Language</span>
         </button>
     </div>
 
@@ -4184,11 +4184,15 @@ await setDoc(gameRef, {
                     setupInvitesListener();
                     setupResponsesListener();
                     
-                    // Fetch profile for daily challenge UI
+                    // Fetch profile for daily challenge UI and language
                     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', fbUser.uid);
                     const docSnap = await getDoc(docRef);
                     if (docSnap.exists()) {
-                        updateDailyChallengeUI(docSnap.data());
+                        const dat = docSnap.data();
+                        updateDailyChallengeUI(dat);
+                        if (dat.language && window.setLanguage && dat.language !== localStorage.getItem('appLang')) {
+                            window.setLanguage(dat.language);
+                        }
                     } else {
                         updateDailyChallengeUI(null);
                     }
@@ -4238,5 +4242,6 @@ await setDoc(gameRef, {
 </a>
 */
 </script>
+<script src="/trans.js"></script>
 </body>
 </html>
