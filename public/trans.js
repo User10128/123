@@ -100,7 +100,8 @@ window.showLanguagePicker = function() {
     if (!modal) {
         modal = document.createElement('div');
         modal.id = modalAttr;
-        modal.className = "fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4 transition-opacity";
+        modal.className = "fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 transition-opacity";
+        modal.style.zIndex = '9999';
         
         let btnsHtml = languages.map(l => 
             `<button onclick="window.setLanguage('${l.id}')" class="btn-primary w-full py-3 mb-2 ${currentLang===l.id?'ring-2 ring-teal-400':''}"><span data-orig-text="${l.name}">${l.name}</span></button>`
@@ -143,9 +144,9 @@ window.setLanguage = async function(langId) {
     // Save to firebase profile if available
     if (window.isRegisteredUser && window.isRegisteredUser() && window.db && window.fbUser) {
         try {
-            const { doc, setDoc } = await import('firebase/firestore');
-            const docRef = doc(window.db, 'artifacts', window.appId, 'public', 'data', 'profiles', window.fbUser.uid);
-            await setDoc(docRef, { language: langId }, { merge: true });
+            if (window.saveLanguageToProfile) {
+                window.saveLanguageToProfile(langId);
+            }
         } catch(e) { }
     }
     
