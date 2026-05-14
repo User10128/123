@@ -1588,6 +1588,7 @@
                 seed |= 0;
             }
             seed = Math.abs(seed);
+            if (seed === 0) seed = 1;
             const nextRand = () => {
                 seed = (seed * 48271) % 2147483647;
                 return seed / 2147483647;
