@@ -157,7 +157,26 @@ window.setLanguage = async function(langId) {
 // Initial apply
 document.addEventListener('DOMContentLoaded', () => {
     // wait a frame for DOM to paint
-    setTimeout(window.applyTranslations, 100);
+    setTimeout(() => {
+        window.applyTranslations();
+        // Setup observer for dynamic content
+        window.transObserver = new MutationObserver((mutations) => {
+            let shouldApply = false;
+            mutations.forEach(m => {
+                if (m.addedNodes.length > 0) shouldApply = true;
+            });
+            if (shouldApply) {
+                // debounce
+                if (window.translateTimeout) clearTimeout(window.translateTimeout);
+                window.translateTimeout = setTimeout(() => {
+                    if (window.transObserver) window.transObserver.disconnect();
+                    window.applyTranslations();
+                    if (window.transObserver) window.transObserver.observe(document.body, { childList: true, subtree: true });
+                }, 50);
+            }
+        });
+        window.transObserver.observe(document.body, { childList: true, subtree: true });
+    }, 100);
 });
 
 // For index.html, hook into Firebase auth login if needed
