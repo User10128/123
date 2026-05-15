@@ -49,7 +49,7 @@ const translations = {
     "Play again?": { "en-US": "Play again?", "en-GB": "Play again?", "es": "¿Jugar de nuevo?", "fr": "Rejouer ?", "de": "Nochmal spielen?", "nl": "Opnieuw spelen?" },
     "Yes!": { "en-US": "Yes!", "en-GB": "Yes!", "es": "¡Sí!", "fr": "Oui !", "de": "Ja!", "nl": "Ja!" },
     "No.": { "en-US": "No.", "en-GB": "No.", "es": "No.", "fr": "Non.", "de": "Nein.", "nl": "Nee." },
-    "Checkers": { "en-US": "Checkers", "en-GB": "Draughts", "es": "Damas", "fr": "Dames", "de": "Dame", "nl": "Dammen" },
+    "Checkers": { "en-US": "Checkers", "en-GB": "Draughts", "es": "Damas americanas", "fr": "Dames américaines", "de": "Amerikanisches Damespiel", "nl": "Amerikaans dammen" },
     "Player 1 Wins!": { "en-US": "Player 1 Wins!", "en-GB": "Player 1 Wins!", "es": "¡El jugador 1 gana!", "fr": "Le joueur 1 gagne !", "de": "Spieler 1 gewinnt!", "nl": "Speler 1 wint!" },
     "Player 2 Wins!": { "en-US": "Player 2 Wins!", "en-GB": "Player 2 Wins!", "es": "¡El jugador 2 gana!", "fr": "Le joueur 2 gagne !", "de": "Spieler 2 gewinnt!", "nl": "Speler 2 wint!" },
     "You Win!": { "en-US": "You Win!", "en-GB": "You Win!", "es": "¡Ganaste!", "fr": "Vous avez gagné !", "de": "Du gewinnst!", "nl": "Jij wint!" },
