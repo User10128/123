@@ -66,6 +66,8 @@ const translations = {
 
 Object.assign(translations, {
     "CHECKERS": { "en-US": "CHECKERS", "en-GB": "DRAUGHTS", "es": "DAMAS", "fr": "DAMES", "de": "DAME", "nl": "DAMMEN" },
+    "This piece has no valid moves!": { "en-US": "This piece has no valid moves!", "en-GB": "This piece has no valid moves!", "es": "¡Esta pieza no tiene movimientos válidos!", "fr": "Cette pièce n'a aucun coup valide !", "de": "Diese Figur hat keine gültigen Züge!", "nl": "Dit stuk heeft geen geldige zetten!" },
+    "Sign in to manage friends.": { "en-US": "Sign in to manage friends.", "en-GB": "Sign in to manage friends.", "es": "Inicia sesión para gestionar amigos.", "fr": "Connectez-vous pour gérer vos amis.", "de": "Melden Sie sich an, um Freunde zu verwalten.", "nl": "Log in om vrienden te beheren." },
     "Checkers": { "en-US": "Checkers", "en-GB": "Draughts", "es": "Damas", "fr": "Dames", "de": "Dame", "nl": "Dammen" },
     "Welcome to Checkers": { "en-US": "Welcome to Checkers", "en-GB": "Welcome to Draughts", "es": "Bienvenido a Damas", "fr": "Bienvenue aux Dames", "de": "Willkommen bei Dame", "nl": "Welkom bij Dammen" },
     "The ultimate online checkers experience": { "en-US": "The ultimate online checkers experience", "en-GB": "The ultimate online draughts experience", "es": "La mejor experiencia de damas en línea", "fr": "L'expérience ultime de dames en ligne", "de": "Das ultimative Online-Dame-Erlebnis", "nl": "De ultieme online damervaring" },
@@ -149,6 +151,86 @@ Object.assign(translations, {
        "de": "Willkommen bei Dame. Dein Ziel ist es, alle gegnerischen Steine zu schlagen oder zu blockieren.",
        "nl": "Welkom bij Dammen. Je doel is om alle vijandelijke stukken te slaan of te blokkeren."
     },
+    "Regular pieces move diagonally forward exactly one square.": {
+       "en-US": "Welcome to Checkers. Your objective is to capture all opponent pieces or block them so they cannot move.",
+       "en-GB": "Welcome to Draughts. Your objective is to capture all opponent pieces or block them so they cannot move.",
+       "es": "Las piezas regulares se mueven diagonalmente hacia adelante exactamente una casilla.",
+       "fr": "Les pièces ordinaires se déplacent en diagonale vers l'avant, d'une case exactement.",
+       "de": "Reguläre Figuren ziehen diagonal nach vorne, genau ein Feld weit.",
+       "nl": "Gewone stukken bewegen diagonaal vooruit, precies één veld."
+    },
+    "Movement:": {
+       "en-US": "Movement:",
+       "en-GB": "Movement:",
+       "es": "Movimiento:",
+       "fr": "Mouvement:",
+       "de": "Bewegung:",
+       "nl": "Beweging:"
+    },
+    "Jump over an opponent's piece diagonally to capture it.": {
+       "en-US": "Jump over an opponent's piece diagonally to capture it.",
+       "en-GB": "Jump over an opponent's piece diagonally to capture it.",
+       "es": "Salta sobre una pieza del oponente en diagonal para capturarla.",
+       "fr": "Sautez par-dessus une pièce adverse en diagonale pour la capturer.",
+       "de": "Springe diagonal über eine gegnerische Figur, um sie zu schlagen.",
+       "nl": "Spring diagonaal over een stuk van de tegenstander heen om het te slaan."
+    },
+    "Capturing:": {
+       "en-US": "Capturing:",
+       "en-GB": "Capturing:",
+       "es": "Captura:",
+       "fr": "Capture :",
+       "de": "Erfassung:",
+       "nl": "Vastleggen:"
+    },
+    "If any jump is possible on the board, you must take it. If multiple jumps are available in a chain for a piece, you must continue jumping until no more jumps are possible for that piece.": {
+       "en-US": "If any jump is possible on the board, you must take it. If multiple jumps are available in a chain for a piece, you must continue jumping until no more jumps are possible for that piece.",
+       "en-GB": "If any jump is possible on the board, you must take it. If multiple jumps are available in a chain for a piece, you must continue jumping until no more jumps are possible for that piece.",
+       "es": "Si es posible realizar algún salto en el tablero, debes efectuarlo. Si hay múltiples saltos disponibles en cadena para una pieza, debes continuar saltando hasta que ya no sea posible realizar más saltos con dicha pieza.",
+       "fr": "Si un saut est possible sur le plateau, vous devez l'effectuer. Si plusieurs sauts sont disponibles en chaîne pour une pièce, vous devez continuer à sauter tant qu'aucun autre saut n'est possible pour cette pièce.",
+       "de": "Falls auf dem Brett ein Sprung möglich ist, müssen Sie diesen ausführen. Falls für eine Figur mehrere Sprünge in einer Kette verfügbar sind, müssen Sie so lange weiterspringen, bis für diese Figur keine weiteren Sprünge mehr möglich sind.",
+       "nl": "Als er op het bord een sprong mogelijk is, moet je deze uitvoeren. Als er voor een stuk meerdere sprongen in een keten beschikbaar zijn, moet je blijven springen totdat er voor dat stuk geen sprongen meer mogelijk zijn."
+    },
+    "Forced Jumps:": {
+       "en-US": "Forced Jumps:",
+       "en-GB": "Forced Jumps:",
+       "es": "Saltos forzados:",
+       "fr": "Sauts forcés :",
+       "de": "Erzwungene Sprünge:",
+       "nl": "Gedwongen sprongen:"
+    }, 
+    "When a piece reaches the opposite far end of the board, it becomes a King (marked with a crown). Kings can move and capture diagonally both forward and backward.": {
+       "en-US": "When a piece reaches the opposite far end of the board, it becomes a King (marked with a crown). Kings can move and capture diagonally both forward and backward.",
+       "en-GB": "When a piece reaches the opposite far end of the board, it becomes a King (marked with a crown). Kings can move and capture diagonally both forward and backward.",
+       "es": "Cuando una pieza llega al extremo opuesto del tablero, se convierte en un Rey (marcado con una corona). Los Reyes pueden moverse y capturar en diagonal, tanto hacia adelante como hacia atrás.",
+       "fr": "Lorsqu'une pièce atteint l'extrémité opposée du plateau, elle devient un Roi (marqué d'une couronne). Les Rois peuvent se déplacer et capturer en diagonale, aussi bien vers l'avant que vers l'arrière.",
+       "de": "Wanneer een stuk de overliggende achterlijn van het bord bereikt, wordt het een koning (aangeduid met een kroon). Koningen kunnen diagonaal bewegen en slaan, zowel vooruit als achteruit.",
+       "nl": "Wanneer een stuk de overliggende achterlijn van het bord bereikt, wordt het een koning (aangeduid met een kroon). Koningen kunnen diagonaal bewegen en slaan, zowel vooruit als achteruit."
+    },
+    "Kings:": {
+       "en-US": "Kings:",
+       "en-GB": "Kings:",
+       "es": "Reyes:",
+       "fr": "Rois :",
+       "de": "Könige:",
+       "nl": "Koningen:"
+    }, 
+    "Light Teal (Player 1)": {
+       "en-US": "Light Teal (Player 1)",
+       "en-GB": "Light Teal (Player 1)",
+       "es": "Trullo ligero (jugador 1)",
+       "fr": "Bleu sarcelle clair (Joueur 1)",
+       "de": "Helles Türkis (Spieler 1)",
+       "nl": "Lichtblauwgroen (Speler 1)"
+    },
+    "Dark Teal (Player 2)": {
+       "en-US": "Dark Teal (Player 2)",
+       "en-GB": "Dark Teal (Player 2)",
+       "es": "Trullo oscuro (jugador 2)",
+       "fr": "Bleu sarcelle foncé (Joueur 2)",
+       "de": "Dunkles Türkis (Spieler 2)",
+       "nl": "Donkerblauwgroen (Speler 2)"
+    }, 
     "Checkers (also known as Draughts) is a classic strategy board game for two players. Our version brings a modern, sleek aesthetic to this timeless game, offering both local and online play, as well as challenging AI opponents.": {
        "en-US": "Checkers (also known as Draughts) is a classic strategy board game for two players. Our version brings a modern, sleek aesthetic to this timeless game, offering both local and online play, as well as challenging AI opponents.",
        "en-GB": "Draughts is a classic strategy board game for two players. Our version brings a modern, sleek aesthetic to this timeless game, offering both local and online play, as well as challenging AI opponents.",
@@ -197,7 +279,7 @@ Object.assign(translations, {
        "de": "Dame-Spieler",
        "nl": "Damspeler"
     },
-    "Live Score:": { "en-US": "Live Score:", "en-GB": "Live Score:", "es": "Puntos:", "fr": "Score en direct:", "de": "Live-Spielstand:", "nl": "Live score:" },
+    "Live Score:": { "en-US": "Live Score:", "en-GB": "Live Score:", "es": "FPuntos:", "fr": "Score en direct:", "de": "Live-Spielstand:", "nl": "Live score:" },
     "Random Moves": { "en-US": "Random Moves", "en-GB": "Random Moves", "es": "Movimientos aleatorios", "fr": "Mouvements aléatoires", "de": "Zufällige Züge", "nl": "Willekeurige zetten" },
     "Basic Tactics": { "en-US": "Basic Tactics", "en-GB": "Basic Tactics", "es": "Tácticas básicas", "fr": "Tactiques de base", "de": "Grundlegende Taktiken", "nl": "Basis tactieken" },
     "Minimax Logic": { "en-US": "Minimax Logic", "en-GB": "Minimax Logic", "es": "Lógica Minimax", "fr": "Logique Minimax", "de": "Minimax-Logik", "nl": "Minimax logica" },
@@ -370,4 +452,4 @@ const origToggle = window.toggleAuthMode;
 if (origToggle) {
     // When profile loads, if data.language exists, load it
     // That's handled in index.html naturally if we modify updatePublicProfile or similar.
-}
+}atrnoc
