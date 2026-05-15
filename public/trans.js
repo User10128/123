@@ -452,4 +452,4 @@ const origToggle = window.toggleAuthMode;
 if (origToggle) {
     // When profile loads, if data.language exists, load it
     // That's handled in index.html naturally if we modify updatePublicProfile or similar.
-}atrnoc
+}
