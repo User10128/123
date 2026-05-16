@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mayoocho2026';
+const CACHE_NAME = 'mayodiecisies2026';
 
 // 1. LIST ALL FILES: Add every file you want available offline here.
 const urlsToCache = [
@@ -39,7 +39,7 @@ self.addEventListener('fetch', event => {
                     // IF BOTH FAIL (Offline & not cached), 
                     // only redirect/show the offline.html file for navigation requests
                     if (event.request.mode === 'navigate') {
-                        return caches.match('/offline.html');
+                        return caches.match('/offline');
                     }
                     // For other requests (like scripts, images), simply fail
                     return new Response('', { status: 404, statusText: 'Offline' });
