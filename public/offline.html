@@ -22,6 +22,8 @@
         }
     </script>
     <style>
+
+
         /* Touch and rendering optimizations */
         body { 
             touch-action: manipulation; 
@@ -1695,5 +1697,100 @@
 
     <!-- Script included -->
     <script src="/trans.js"></script>
+    <script>
+    (function() {
+        if (document.getElementById('custom-cursor-style')) return;
+        const style = document.createElement('style');
+        style.id = 'custom-cursor-style';
+        style.innerHTML = `
+            * { cursor: none !important; }
+            #custom-cursor-container {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 24px;
+                height: 24px;
+                pointer-events: none;
+                z-index: 9999999;
+                transform: translate(-3px, -3px);
+            }
+            #custom-cursor-path {
+                transition: d 0.2s ease, fill 0.2s ease, stroke 0.2s ease, stroke-width 0.2s ease;
+            }
+        `;
+        document.head.appendChild(style);
+
+        const cursorContainer = document.createElement('div');
+        cursorContainer.id = 'custom-cursor-container';
+        cursorContainer.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" style="overflow: visible;"><path id="custom-cursor-path" d="M3 3 L16 7 L10 10 L7 16 Z" fill="#64748b" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round" /></svg>';
+        document.body.appendChild(cursorContainer);
+
+        const path = document.getElementById('custom-cursor-path');
+
+        window.addEventListener('mousemove', (e) => {
+            cursorContainer.style.transform = `translate(${e.clientX - 3}px, ${e.clientY - 3}px)`;
+        });
+
+        const isClickable = (el) => {
+            if (!el) return false;
+            const tag = el.tagName ? el.tagName.toLowerCase() : '';
+            if (['a', 'button', 'input', 'select', 'textarea', 'label'].includes(tag)) return true;
+            if (el.hasAttribute && el.hasAttribute('onclick')) return true;
+            if (el.classList && el.classList.contains('cursor-pointer')) return true;
+            return false;
+        };
+
+        window.addEventListener('mouseover', (e) => {
+            let el = e.target;
+            let isPiece = el.closest('.glow-p1, .glow-p2');
+            let clickable = el.closest('a, button, input, select, textarea, label, [onclick], .cursor-pointer');
+            
+            if (isPiece) {
+                let isMoveable = true;
+                if (window.gameState && window.playerSymbol) {
+                    if (window.gameMode !== 'local' && window.gameState.currentPlayer !== window.playerSymbol) {
+                        isMoveable = false;
+                    }
+                    if (window.gameMode !== 'local') {
+                        if (window.playerSymbol === 'P1' && !isPiece.classList.contains('glow-p1')) isMoveable = false;
+                        if (window.playerSymbol === 'P2' && !isPiece.classList.contains('glow-p2')) isMoveable = false;
+                    } else {
+                        if (window.gameState.currentPlayer === 'P1' && !isPiece.classList.contains('glow-p1')) isMoveable = false;
+                        if (window.gameState.currentPlayer === 'P2' && !isPiece.classList.contains('glow-p2')) isMoveable = false;
+                    }
+                }
+
+                if (isMoveable) {
+                    path.setAttribute('d', 'M12 2 L22 12 L12 22 L2 12 Z');
+                    path.setAttribute('fill', 'transparent');
+                    path.setAttribute('stroke', '#ffffff');
+                    path.setAttribute('stroke-width', '2');
+                    return;
+                }
+            }
+
+            if (clickable) {
+                path.setAttribute('d', 'M3 3 L16 7 L10 10 L7 16 Z');
+                path.setAttribute('fill', '#334155');
+                path.setAttribute('stroke', '#ffffff');
+                path.setAttribute('stroke-width', '1.5');
+            } else {
+                path.setAttribute('d', 'M3 3 L16 7 L10 10 L7 16 Z');
+                path.setAttribute('fill', '#64748b');
+                path.setAttribute('stroke', '#ffffff');
+                path.setAttribute('stroke-width', '1.5');
+            }
+        });
+
+        window.addEventListener('mouseout', (e) => {
+            if (!e.relatedTarget) {
+                path.setAttribute('d', 'M3 3 L16 7 L10 10 L7 16 Z');
+                path.setAttribute('fill', '#64748b');
+                path.setAttribute('stroke', '#ffffff');
+                path.setAttribute('stroke-width', '1.5');
+            }
+        });
+    })();
+    </script>
 </body>
 </html>
