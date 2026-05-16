@@ -2,12 +2,12 @@ const CACHE_NAME = 'mayodiecisies2026';
 
 // 1. LIST ALL FILES: Add every file you want available offline here.
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/background.png',
-    '/favicon.png',
-    '/offline.html',     // The page you want to redirect to
-    '/trans.js',
+    './',
+    './index',
+    './background.png',
+    './favicon.png',
+    './offline',     // The page you want to redirect to
+    './trans.js',
     'https://cdn.tailwindcss.com'
 ];
 
