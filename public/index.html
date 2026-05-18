@@ -4249,7 +4249,7 @@ await setDoc(gameRef, {
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 // Register the service worker
-                navigator.serviceWorker.register('/123/sw.js')
+                navigator.serviceWorker.register('./sw.js')
                     .then(registration => {
                         console.log('Service Worker registered successfully.');
                     })
