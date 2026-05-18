@@ -4,6 +4,7 @@
     <link rel="manifest" href="/manifest.json">
     <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-TLSR2KL9X3"></script>
+    <link rel="manifest" href="/manifest.json">
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -12,7 +13,7 @@
   gtag('config', 'G-TLSR2KL9X3');
 </script>
     <title>Checkers</title>
-    <meta name="description" content="Free online checkers. Play vs AI, challenge a friend, or jump into a global match — no download, no ads, no account required.">
+    <meta name="description" content="Experience the classic game of Checkers. Whether you’re looking to play vs AI, play with others, or host a private game, checkers.page is an area for all players.">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
     <!-- Dynamic SVG Favicon -->
@@ -192,8 +193,8 @@
             <div class="absolute -bottom-12 -left-12 w-40 h-40 bg-teal-800/20 rounded-full blur-3xl"></div>
             
             <div class="flex flex-col gap-2 relative z-10">
-                <h2 class="text-3xl font-bold text-teal-300 tracking-tighter italic uppercase">Checkers, done right.</h2>
-                <p class="text-slate-400 text-sm italic">Play against the AI, challenge a friend, or jump into a global match — all for free without ads.</p>
+                <h2 class="text-3xl font-bold text-teal-300 tracking-tighter italic uppercase">Welcome to Checkers</h2>
+                <p class="text-slate-400 text-sm italic">The ultimate online checkers playing experience in the internet. Please do one of the following and help us make our site more helpful for all our users. Thanks.</p>
             </div>
 
             <div class="flex flex-col gap-4 relative z-10">
@@ -203,11 +204,11 @@
                 </button>
                 <button onclick="showView('view-main-menu')" class="glass-btn flex items-center justify-center gap-3 py-4 border-teal-500/30 text-teal-300 hover:bg-teal-500/10">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                    Play Now
+                    Continue
                 </button>
             </div>
             
-            <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-4">Sign in to track stats, compete on leaderboards, make friends, and create private games</p>
+            <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-4">Sign in to track stats and compete on leaderboards</p>
         </div>
     </div>
 
@@ -1816,7 +1817,7 @@
                     <h3 class="text-teal-400 font-bold mt-4">3. Termination</h3>
                     <p>We reserve the right to terminate your access to the game at any time, for any reason, without notice.</p>
                 `;
-            } else if (type === 'Features') {
+            } else if (type === 'contact') {
                 title.innerText = "FEATURES";
                 content.innerHTML = `
                     <p>These are the links to other features we provide for you to have a more pleasant experience at our site.</p>
@@ -4248,7 +4249,7 @@ await setDoc(gameRef, {
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 // Register the service worker
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('/123/sw.js')
                     .then(registration => {
                         console.log('Service Worker registered successfully.');
                     })
@@ -4262,7 +4263,7 @@ await setDoc(gameRef, {
     // 1. Function to redirect to the offline page
     function redirectToOffline() {
         if (!navigator.onLine) {
-            window.location.href = 'https://checkers.page/offline';
+            window.location.href = './offline';
         }
     }
 
@@ -4284,6 +4285,7 @@ await setDoc(gameRef, {
 <script src="/trans.js"></script>
     <script>
     (function() {
+        if (!window.matchMedia('(pointer: fine)').matches) return;
         if (document.getElementById('custom-cursor-style')) return;
         const style = document.createElement('style');
         style.id = 'custom-cursor-style';
