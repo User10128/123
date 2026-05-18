@@ -1,14 +1,15 @@
-const CACHE_NAME = 'mayoocho2026';
+const CACHE_NAME = 'mayoseis2026';
 
 // 1. LIST ALL FILES: Add every file you want available offline here.
 const urlsToCache = [
-    './',
-    './index',
-    './background.png',
-    './favicon.png',
-    './offline',     // The page you want to redirect to
-    './trans.js',
-    'https://cdn.tailwindcss.com'
+    '/',
+    '/index.html',
+    '/background.png',
+    '/favicon.png',
+    '/trans.js',
+    '/test-trans.js',
+    '/extract.js',
+    '/offline',     // The page you want to redirect to
 ];
 
 self.addEventListener('install', event => {
@@ -37,12 +38,8 @@ self.addEventListener('fetch', event => {
                 // If not in cache, try the network
                 return fetch(event.request).catch(() => {
                     // IF BOTH FAIL (Offline & not cached), 
-                    // only redirect/show the offline file for navigation requests
-                    if (event.request.mode === 'navigate') {
-                        return caches.match('./offline');
-                    }
-                    // For other requests (like scripts, images), simply fail
-                    return new Response('', { status: 404, statusText: 'Offline' });
+                    // redirect/show the offline.html file
+                    return caches.match('/offline');
                 });
             })
     );
