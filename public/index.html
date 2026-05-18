@@ -2872,21 +2872,50 @@ window.quitGameFirebase = async () => {
             }
         });
 
+        // Handle the redirect result when the page reloads
+        getRedirectResult(auth).then((result) => {
+            if (result && result.user) {
+                window.showNotification("Signed in successfully!");
+            }
+        }).catch((error) => {
+            if (error.code !== 'auth/redirect-cancelled-by-user') {
+                if (error.code === 'auth/invalid-session-id') {
+                    console.warn("Session ID lost (common in PWAs). Prompting user to retry.");
+                    // In a PWA, the first redirect might clear sessionStorage. 
+                    // Subsequent tries usually succeed if the browser warmed up the tab.
+                } else {
+                    window.showNotification("Sign in failed. " + error.message);
+                    console.error("Redirect check error: ", error);
+                }
+            }
+        });
+
         window.signInGoogle = async () => {
             const provider = new GoogleAuthProvider();
-            // Configure custom OAuth parameters if needed
             provider.setCustomParameters({ prompt: 'select_account' });
             
             try {
                 window.showNotification("Opening Google Sign-In...");
-                await signInWithPopup(auth, provider);
-                window.showNotification("Signed in successfully!");
+                
+                const isPWA = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+                
+                if (isPWA) {
+                    // PWA environments (like Edge) often block cross-origin iframes required by signInWithPopup.
+                    // This causes a "getContext" error in Google's gapi.js.
+                    // To avoid this, we must use signInWithRedirect in standalone mode.
+                    await signInWithRedirect(auth, provider);
+                } else {
+                    await signInWithPopup(auth, provider);
+                    window.showNotification("Signed in successfully!");
+                }
             } catch (e) {
                 if (e.code === 'auth/popup-blocked') {
-                    window.showNotification("Popup blocked. Please allow popups for this app.");
+                    window.showNotification("Popup blocked. Switching to Redirect...");
+                    await signInWithRedirect(auth, provider);
                 } else {
-                    window.showNotification("Sign in failed. Try again.");
-                    console.error(e);
+                    // Fallback to redirect if popup fails for any other weird CORS/PWA reason
+                    console.warn("Popup failed, attempting redirect...", e);
+                    await signInWithRedirect(auth, provider);
                 }
             }
         };
