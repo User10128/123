@@ -1,15 +1,14 @@
-const CACHE_NAME = 'mayodieciocho2026';
+const CACHE_NAME = 'checkers-v3';
 
 // 1. LIST ALL FILES: Add every file you want available offline here.
 const urlsToCache = [
     '/',
-    '/index.html',
+    '/index',
     '/background.png',
     '/favicon.png',
-    '/trans.js',
-    '/test-trans.js',
-    '/extract.js',
     '/offline',     // The page you want to redirect to
+    '/trans.js',
+    'https://cdn.tailwindcss.com'
 ];
 
 self.addEventListener('install', event => {
@@ -22,7 +21,17 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-    event.waitUntil(self.clients.claim());
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    if (cacheName !== CACHE_NAME) {
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        }).then(() => self.clients.claim())
+    );
 });
 
 // 2. THE "REDIRECT" LOGIC:
@@ -38,8 +47,12 @@ self.addEventListener('fetch', event => {
                 // If not in cache, try the network
                 return fetch(event.request).catch(() => {
                     // IF BOTH FAIL (Offline & not cached), 
-                    // redirect/show the offline.html file
-                    return caches.match('/offline');
+                    // only redirect/show the offline file for navigation requests
+                    if (event.request.mode === 'navigate') {
+                        return caches.match('/offline');
+                    }
+                    // For other requests (like scripts, images), simply fail
+                    return new Response('', { status: 404, statusText: 'Offline' });
                 });
             })
     );
