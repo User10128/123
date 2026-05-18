@@ -1867,48 +1867,22 @@
     <!-- --- FIREBASE GLOBAL MATCHMAKING, AUTH & ACCOUNTS MODULE --- -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, updateProfile, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, updateProfile, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, getDoc, onSnapshot, query, where, updateDoc, orderBy, limit, arrayUnion, arrayRemove, addDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
-  authDomain: "checkers-matchmaking-5ac55.firebaseapp.com",
+  authDomain: "auth.checkers.page",
   projectId: "checkers-matchmaking-5ac55",
-  storageBucket: "auth.checkers.page",
+  storageBucket: "checkers-matchmaking-5ac55.firebasestorage.app",
   messagingSenderId: "778086491027",
   appId: "1:778086491027:web:c315fd9d97aebae6087e66",
   firestoreDatabaseId: "(default)"
 };
         
-// Line 1883: Leave as is
-const app = initializeApp(firebaseConfig); 
-
-// Line 1884: Replace standard getAuth() with an explicit browser-override configuration
-import { initializeAuth, browserLocalPersistence, browserPopupRedirectResolver } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-const auth = initializeAuth(app, {
-  persistence: browserLocalPersistence,
-  popupRedirectResolver: browserPopupRedirectResolver
-});
-
-// === PASTE THIS RE-DIRECT HANDLER HERE ===
-getRedirectResult(auth)
-  .then((result) => {
-    if (result) {
-      // This runs automatically when the user returns from Google
-      const user = result.user;
-      console.log("Logged in user details:", user);
-      
-      // If you have a custom login state function, call it here
-      // e.g., handleSuccessfulLogin(user);
-    }
-  })
-  .catch((error) => {
-    console.error("Google redirect sign-in error:", error);
-  });
-// =========================================
-
-const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
         const appId = 'checkers-app';
 
         // --- STATE ---
@@ -1924,19 +1898,6 @@ const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
         let responsesUnsubscribe = null;
         let matchmakingUnsubscribe = null;
         let authMode = 'signin'; // 'signin' or 'signup'
-
-        // Call this function when your Google login button is clicked
-function loginWithGoogle() {
-  const provider = new GoogleAuthProvider();
-  
-  // Optional: Forces Google to show the account picker every time
-  provider.setCustomParameters({ prompt: 'select_account' }); 
-  
-  signInWithRedirect(auth, provider);
-}
-
-// Make it globally accessible if your button is outside this module script
-window.loginWithGoogle = loginWithGoogle;
 
         window.isRegisteredUser = () => isRegisteredUser;
 
@@ -2915,7 +2876,7 @@ window.quitGameFirebase = async () => {
             const provider = new GoogleAuthProvider();
             try {
                 window.showNotification("Opening Google Sign-In...");
-                await signInWithRedirect(auth, provider);
+                await signInWithPopup(auth, provider);
                 window.showNotification("Signed in successfully!");
             } catch (e) {
                 window.showNotification("Sign in failed. Try again.");
