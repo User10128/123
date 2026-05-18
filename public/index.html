@@ -1874,14 +1874,22 @@ const firebaseConfig = {
   apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
   authDomain: "checkers-matchmaking-5ac55.firebaseapp.com",
   projectId: "checkers-matchmaking-5ac55",
-  storageBucket: "checkers-matchmaking-5ac55.firebasestorage.app",
+  storageBucket: "auth.checkers.page",
   messagingSenderId: "778086491027",
   appId: "1:778086491027:web:c315fd9d97aebae6087e66",
   firestoreDatabaseId: "(default)"
 };
         
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+// Line 1883: Leave as is
+const app = initializeApp(firebaseConfig); 
+
+// Line 1884: Replace standard getAuth() with an explicit browser-override configuration
+import { initializeAuth, browserLocalPersistence, browserPopupRedirectResolver } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+const auth = initializeAuth(app, {
+  persistence: browserLocalPersistence,
+  popupRedirectResolver: browserPopupRedirectResolver
+});
 
 // === PASTE THIS RE-DIRECT HANDLER HERE ===
 getRedirectResult(auth)
