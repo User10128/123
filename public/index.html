@@ -2881,10 +2881,9 @@ window.quitGameFirebase = async () => {
             if (error.code !== 'auth/redirect-cancelled-by-user') {
                 if (error.code === 'auth/invalid-session-id') {
                     console.warn("Session ID lost (common in PWAs). Prompting user to retry.");
-                    // In a PWA, the first redirect might clear sessionStorage. 
-                    // Subsequent tries usually succeed if the browser warmed up the tab.
+                    window.showNotification("Session lost during redirect. Please click 'Sign in with Google' again.", true);
                 } else {
-                    window.showNotification("Sign in failed. " + error.message);
+                    window.showNotification("Sign in failed. " + error.message, true);
                     console.error("Redirect check error: ", error);
                 }
             }
@@ -2896,43 +2895,13 @@ window.quitGameFirebase = async () => {
             
             try {
                 window.showNotification("Opening Google Sign-In...");
-                
-                const isPWA = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-                
-                // FALLBACK 1: If PWA, we skip the standard popup and go straight to Redirect with resolver
-                if (isPWA) {
-                    console.log("PWA detected, trying Redirect with resolver.");
-                    await signInWithRedirect(auth, provider, browserPopupRedirectResolver);
-                } else {
-                    // Standard popup for web
-                    await signInWithPopup(auth, provider);
-                    window.showNotification("Signed in successfully!");
-                }
-            } catch (e1) {
-                console.warn("Fallback 1 failed. Attempting Fallback 2...", e1);
-                
-                try {
-                    // FALLBACK 2: Standard Popup with explicit resolver
-                    await signInWithPopup(auth, provider, browserPopupRedirectResolver);
-                    window.showNotification("Signed in successfully!");
-                } catch (e2) {
-                    console.warn("Fallback 2 failed. Attempting Fallback 3...", e2);
-                    
-                    try {
-                        // FALLBACK 3: Standard Redirect (no explicit resolver)
-                        await signInWithRedirect(auth, provider);
-                    } catch (e3) {
-                        console.warn("Fallback 3 failed. Attempting Fallback 4...", e3);
-                        
-                        try {
-                            // FALLBACK 4: Redirect with explicit resolver as final resort
-                            await signInWithRedirect(auth, provider, browserPopupRedirectResolver);
-                        } catch (e4) {
-                            console.error("All sign in fallbacks failed", e4);
-                            window.showNotification("Sign in failed. PWA constraints may prevent this. Open in regular browser tab.");
-                        }
-                    }
-                }
+                // Force redirect for all sign-ins. Microsoft Edge and many PWAs aggressively block 
+                // popups and cross-origin iframes, which causes "getContext" TypeError or popup-blocked errors.
+                // Using redirect avoids all popup blockers.
+                await signInWithRedirect(auth, provider);
+            } catch (e) {
+                console.error("Sign in failed:", e);
+                window.showNotification("Sign in failed. " + e.message);
             }
         };
 
