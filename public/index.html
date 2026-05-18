@@ -2874,39 +2874,22 @@ window.quitGameFirebase = async () => {
 
         window.signInGoogle = async () => {
             const provider = new GoogleAuthProvider();
-            // Configure custom OAuth parameters if needed, e.g., prompt='select_account'
+            // Configure custom OAuth parameters if needed
+            provider.setCustomParameters({ prompt: 'select_account' });
             
             try {
                 window.showNotification("Opening Google Sign-In...");
-                const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone || document.referrer.includes('android-app://');
-                if (isStandalone) {
-                    await signInWithRedirect(auth, provider);
-                } else {
-                    await signInWithPopup(auth, provider);
-                    window.showNotification("Signed in successfully!");
-                }
+                await signInWithPopup(auth, provider);
+                window.showNotification("Signed in successfully!");
             } catch (e) {
-                if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user' || (e.message && e.message.toLowerCase().includes('popup'))) {
-                    window.showNotification("Popup blocked. Redirecting...");
-                    await signInWithRedirect(auth, provider);
+                if (e.code === 'auth/popup-blocked') {
+                    window.showNotification("Popup blocked. Please allow popups for this app.");
                 } else {
                     window.showNotification("Sign in failed. Try again.");
                     console.error(e);
                 }
             }
         };
-
-        // Handle the redirect result when the page reloads
-        getRedirectResult(auth).then((result) => {
-            if (result && result.user) {
-                window.showNotification("Signed in successfully!");
-            }
-        }).catch((error) => {
-            if (error.code !== 'auth/redirect-cancelled-by-user') {
-                window.showNotification("Sign in failed: " + error.message);
-                console.error("Redirect check error: ", error);
-            }
-        });
 
         window.signOutGoogle = async () => {
             await updatePublicProfile(false);
