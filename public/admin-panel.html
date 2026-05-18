@@ -398,6 +398,7 @@ document.getElementById('download-csv').addEventListener('click', () => {
     </script>
     <script>
     (function() {
+        if (!window.matchMedia('(pointer: fine)').matches) return;
         if (document.getElementById('custom-cursor-style')) return;
         const style = document.createElement('style');
         style.id = 'custom-cursor-style';
