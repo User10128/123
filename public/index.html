@@ -1867,7 +1867,7 @@
     <!-- --- FIREBASE GLOBAL MATCHMAKING, AUTH & ACCOUNTS MODULE --- -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, updateProfile, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, updateProfile, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, getDoc, onSnapshot, query, where, updateDoc, orderBy, limit, arrayUnion, arrayRemove, addDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -2874,15 +2874,39 @@ window.quitGameFirebase = async () => {
 
         window.signInGoogle = async () => {
             const provider = new GoogleAuthProvider();
+            // Configure custom OAuth parameters if needed, e.g., prompt='select_account'
+            
             try {
                 window.showNotification("Opening Google Sign-In...");
-                await signInWithPopup(auth, provider);
-                window.showNotification("Signed in successfully!");
+                const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone || document.referrer.includes('android-app://');
+                if (isStandalone) {
+                    await signInWithRedirect(auth, provider);
+                } else {
+                    await signInWithPopup(auth, provider);
+                    window.showNotification("Signed in successfully!");
+                }
             } catch (e) {
-                window.showNotification("Sign in failed. Try again.");
-                console.error(e);
+                if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user' || (e.message && e.message.toLowerCase().includes('popup'))) {
+                    window.showNotification("Popup blocked. Redirecting...");
+                    await signInWithRedirect(auth, provider);
+                } else {
+                    window.showNotification("Sign in failed. Try again.");
+                    console.error(e);
+                }
             }
         };
+
+        // Handle the redirect result when the page reloads
+        getRedirectResult(auth).then((result) => {
+            if (result && result.user) {
+                window.showNotification("Signed in successfully!");
+            }
+        }).catch((error) => {
+            if (error.code !== 'auth/redirect-cancelled-by-user') {
+                window.showNotification("Sign in failed: " + error.message);
+                console.error("Redirect check error: ", error);
+            }
+        });
 
         window.signOutGoogle = async () => {
             await updatePublicProfile(false);
