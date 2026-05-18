@@ -1867,7 +1867,7 @@
     <!-- --- FIREBASE GLOBAL MATCHMAKING, AUTH & ACCOUNTS MODULE --- -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, updateProfile, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { initializeAuth, browserLocalPersistence, browserPopupRedirectResolver, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, updateProfile, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, getDoc, onSnapshot, query, where, updateDoc, orderBy, limit, arrayUnion, arrayRemove, addDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -1881,7 +1881,10 @@ const firebaseConfig = {
 };
         
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+const auth = initializeAuth(app, {
+  persistence: browserLocalPersistence,
+  popupRedirectResolver: browserPopupRedirectResolver
+});
         const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
         const appId = 'checkers-app';
 
