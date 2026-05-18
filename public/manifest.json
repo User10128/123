@@ -3,10 +3,15 @@
   "short_name": "Checkers",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "scope_extensions": [
+    { "origin": "*.checkers.page" },
+    { "origin": "https://auth.checkers.page" },
+    { "origin": "https://identitytoolkit.googleapis.com" }
+  ],
   "icons": [
-    { "src": "/favicon.png", "sizes": "144x144", "type": "image/png" },
-    { "src": "/favicon.png", "sizes": "512x512", "type": "image/png" }
+{ "src": "/favicon.png", "sizes": "144x144", "type": "image/png" },
+  { "src": "/favicon.png", "sizes": "512x512", "type": "image/png" }
   ]
 }
