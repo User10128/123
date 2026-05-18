@@ -132,7 +132,7 @@
                 snap.docs.forEach(docSnap => {
                     const poll = docSnap.data();
                     const pollId = docSnap.id;
-                    const hasVoted = poll.voters && poll.voters.includes(currentUser.uid);
+                    const hasVoted = (poll.voters && poll.voters.includes(currentUser.uid)) || localStorage.getItem('voted_' + pollId);
                     
                     const el = document.createElement('div');
                     el.className = 'glass-panel p-6 sm:p-8 rounded-2xl relative overflow-hidden';
@@ -199,6 +199,7 @@
                 updateData['voters'] = arrayUnion(currentUser.uid);
                 
                 await updateDoc(pollRef, updateData);
+                localStorage.setItem('voted_' + pollId, 'true');
                 
                 // Reload polls to show results
                 await loadPolls();
@@ -214,6 +215,7 @@
     </script>
     <script>
     (function() {
+        if (!window.matchMedia('(pointer: fine)').matches) return;
         if (document.getElementById('custom-cursor-style')) return;
         const style = document.createElement('style');
         style.id = 'custom-cursor-style';
