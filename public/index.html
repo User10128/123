@@ -860,22 +860,28 @@
             showView('view-main-menu', false);
         }
 
-        function showNotification(msg) {
+        function showNotification(msg, isHTML = false, durationMs = 3000) {
             const notif = document.getElementById('notification-toast');
             const msgEl = document.getElementById('notification-msg');
-            msgEl.innerText = msg;
+            if (isHTML) {
+                msgEl.innerHTML = msg;
+            } else {
+                msgEl.innerText = msg;
+            }
             notif.classList.remove('translate-y-[-150%]', 'opacity-0');
             
             if (window.notifTimeout) clearTimeout(window.notifTimeout);
             if (window.notifClearTimeout) clearTimeout(window.notifClearTimeout);
 
-            window.notifTimeout = setTimeout(() => {
-                notif.classList.add('translate-y-[-150%]', 'opacity-0');
-                // Clear text after it fades out completely
-                window.notifClearTimeout = setTimeout(() => {
-                    msgEl.innerText = '';
-                }, 400); // Slightly less than the transition duration
-            }, 3000);
+            if (durationMs > 0) {
+                window.notifTimeout = setTimeout(() => {
+                    notif.classList.add('translate-y-[-150%]', 'opacity-0');
+                    // Clear text after it fades out completely
+                    window.notifClearTimeout = setTimeout(() => {
+                        msgEl.innerText = '';
+                    }, 400); // Slightly less than the transition duration
+                }, durationMs);
+            }
         }
 
         let confirmCallback = null;
@@ -2948,7 +2954,7 @@ window.quitGameFirebase = async () => {
             provider.setCustomParameters({ prompt: 'select_account' });
             
             try {
-                window.showNotification("Opening Google Sign-In...");
+                window.showNotification("Opening sign in... <a href='?login=true' target='_blank' class='cursor-pointer underline text-teal-200 hover:text-white font-bold ml-2' onclick='closeModal(\"modal-signin-fallback\")'>Press here if no popup shows</a>", true, 8000);
                 
                 const isPWA = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
                 
