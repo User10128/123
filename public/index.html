@@ -1872,7 +1872,7 @@
 
 const firebaseConfig = {
   apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
-  authDomain: "auth.checkers.page",
+  authDomain: "checkers-matchmaking-5ac55.firebaseapp.com",
   projectId: "checkers-matchmaking-5ac55",
   storageBucket: "checkers-matchmaking-5ac55.firebasestorage.app",
   messagingSenderId: "778086491027",
@@ -4269,14 +4269,22 @@ await setDoc(gameRef, {
         // Check if the browser supports service workers
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Register the service worker
-                navigator.serviceWorker.register('./sw.js')
-                    .then(registration => {
-                        console.log('Service Worker registered successfully.');
-                    })
-                    .catch(error => {
-                        console.log('Service Worker registration failed:', error);
+                navigator.serviceWorker.register('./sw.js').then(registration => {
+                    console.log('Service Worker registered successfully.');
+                    
+                    // Force update if one is waiting
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('New SW available. Refreshing page...');
+                                window.location.reload();
+                            }
+                        });
                     });
+                }).catch(error => {
+                    console.log('Service Worker registration failed:', error);
+                });
             });
         }
     </script>
