@@ -2891,6 +2891,23 @@ window.quitGameFirebase = async () => {
 
         let forceRedirectSignin = false;
         
+        const urlParams = new URLSearchParams(window.location.search);
+        const autoLogin = urlParams.get('login') === 'true';
+
+        if (autoLogin) {
+            // If opened from PWA for login, try popup directly
+            setTimeout(async () => {
+                try {
+                    const provider = new GoogleAuthProvider();
+                    provider.setCustomParameters({ prompt: 'select_account' });
+                    await signInWithPopup(auth, provider, browserPopupRedirectResolver);
+                    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#fff;font-family:sans-serif;text-align:center;flex-direction:column;"><h1>Successfully Signed In!</h1><p>You can close this tab and return to the app.</p><button onclick="window.close()" style="margin-top:20px;padding:10px 20px;background:#14b8a6;color:white;border:none;border-radius:8px;cursor:pointer;">Close Tab</button></div>';
+                } catch (e) {
+                    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#fff;font-family:sans-serif;text-align:center;flex-direction:column;"><h1>Sign In Failed</h1><p>' + e.message + '</p></div>';
+                }
+            }, 1000);
+        }
+
         window.signInGoogle = async () => {
             const provider = new GoogleAuthProvider();
             provider.setCustomParameters({ prompt: 'select_account' });
@@ -2900,8 +2917,21 @@ window.quitGameFirebase = async () => {
                 
                 const isPWA = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
                 
-                if (forceRedirectSignin || isPWA) {
-                    console.log("Using Redirect flow to bypass tracking protection / PWA constraints...");
+                if (isPWA) {
+                    console.log("PWA detected. Opening sign-in flow in default browser...");
+                    window.showNotification("Opening sign-in in your default browser...", true);
+                    // Open in default browser. Data will sync back via IndexedDB shared storage
+                    window.open(window.location.origin + window.location.pathname + "?login=true", '_blank');
+                    
+                    // Listen for changes from the other tab
+                    const checkInterval = setInterval(() => {
+                         if (auth.currentUser && !auth.currentUser.isAnonymous) {
+                             clearInterval(checkInterval);
+                             window.showNotification("Signed in successfully!");
+                         }
+                    }, 2000);
+                } else if (forceRedirectSignin) {
+                    console.log("Using Redirect flow due to constraints or previous block...");
                     await signInWithRedirect(auth, provider, browserPopupRedirectResolver);
                 } else {
                     // Standard popup for regular web
