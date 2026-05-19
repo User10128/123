@@ -1872,7 +1872,7 @@
 
 const firebaseConfig = {
   apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
-  authDomain: "checkers-matchmaking-5ac55.firebaseapp.com",
+  authDomain: "auth.checkers.page",
   projectId: "checkers-matchmaking-5ac55",
   storageBucket: "checkers-matchmaking-5ac55.firebasestorage.app",
   messagingSenderId: "778086491027",
@@ -2889,19 +2889,43 @@ window.quitGameFirebase = async () => {
             }
         });
 
+        let forceRedirectSignin = false;
+        
         window.signInGoogle = async () => {
             const provider = new GoogleAuthProvider();
             provider.setCustomParameters({ prompt: 'select_account' });
             
             try {
                 window.showNotification("Opening Google Sign-In...");
-                // Force redirect for all sign-ins. Microsoft Edge and many PWAs aggressively block 
-                // popups and cross-origin iframes, which causes "getContext" TypeError or popup-blocked errors.
-                // Using redirect avoids all popup blockers.
-                await signInWithRedirect(auth, provider);
+                
+                const isPWA = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+                
+                if (forceRedirectSignin || isPWA) {
+                    console.log("Using Redirect flow due to constraints or previous block...");
+                    // Try popup first in PWA, unless previously forced
+                    if (isPWA && !forceRedirectSignin) {
+                        try {
+                            await signInWithPopup(auth, provider);
+                            window.showNotification("Signed in successfully!");
+                            return;
+                        } catch (pwaErr) {
+                            console.warn("PWA popup failed, switching to Redirect", pwaErr);
+                        }
+                    }
+                    await signInWithRedirect(auth, provider);
+                } else {
+                    // Standard popup for regular web
+                    await signInWithPopup(auth, provider);
+                    window.showNotification("Signed in successfully!");
+                }
             } catch (e) {
-                console.error("Sign in failed:", e);
-                window.showNotification("Sign in failed. " + e.message);
+                if (e.code === 'auth/popup-blocked') {
+                    forceRedirectSignin = true; // Force redirect on the next try
+                    window.showNotification("Popup blocked by browser. Please click Sign In again to continue.", true);
+                } else {
+                    console.error("Sign in failed:", e);
+                    window.showNotification("Sign in failed. " + e.message, true);
+                }
             }
         };
 
