@@ -2873,7 +2873,7 @@ window.quitGameFirebase = async () => {
         });
 
         // Handle the redirect result when the page reloads
-        getRedirectResult(auth).then((result) => {
+        getRedirectResult(auth, browserPopupRedirectResolver).then((result) => {
             if (result && result.user) {
                 window.showNotification("Signed in successfully!");
             }
@@ -2901,27 +2901,18 @@ window.quitGameFirebase = async () => {
                 const isPWA = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
                 
                 if (forceRedirectSignin || isPWA) {
-                    console.log("Using Redirect flow due to constraints or previous block...");
-                    // Try popup first in PWA, unless previously forced
-                    if (isPWA && !forceRedirectSignin) {
-                        try {
-                            await signInWithPopup(auth, provider);
-                            window.showNotification("Signed in successfully!");
-                            return;
-                        } catch (pwaErr) {
-                            console.warn("PWA popup failed, switching to Redirect", pwaErr);
-                        }
-                    }
-                    await signInWithRedirect(auth, provider);
+                    console.log("Using Redirect flow to bypass tracking protection / PWA constraints...");
+                    await signInWithRedirect(auth, provider, browserPopupRedirectResolver);
                 } else {
                     // Standard popup for regular web
-                    await signInWithPopup(auth, provider);
+                    await signInWithPopup(auth, provider, browserPopupRedirectResolver);
                     window.showNotification("Signed in successfully!");
                 }
             } catch (e) {
                 if (e.code === 'auth/popup-blocked') {
                     forceRedirectSignin = true; // Force redirect on the next try
-                    window.showNotification("Popup blocked by browser. Please click Sign In again to continue.", true);
+                    window.showNotification("Popup blocked by browser. Switching to Redirect...", true);
+                    await signInWithRedirect(auth, provider, browserPopupRedirectResolver);
                 } else {
                     console.error("Sign in failed:", e);
                     window.showNotification("Sign in failed. " + e.message, true);
