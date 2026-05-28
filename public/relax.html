@@ -64,12 +64,27 @@
         .v-bar:nth-child(2) { animation-delay: 0.2s; }
         .v-bar:nth-child(3) { animation-delay: 0.4s; }
         .v-bar:nth-child(4) { animation-delay: 0.1s; }
+
+        /* Custom Scrollbar for list panels */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 overflow-hidden select-none font-sans h-screen w-screen relative">
 
     <!-- Premium Fullscreen Cinematic Backgrounds -->
-    <div id="bg-container" class="absolute inset-0 w-full h-full bg-cover bg-center" style="background-image: url('https://photographylife.com/wp-content/uploads/2016/06/Mass.jpg');">
+    <div id="bg-container" class="absolute inset-0 w-full h-full bg-cover bg-center" style="background-image: url('https://t4.ftcdn.net/jpg/04/10/17/81/360_F_410178103_csRCkM4ZA1Zz07lSID07URpl21S1zegS.jpg');">
     </div>
 
     <!-- Soft ambient dark gradient for subtle depth -->
@@ -126,27 +141,46 @@
         </div>
 
         <!-- Bottom Row: Dynamic Control Center -->
-        <div class="flex items-end justify-between w-full">
+        <div class="flex items-end justify-between w-full relative">
             <div class="text-left text-slate-400/60 text-xs hidden md:block">
                 Right-click anywhere to customize your space
             </div>
 
+            <!-- Tracklist Dropup Panel (Sits directly above the player widget) -->
+            <div id="tracklist-dropup" class="hidden absolute bottom-24 right-0 glass-panel rounded-2xl w-80 max-h-64 overflow-y-auto py-2 z-40 text-slate-200 text-sm border border-white/10 shadow-2xl pointer-events-auto">
+                <div class="px-4 py-2 border-b border-white/5 text-[10px] uppercase tracking-widest text-slate-400 font-semibold flex justify-between items-center">
+                    <span>Select Ambient Track</span>
+                    <span id="track-count-badge" class="text-teal-400 font-sans">1 Track</span>
+                </div>
+                <div id="dropup-tracks-list" class="divide-y divide-white/5">
+                    <!-- Tracks dynamically loaded here -->
+                </div>
+            </div>
+
             <!-- Premium Music Player Widget -->
-            <div class="glass-panel rounded-2xl p-4 flex items-center gap-4 pointer-events-auto w-80 transition-all duration-500 hover:bg-slate-900/40">
-                <!-- Visualizer anim/Album Icon -->
-                <div class="w-12 h-12 rounded-xl bg-slate-900/60 border border-white/5 flex items-center justify-center relative overflow-hidden">
-                    <div class="flex items-end gap-1 h-5 opacity-20" id="visualizer">
+            <div id="player-widget" class="glass-panel rounded-2xl p-4 flex items-center gap-4 pointer-events-auto w-80 transition-all duration-300 hover:bg-slate-900/40 relative">
+                
+                <!-- Visualizer anim/Album Icon (Clickable as list toggle when multiple exist) -->
+                <button id="btn-toggle-playlist" class="w-12 h-12 rounded-xl bg-slate-900/60 border border-white/5 flex items-center justify-center relative overflow-hidden transition-all hover:bg-slate-800/80 active:scale-95 group focus:outline-none">
+                    <!-- Hover Overlay Indicator -->
+                    <div id="playlist-indicator" class="absolute inset-0 bg-teal-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-400 translate-y-1 group-hover:translate-y-0 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </div>
+                    
+                    <div class="flex items-end gap-1 h-5 opacity-20 transition-opacity" id="visualizer">
                         <div class="w-1 bg-teal-400/80 rounded-full v-bar"></div>
                         <div class="w-1 bg-teal-400/80 rounded-full v-bar"></div>
                         <div class="w-1 bg-teal-400/80 rounded-full v-bar"></div>
                         <div class="w-1 bg-teal-400/80 rounded-full v-bar"></div>
                     </div>
-                </div>
+                </button>
 
                 <!-- Track Metadata & Controls -->
                 <div class="flex-1 min-w-0">
-                    <div class="text-xs font-semibold text-white truncate">Relaxing Piano Pop</div>
-                    <div class="text-[10px] text-slate-400 font-serif italic truncate mt-0.5">Curated Ambient Stream</div>
+                    <div id="track-title" class="text-xs font-semibold text-white truncate">Relaxing Piano Pop</div>
+                    <div id="track-desc" class="text-[10px] text-slate-400 font-serif italic truncate mt-0.5">Curated Ambient Stream</div>
                     
                     <!-- Volume Bar -->
                     <div class="flex items-center gap-2 mt-2">
@@ -157,8 +191,8 @@
                     </div>
                 </div>
 
-                <!-- Play/Pause Button -->
-                <button id="btn-play-pause" class="w-8 h-8 rounded-full bg-white text-slate-900 flex items-center justify-center hover:scale-105 transition-all active:scale-95">
+                <!-- Play/Pause Button (Triple click for playlist manager) -->
+                <button id="btn-play-pause" title="Triple-click to edit playlist" class="w-8 h-8 rounded-full bg-white text-slate-900 flex items-center justify-center hover:scale-105 transition-all active:scale-95 relative group">
                     <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 hidden" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
                     </svg>
@@ -166,6 +200,67 @@
                         <path d="M8 5v14l11-7z"/>
                     </svg>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Frosted-Glass Ambience Track List / Playlist Editor Modal -->
+    <div id="playlist-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-slate-900/40">
+                <div>
+                    <h3 class="text-lg font-semibold text-white">Ambience Track List</h3>
+                    <p class="text-[11px] text-slate-400 font-light mt-0.5">Customize your stream with custom YouTube IDs</p>
+                </div>
+                <button id="btn-close-modal" class="text-slate-400 hover:text-white transition duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Content Area (Scrollable) -->
+            <div class="p-6 overflow-y-auto space-y-6 flex-1">
+                <!-- Track List -->
+                <div>
+                    <h4 class="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-3">Current Tracks</h4>
+                    <div id="modal-tracks-list" class="space-y-2">
+                        <!-- Dynamically populated current tracks -->
+                    </div>
+                </div>
+
+                <!-- Add Track Form -->
+                <div class="pt-4 border-t border-white/5">
+                    <h4 class="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-3">Add Custom Track</h4>
+                    <form id="add-track-form" class="space-y-3" onsubmit="event.preventDefault();">
+                        <div>
+                            <label class="block text-[11px] text-slate-400 uppercase tracking-wider mb-1">Song Title</label>
+                            <input id="input-title" type="text" placeholder="e.g. Lofi Study Session" required class="w-full bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-400 uppercase tracking-wider mb-1">Subtitle / Author</label>
+                            <input id="input-desc" type="text" placeholder="e.g. Chilled Ambient Beats" required class="w-full bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-400 uppercase tracking-wider mb-1">YouTube Video ID</label>
+                            <input id="input-ytid" type="text" placeholder="e.g. Kr_b-9rn_Ag" required class="w-full bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
+                            <span class="text-[10px] text-slate-500 mt-1 block">Paste the 11 character ID after the "v=" in a YouTube URL</span>
+                        </div>
+                        
+                        <div id="modal-feedback" class="hidden text-xs text-rose-400 mt-1"></div>
+
+                        <button id="btn-submit-track" class="w-full mt-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-medium py-2 rounded-lg text-sm transition-all shadow-md active:scale-98">
+                            Add Track to List
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="px-6 py-3 border-t border-white/10 bg-slate-900/20 text-[11px] text-slate-400 flex justify-between items-center">
+                <span>Tip: Triple-click play anytime to manage tracks</span>
+                <span class="text-teal-400 font-serif italic">Zenscape</span>
             </div>
         </div>
     </div>
@@ -199,6 +294,7 @@
     <script>
         // --- 1. Immersive Curated Artworks ---
         const backgrounds = [
+            'https://t4.ftcdn.net/jpg/04/10/17/81/360_F_410178103_csRCkM4ZA1Zz07lSID07URpl21S1zegS.jpg', // Starry Alpine Wilderness
             'https://t3.ftcdn.net/jpg/07/46/15/12/240_F_746151223_OjmRU9OGEe24DibQ4KmVTmADUeZ08FUa.jpg', // Misty Mountain Woods
             'https://t4.ftcdn.net/jpg/02/88/54/05/240_F_288540513_AjSrmrpuFW6NeKh97gaEtxo2yseUZ9sa.jpg', // Starry Alpine Wilderness
             'https://t4.ftcdn.net/jpg/02/57/85/17/240_F_257851798_PoRPiiSjyDx0WFNPQZD45NA1wRaXM26b.jpg', // Misty Mountain Woods
@@ -255,7 +351,7 @@
             
             document.getElementById('time').innerText = `${hours}:${minutes} ${ampm}`;
             
-            // Set dynamic aesthetic date
+            // Set dynamic date
             const day = now.getDate();
             const month = monthNames[now.getMonth()];
             document.getElementById('date-label').innerText = `${month} ${day}`;
@@ -263,7 +359,7 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // --- 3. Weather Integration with Strict Code Translation (No Sky Lies) ---
+        // --- 3. Weather Integration with Strict Code Translation ---
         function getWeatherDetails(code) {
             const wmoCodes = {
                 0: { desc: "Clear Sky", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14 12a2 2 0 11-4 0 2 2 0 014 0z" /></svg>` },
@@ -284,7 +380,6 @@
                 95: { desc: "Thunderstorm", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>` }
             };
 
-            // Fallback for codes not explicitly listed
             return wmoCodes[code] || { 
                 desc: code <= 3 ? "Clear Sky" : code <= 48 ? "Foggy" : code <= 67 ? "Rainy" : code <= 77 ? "Snowy" : "Thunderstorm",
                 icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /></svg>`
@@ -293,7 +388,6 @@
 
         function setWeatherVisuals(tempF, weatherCode) {
             document.getElementById('temp').innerText = `${Math.round(tempF)}°F`;
-            
             const weather = getWeatherDetails(weatherCode);
             document.getElementById('weather-icon-holder').innerHTML = weather.icon;
             document.getElementById('weather-desc').innerText = weather.desc;
@@ -355,26 +449,195 @@
         document.getElementById('btn-swap').addEventListener('click', swapBackground);
         document.getElementById('btn-reload').addEventListener('click', () => location.reload());
 
-        // --- 5. Robust YouTube Player Creation ---
+        // --- 5. Playlist & Track Manager Logic ---
+        let playlist = [
+            { id: 'Kr_b-9rn_Ag', title: 'Relaxing Piano Pop', desc: 'Curated Ambient Stream' }
+        ];
+        let currentTrackIndex = 0;
+
+        // Custom UI State
+        let isMusicPlaying = false;
+        let apiReady = false;
+        var player;
+
+        // Load Playlist Manager Elements
+        const modal = document.getElementById('playlist-modal');
+        const modalTracksList = document.getElementById('modal-tracks-list');
+        const dropup = document.getElementById('tracklist-dropup');
+        const dropupTracksList = document.getElementById('dropup-tracks-list');
+        const playlistIndicator = document.getElementById('playlist-indicator');
+        const trackCountBadge = document.getElementById('track-count-badge');
+
+        const inputTitle = document.getElementById('input-title');
+        const inputDesc = document.getElementById('input-desc');
+        const inputYtId = document.getElementById('input-ytid');
+        const addTrackForm = document.getElementById('add-track-form');
+        const modalFeedback = document.getElementById('modal-feedback');
+        const btnSubmitTrack = document.getElementById('btn-submit-track');
+
+        // Functions to maintain tracks
+        function loadTrack(index) {
+            currentTrackIndex = index;
+            const track = playlist[index];
+            
+            document.getElementById('track-title').innerText = track.title;
+            document.getElementById('track-desc').innerText = track.desc;
+            
+            if (player && typeof player.loadVideoById === 'function') {
+                if (isMusicPlaying) {
+                    player.loadVideoById({ videoId: track.id });
+                } else {
+                    player.cueVideoById({ videoId: track.id });
+                }
+            }
+            renderDropupList();
+            dropup.classList.add('hidden'); // Close selector when a song is chosen
+        }
+
+        function renderDropupList() {
+            dropupTracksList.innerHTML = '';
+            trackCountBadge.innerText = `${playlist.length} Track${playlist.length === 1 ? '' : 's'}`;
+            
+            if (playlist.length <= 1) {
+                playlistIndicator.classList.add('hidden');
+                return;
+            } else {
+                playlistIndicator.classList.remove('hidden');
+            }
+
+            playlist.forEach((track, idx) => {
+                const isActive = idx === currentTrackIndex;
+                const trackEl = document.createElement('button');
+                trackEl.className = `w-full text-left px-4 py-2.5 hover:bg-white/10 flex items-center justify-between transition-colors ${isActive ? 'bg-teal-500/10 text-teal-300' : 'text-slate-300'}`;
+                trackEl.innerHTML = `
+                    <div class="truncate pr-4">
+                        <p class="font-medium text-xs truncate">${track.title}</p>
+                        <p class="text-[10px] text-slate-400 font-serif italic truncate mt-0.5">${track.desc}</p>
+                    </div>
+                    ${isActive ? '<div class="w-1.5 h-1.5 bg-teal-400 rounded-full shrink-0"></div>' : ''}
+                `;
+                trackEl.addEventListener('click', () => loadTrack(idx));
+                dropupTracksList.appendChild(trackEl);
+            });
+        }
+
+        function renderModalTracks() {
+            modalTracksList.innerHTML = '';
+            playlist.forEach((track, idx) => {
+                const isDefault = idx === 0;
+                const trackEl = document.createElement('div');
+                trackEl.className = 'flex items-center justify-between p-3 bg-slate-900/60 border border-white/5 rounded-xl text-slate-100';
+                trackEl.innerHTML = `
+                    <div class="truncate pr-4">
+                        <p class="text-xs font-semibold truncate">${track.title}</p>
+                        <p class="text-[10px] text-slate-400 italic font-serif truncate mt-0.5">${track.desc} <span class="font-sans text-slate-500 ml-2">(${track.id})</span></p>
+                    </div>
+                    ${isDefault ? `
+                        <span class="text-[10px] uppercase bg-white/10 text-slate-400 px-2 py-1 rounded font-medium shrink-0 tracking-wider">Default</span>
+                    ` : `
+                        <button onclick="removeTrack(${idx})" class="p-1.5 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-lg transition duration-150 shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    `}
+                `;
+                modalTracksList.appendChild(trackEl);
+            });
+        }
+
+        // Global track removal function
+        window.removeTrack = function(idx) {
+            if (idx === 0) return; // Prevent default track removal
+            
+            playlist.splice(idx, 1);
+            if (currentTrackIndex === idx) {
+                // If we removed current track, reset to default
+                loadTrack(0);
+            } else if (currentTrackIndex > idx) {
+                currentTrackIndex--;
+            }
+            
+            renderModalTracks();
+            renderDropupList();
+        };
+
+        // Form submission logic
+        btnSubmitTrack.addEventListener('click', () => {
+            const title = inputTitle.value.trim();
+            const desc = inputDesc.value.trim();
+            const ytid = inputYtId.value.trim();
+
+            if (!title || !desc || !ytid) {
+                modalFeedback.innerText = "Please fill in all inputs.";
+                modalFeedback.classList.remove('hidden');
+                return;
+            }
+
+            if (ytid.length < 11) {
+                modalFeedback.innerText = "Please provide a valid YouTube Video ID.";
+                modalFeedback.classList.remove('hidden');
+                return;
+            }
+
+            modalFeedback.classList.add('hidden');
+            
+            // Add custom track
+            playlist.push({ id: ytid, title, desc });
+            
+            // Clear inputs
+            addTrackForm.reset();
+
+            // Rerender UI
+            renderModalTracks();
+            renderDropupList();
+
+            // Load added track immediately
+            loadTrack(playlist.length - 1);
+        });
+
+        // Trigger Playlist Manager
+        function openPlaylistModal() {
+            renderModalTracks();
+            modal.classList.remove('hidden');
+        }
+
+        document.getElementById('btn-close-modal').addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+
+        // Toggle dropup selector
+        document.getElementById('btn-toggle-playlist').addEventListener('click', (e) => {
+            if (playlist.length > 1) {
+                dropup.classList.toggle('hidden');
+            }
+            e.stopPropagation();
+        });
+
+        // Close dropup if clicked elsewhere
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#tracklist-dropup') === null && e.target.closest('#btn-toggle-playlist') === null) {
+                dropup.classList.add('hidden');
+            }
+        });
+
+
+        // --- 6. Robust YouTube Player Creation ---
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-        var player;
-        let isMusicPlaying = false;
-        let apiReady = false;
-
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
                 height: '100%',
                 width: '100%',
-                videoId: 'Kr_b-9rn_Ag',
+                videoId: playlist[0].id,
                 playerVars: {
                     'autoplay': 0,
                     'controls': 0,
                     'loop': 1,
-                    'playlist': 'Kr_b-9rn_Ag',
+                    'playlist': playlist[0].id,
                     'playsinline': 1,
                     'rel': 0,
                     'origin': window.location.origin
@@ -388,6 +651,7 @@
         function onPlayerReady(event) {
             apiReady = true;
             player.setVolume(40);
+            renderDropupList();
         }
 
         // UI & Overlay Handlers
@@ -404,7 +668,6 @@
                 this.classList.add('hidden');
             }, 1000);
 
-            // Play music immediately upon interaction
             playMusic();
         });
 
@@ -419,7 +682,6 @@
                 const bars = document.querySelectorAll('.v-bar');
                 bars.forEach(b => b.style.animationPlayState = 'running');
             } else {
-                // If api not ready yet, retry in 300ms
                 setTimeout(playMusic, 300);
             }
         }
@@ -437,12 +699,35 @@
             }
         }
 
-        // Toggle button logic
-        playPauseBtn.addEventListener('click', () => {
-            if (isMusicPlaying) {
-                pauseMusic();
-            } else {
-                playMusic();
+        // --- Multi-Click Controller Engine on Play Button ---
+        let playPauseClicks = 0;
+        let playPauseClickTimer = null;
+
+        playPauseBtn.addEventListener('click', (e) => {
+            playPauseClicks++;
+            
+            if (playPauseClicks === 1) {
+                // Buffer to verify double or triple click pattern
+                playPauseClickTimer = setTimeout(() => {
+                    if (playPauseClicks < 3) {
+                        // Normal play/pause toggle action
+                        if (isMusicPlaying) {
+                            pauseMusic();
+                        } else {
+                            playMusic();
+                        }
+                    }
+                    playPauseClicks = 0;
+                }, 350); // 350ms window allows quick natural double/triple clicks
+            } else if (playPauseClicks === 3) {
+                clearTimeout(playPauseClickTimer);
+                playPauseClicks = 0;
+                
+                // Fire Custom Ambience Track Manager
+                openPlaylistModal();
+                
+                e.preventDefault();
+                e.stopPropagation();
             }
         });
 
