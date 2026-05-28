@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zenscape | Relax & Focus</title>
+    <title>Relax & Focus</title>
     
     <!-- Premium Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -80,7 +80,7 @@
                     <path d="M8 5v14l11-7z"/>
                 </svg>
             </div>
-            <h2 class="font-serif italic text-3xl mb-2 text-white">Enter Zenscape</h2>
+            <h2 class="font-serif italic text-3xl mb-2 text-white">Enter</h2>
             <p class="text-slate-400 font-light text-sm tracking-wider uppercase pulse-slow">Click anywhere to begin your session</p>
         </div>
     </div>
@@ -117,7 +117,7 @@
 
             <!-- Gentle branding mark -->
             <div class="text-right hidden md:block">
-                <span class="font-serif italic text-lg text-white/80 block">Zenscape</span>
+                <span class="font-serif italic text-lg text-white/80 block">Relax by Checkers Labs</span>
                 <span class="text-[9px] uppercase tracking-widest text-white/40 block mt-0.5">Mindful Ambience</span>
             </div>
         </div>
@@ -196,10 +196,40 @@
     <script>
         // --- 1. Immersive Curated Artworks ---
         const backgrounds = [
-            'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=2670&auto=format&fit=crop', // Tokyo Cyber Ambient
-            'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2674&auto=format&fit=crop', // Misty Mountain Woods
-            'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=2670&auto=format&fit=crop', // Kyoto Sunset Alley
-            'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?q=80&w=2670&auto=format&fit=crop', // Starry Alpine Wilderness
+            'https://t4.ftcdn.net/jpg/09/32/57/23/240_F_932572345_s2ZS8nDQg1MuukYPqXC6dLuHsRAPGZWZ.jpg', // Tokyo Cyber Ambient
+            'https://t3.ftcdn.net/jpg/07/46/15/12/240_F_746151223_OjmRU9OGEe24DibQ4KmVTmADUeZ08FUa.jpg', // Misty Mountain Woods
+            'https://t3.ftcdn.net/jpg/02/40/23/20/240_F_240232042_CNy2calcjjwYgwhyi4tja512tLo1KGfM.jpg', // Kyoto Sunset Alley
+            'https://t4.ftcdn.net/jpg/02/88/54/05/240_F_288540513_AjSrmrpuFW6NeKh97gaEtxo2yseUZ9sa.jpg', // Starry Alpine Wilderness
+                        'https://t4.ftcdn.net/jpg/02/57/85/17/240_F_257851798_PoRPiiSjyDx0WFNPQZD45NA1wRaXM26b.jpg', // Misty Mountain Woods
+            'https://t4.ftcdn.net/jpg/03/67/19/41/240_F_367194125_XwFSDBZUbTyBk2zlV78RsByOGQ250JyN.jpg', // Kyoto Sunset Alley
+            'https://t3.ftcdn.net/jpg/01/67/72/04/240_F_167720496_af8JnHFQM7QMyIIz31tgp289ukGtlXKB.jpg', // Starry Alpine Wilderness
+                        'https://t4.ftcdn.net/jpg/03/14/14/11/240_F_314141146_OLdlWE1SkeUyquNjSa45S6pxAmss6VbK.jpg', // Misty Mountain Woods
+            'https://t3.ftcdn.net/jpg/00/82/68/82/240_F_82688299_0d9RUQP4WZ3FHRrZyfYjqfwdDxeljoSa.jpg', // Kyoto Sunset Alley
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6xmDy6fatVDs6hzuPHWn_NN8rL8vMqRWsMQ&s', // Starry Alpine Wilderness
+                        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bGFuZHNjYXBlc3xlbnwwfHwwfHx8MA%3D%3D', // Misty Mountain Woods
+            'https://photographylife.com/wp-content/uploads/2017/01/What-is-landscape-photography.jpg', // Kyoto Sunset Alley
+            'https://photographylife.com/wp-content/uploads/2016/06/Mass.jpg', // Starry Alpine Wilderness
+                        'https://images.ctfassets.net/h6goo9gw1hh6/6q7wxEsZobVBc3qxUrjJWq/b038b963c63e31fe633e434b817ee14e/sunrise.jpg?w=1200&h=800&fl=progressive&q=70&fm=jpg', // Misty Mountain Woods
+            'https://img.freepik.com/free-vector/nature-scene-with-river-hills-forest-mountain-landscape-flat-cartoon-style-illustration_1150-37326.jpg?semt=ais_hybrid&w=740&q=80', // Kyoto Sunset Alley
+            'https://t4.ftcdn.net/jpg/00/91/73/65/360_F_91736536_zh7DskHlGbv8VMR8zahF3kWU9uZsDZz2.jpg', // Starry Alpine Wilderness
+                        'https://iso.500px.com/wp-content/uploads/2014/07/hong-kong-cityscape1.jpg', // Misty Mountain Woods
+            'https://www.adobe.com/creativecloud/photography/type/media_18ec078ac12361c5bd437dae615fd5dd92bfbfe51.jpg?width=1200&format=pjpg&optimize=medium', // Kyoto Sunset Alley
+            'https://images.pexels.com/photos/30136066/pexels-photo-30136066.jpeg?cs=srgb&dl=pexels-apyfz-30136066.jpg&fm=jpg', // Starry Alpine Wilderness
+                        'https://www.shutterstock.com/image-photo/wet-asphalt-road-city-skyline-600nw-2706811681.jpg', // Misty Mountain Woods
+            'https://static.vecteezy.com/system/resources/thumbnails/075/500/912/small/cityscape-reflections-at-night-a-symphony-of-light-and-shadow-on-still-waters-photo.jpg', // Kyoto Sunset Alley
+            'https://deih43ym53wif.cloudfront.net/dubai-uae-shutterstock_728342668_81490299a5.jpeg', // Starry Alpine Wilderness
+                        'https://img.magnific.com/free-photo/view-new-york-city-night-time_53876-138055.jpg?semt=ais_hybrid&w=740&q=80', // Misty Mountain Woods
+            'https://content.paulreiffer.com/wp-content/uploads/2014/12/Arise-Financial-District-Freedom-Tower-One-World-Trade-Center-FiDi-New-York-City-River-Paul-Reiffer-Cityscape-Landscape-Photography@2x.jpg', // Kyoto Sunset Alley
+            'https://iso.500px.com/wp-content/uploads/2014/07/hong-kong-the-peak-view.jpg', // Starry Alpine Wilderness
+                        'https://img.magnific.com/free-photo/skyline-downtown-new-york-new-york-usa_268835-773.jpg?semt=ais_hybrid&w=740&q=80', // Misty Mountain Woods
+            'https://t3.ftcdn.net/jpg/00/67/33/88/360_F_67338876_RJHPtMW0G2dGB8tASgvFMDatHQNwusZC.jpg', // Kyoto Sunset Alley
+            'https://i0.wp.com/digital-photography-school.com/wp-content/uploads/2022/12/cityscape-photos-examples-18.jpg?resize=1500%2C1001&ssl=1', // Starry Alpine Wilderness
+                        'https://t4.ftcdn.net/jpg/05/22/93/63/360_F_522936327_P22aM6GXgGv31aiSyzToTbtClbxlRrZC.jpg', // Misty Mountain Woods
+            'https://media.istockphoto.com/id/1136437406/photo/san-francisco-skyline-with-oakland-bay-bridge-at-sunset-california-usa.jpg?s=612x612&w=0&k=20&c=JVBBZT2uquZbfY0njYHv8vkLfatoM4COJc-lX5QKYpE=', // Kyoto Sunset Alley
+            'https://media.istockphoto.com/id/2191907519/photo/skyscraper-in-city-city-downtown-with-skyscraper-office-building-business-district-modern.webp?b=1&s=612x612&w=0&k=20&c=FktYP6tix-62u8lNO1biLzwQy-Rju3tz_x4x8rQcVx8=', // Starry Alpine Wilderness
+                        'https://media.istockphoto.com/id/1739024655/photo/asphalt-road-and-city-skyline-at-sunset.jpg?s=612x612&w=0&k=20&c=PxXf1utnXOJzXm5kYrfI751aw-wiIAIy6tC7mROk8IM=', // Misty Mountain Woods
+            'https://t3.ftcdn.net/jpg/02/99/49/00/360_F_299490075_5Xw5tJJGkBBiVixmA3n8KemFRJmS6J81.jpg', // Kyoto Sunset Alley
+            'https://t4.ftcdn.net/jpg/04/10/17/81/360_F_410178103_csRCkM4ZA1Zz07lSID07URpl21S1zegS.jpg', // Starry Alpine Wilderness
             'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2673&auto=format&fit=crop'  // Pure Ocean Dream
         ];
         let currentBgIndex = 0;
