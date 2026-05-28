@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relax & Focus</title>
     
+    <!-- Perfect Simple Favicon (Teal Zen Ring) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%2314b8a6' opacity='0.9'/%3E%3Ccircle cx='50' cy='50' r='18' fill='%230f172a'/%3E%3C/svg%3E">
+    
     <!-- Premium Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,9 +30,9 @@
     </script>
 
     <style>
-        /* Smooth transitions for high-end landscape feel */
+        /* One single, quick and simple image changing transition */
         #bg-container {
-            transition: background-image 2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background-image 0.35s ease-in-out;
         }
         
         /* Ambient slow breathing animation for the interaction overlay */
@@ -110,7 +113,7 @@
                     </div>
                     <div class="flex flex-col">
                         <span id="temp" class="text-2xl font-light text-slate-100">--°F</span>
-                        <span id="weather-desc" class="text-[10px] uppercase tracking-widest text-slate-400 mt-0.5 font-medium">Calm Sky</span>
+                        <span id="weather-desc" class="text-[10px] uppercase tracking-widest text-slate-400 mt-0.5 font-medium">Checking...</span>
                     </div>
                 </div>
             </div>
@@ -198,34 +201,34 @@
         const backgrounds = [
             'https://t3.ftcdn.net/jpg/07/46/15/12/240_F_746151223_OjmRU9OGEe24DibQ4KmVTmADUeZ08FUa.jpg', // Misty Mountain Woods
             'https://t4.ftcdn.net/jpg/02/88/54/05/240_F_288540513_AjSrmrpuFW6NeKh97gaEtxo2yseUZ9sa.jpg', // Starry Alpine Wilderness
-                        'https://t4.ftcdn.net/jpg/02/57/85/17/240_F_257851798_PoRPiiSjyDx0WFNPQZD45NA1wRaXM26b.jpg', // Misty Mountain Woods
+            'https://t4.ftcdn.net/jpg/02/57/85/17/240_F_257851798_PoRPiiSjyDx0WFNPQZD45NA1wRaXM26b.jpg', // Misty Mountain Woods
             'https://t4.ftcdn.net/jpg/03/67/19/41/240_F_367194125_XwFSDBZUbTyBk2zlV78RsByOGQ250JyN.jpg', // Kyoto Sunset Alley
             'https://t3.ftcdn.net/jpg/01/67/72/04/240_F_167720496_af8JnHFQM7QMyIIz31tgp289ukGtlXKB.jpg', // Starry Alpine Wilderness
-                        'https://t4.ftcdn.net/jpg/03/14/14/11/240_F_314141146_OLdlWE1SkeUyquNjSa45S6pxAmss6VbK.jpg', // Misty Mountain Woods
+            'https://t4.ftcdn.net/jpg/03/14/14/11/240_F_314141146_OLdlWE1SkeUyquNjSa45S6pxAmss6VbK.jpg', // Misty Mountain Woods
             'https://t3.ftcdn.net/jpg/00/82/68/82/240_F_82688299_0d9RUQP4WZ3FHRrZyfYjqfwdDxeljoSa.jpg', // Kyoto Sunset Alley
             'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6xmDy6fatVDs6hzuPHWn_NN8rL8vMqRWsMQ&s', // Starry Alpine Wilderness
-                        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bGFuZHNjYXBlc3xlbnwwfHwwfHx8MA%3D%3D', // Misty Mountain Woods
+            'https://images.unsplash.com/photo-1506744038136-46273834b3fb?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bGFuZHNjYXBlc3xlbnwwfHwwfHx8MA%3D%3D', // Misty Mountain Woods
             'https://photographylife.com/wp-content/uploads/2017/01/What-is-landscape-photography.jpg', // Kyoto Sunset Alley
             'https://photographylife.com/wp-content/uploads/2016/06/Mass.jpg', // Starry Alpine Wilderness
-                        'https://images.ctfassets.net/h6goo9gw1hh6/6q7wxEsZobVBc3qxUrjJWq/b038b963c63e31fe633e434b817ee14e/sunrise.jpg?w=1200&h=800&fl=progressive&q=70&fm=jpg', // Misty Mountain Woods
+            'https://images.ctfassets.net/h6goo9gw1hh6/6q7wxEsZobVBc3qxUrjJWq/b038b963c63e31fe633e434b817ee14e/sunrise.jpg?w=1200&h=800&fl=progressive&q=70&fm=jpg', // Misty Mountain Woods
             'https://img.freepik.com/free-vector/nature-scene-with-river-hills-forest-mountain-landscape-flat-cartoon-style-illustration_1150-37326.jpg?semt=ais_hybrid&w=740&q=80', // Kyoto Sunset Alley
             'https://t4.ftcdn.net/jpg/00/91/73/65/360_F_91736536_zh7DskHlGbv8VMR8zahF3kWU9uZsDZz2.jpg', // Starry Alpine Wilderness
-                        'https://iso.500px.com/wp-content/uploads/2014/07/hong-kong-cityscape1.jpg', // Misty Mountain Woods
+            'https://iso.500px.com/wp-content/uploads/2014/07/hong-kong-cityscape1.jpg', // Misty Mountain Woods
             'https://www.adobe.com/creativecloud/photography/type/media_18ec078ac12361c5bd437dae615fd5dd92bfbfe51.jpg?width=1200&format=pjpg&optimize=medium', // Kyoto Sunset Alley
             'https://images.pexels.com/photos/30136066/pexels-photo-30136066.jpeg?cs=srgb&dl=pexels-apyfz-30136066.jpg&fm=jpg', // Starry Alpine Wilderness
-                        'https://www.shutterstock.com/image-photo/wet-asphalt-road-city-skyline-600nw-2706811681.jpg', // Misty Mountain Woods
+            'https://www.shutterstock.com/image-photo/wet-asphalt-road-city-skyline-600nw-2706811681.jpg', // Misty Mountain Woods
             'https://static.vecteezy.com/system/resources/thumbnails/075/500/912/small/cityscape-reflections-at-night-a-symphony-of-light-and-shadow-on-still-waters-photo.jpg', // Kyoto Sunset Alley
             'https://deih43ym53wif.cloudfront.net/dubai-uae-shutterstock_728342668_81490299a5.jpeg', // Starry Alpine Wilderness
-                        'https://img.magnific.com/free-photo/view-new-york-city-night-time_53876-138055.jpg?semt=ais_hybrid&w=740&q=80', // Misty Mountain Woods
+            'https://img.magnific.com/free-photo/view-new-york-city-night-time_53876-138055.jpg?semt=ais_hybrid&w=740&q=80', // Misty Mountain Woods
             'https://content.paulreiffer.com/wp-content/uploads/2014/12/Arise-Financial-District-Freedom-Tower-One-World-Trade-Center-FiDi-New-York-City-River-Paul-Reiffer-Cityscape-Landscape-Photography@2x.jpg', // Kyoto Sunset Alley
             'https://iso.500px.com/wp-content/uploads/2014/07/hong-kong-the-peak-view.jpg', // Starry Alpine Wilderness
-                        'https://img.magnific.com/free-photo/skyline-downtown-new-york-new-york-usa_268835-773.jpg?semt=ais_hybrid&w=740&q=80', // Misty Mountain Woods
+            'https://img.magnific.com/free-photo/skyline-downtown-new-york-new-york-usa_268835-773.jpg?semt=ais_hybrid&w=740&q=80', // Misty Mountain Woods
             'https://t3.ftcdn.net/jpg/00/67/33/88/360_F_67338876_RJHPtMW0G2dGB8tASgvFMDatHQNwusZC.jpg', // Kyoto Sunset Alley
             'https://i0.wp.com/digital-photography-school.com/wp-content/uploads/2022/12/cityscape-photos-examples-18.jpg?resize=1500%2C1001&ssl=1', // Starry Alpine Wilderness
-                        'https://t4.ftcdn.net/jpg/05/22/93/63/360_F_522936327_P22aM6GXgGv31aiSyzToTbtClbxlRrZC.jpg', // Misty Mountain Woods
+            'https://t4.ftcdn.net/jpg/05/22/93/63/360_F_522936327_P22aM6GXgGv31aiSyzToTbtClbxlRrZC.jpg', // Misty Mountain Woods
             'https://media.istockphoto.com/id/1136437406/photo/san-francisco-skyline-with-oakland-bay-bridge-at-sunset-california-usa.jpg?s=612x612&w=0&k=20&c=JVBBZT2uquZbfY0njYHv8vkLfatoM4COJc-lX5QKYpE=', // Kyoto Sunset Alley
             'https://media.istockphoto.com/id/2191907519/photo/skyscraper-in-city-city-downtown-with-skyscraper-office-building-business-district-modern.webp?b=1&s=612x612&w=0&k=20&c=FktYP6tix-62u8lNO1biLzwQy-Rju3tz_x4x8rQcVx8=', // Starry Alpine Wilderness
-                        'https://media.istockphoto.com/id/1739024655/photo/asphalt-road-and-city-skyline-at-sunset.jpg?s=612x612&w=0&k=20&c=PxXf1utnXOJzXm5kYrfI751aw-wiIAIy6tC7mROk8IM=', // Misty Mountain Woods
+            'https://media.istockphoto.com/id/1739024655/photo/asphalt-road-and-city-skyline-at-sunset.jpg?s=612x612&w=0&k=20&c=PxXf1utnXOJzXm5kYrfI751aw-wiIAIy6tC7mROk8IM=', // Misty Mountain Woods
             'https://t3.ftcdn.net/jpg/02/99/49/00/360_F_299490075_5Xw5tJJGkBBiVixmA3n8KemFRJmS6J81.jpg', // Kyoto Sunset Alley
             'https://t4.ftcdn.net/jpg/04/10/17/81/360_F_410178103_csRCkM4ZA1Zz07lSID07URpl21S1zegS.jpg', // Starry Alpine Wilderness
             'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2673&auto=format&fit=crop'  // Pure Ocean Dream
@@ -260,33 +263,40 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // --- 3. Weather Integration with Visuals ---
+        // --- 3. Weather Integration with Strict Code Translation (No Sky Lies) ---
+        function getWeatherDetails(code) {
+            const wmoCodes = {
+                0: { desc: "Clear Sky", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14 12a2 2 0 11-4 0 2 2 0 014 0z" /></svg>` },
+                1: { desc: "Mainly Clear", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-100" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14 12a2 2 0 11-4 0 2 2 0 014 0z" /></svg>` },
+                2: { desc: "Partly Cloudy", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /></svg>` },
+                3: { desc: "Overcast", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /></svg>` },
+                45: { desc: "Foggy", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-stone-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>` },
+                48: { desc: "Depositing Fog", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>` },
+                51: { desc: "Light Drizzle", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-sky-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>` },
+                53: { desc: "Moderate Drizzle", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>` },
+                55: { desc: "Dense Drizzle", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>` },
+                61: { desc: "Slight Rain", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>` },
+                63: { desc: "Moderate Rain", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>` },
+                65: { desc: "Heavy Rain", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>` },
+                71: { desc: "Slight Snow", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-100" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3" /></svg>` },
+                73: { desc: "Moderate Snow", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3" /></svg>` },
+                75: { desc: "Heavy Snow", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3" /></svg>` },
+                95: { desc: "Thunderstorm", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>` }
+            };
+
+            // Fallback for codes not explicitly listed
+            return wmoCodes[code] || { 
+                desc: code <= 3 ? "Clear Sky" : code <= 48 ? "Foggy" : code <= 67 ? "Rainy" : code <= 77 ? "Snowy" : "Thunderstorm",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /></svg>`
+            };
+        }
+
         function setWeatherVisuals(tempF, weatherCode) {
             document.getElementById('temp').innerText = `${Math.round(tempF)}°F`;
             
-            let iconSvg = '';
-            let desc = 'Clear';
-            
-            if (weatherCode <= 3) {
-                // Clear or Mainly Clear
-                iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14 12a2 2 0 11-4 0 2 2 0 014 0z" /></svg>`;
-                desc = 'Clear Sky';
-            } else if (weatherCode <= 48) {
-                // Clouds or Fog
-                iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /></svg>`;
-                desc = 'Overcast';
-            } else if (weatherCode <= 67) {
-                // Rain or Drizzle
-                iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>`;
-                desc = 'Rainy Chill';
-            } else {
-                // Storm or Snow
-                iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>`;
-                desc = 'Dynamic Atmosphere';
-            }
-            
-            document.getElementById('weather-icon-holder').innerHTML = iconSvg;
-            document.getElementById('weather-desc').innerText = desc;
+            const weather = getWeatherDetails(weatherCode);
+            document.getElementById('weather-icon-holder').innerHTML = weather.icon;
+            document.getElementById('weather-desc').innerText = weather.desc;
         }
 
         function fetchWeather() {
