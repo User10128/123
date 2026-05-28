@@ -450,6 +450,36 @@
         let playlist = [
             { id: 'Kr_b-9rn_Ag', title: 'Relaxing Piano Pop', desc: 'Curated Ambient Stream' }
         ];
+
+        const STORAGE_KEY = 'zenscape_playlist_v1';
+
+        // Save tracks directly to the local computer's browser storage
+        function savePlaylist() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(playlist));
+            } catch (e) {
+                console.warn("Local storage saving failed:", e);
+            }
+        }
+
+        // Load tracks from the local computer's browser storage
+        function loadPlaylist() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        playlist = parsed;
+                    }
+                }
+            } catch (e) {
+                console.warn("Local storage loading failed:", e);
+            }
+        }
+
+        // Initialize playlist from local storage when the page opens
+        loadPlaylist();
+
         let currentTrackIndex = 0;
 
         // Custom UI State
@@ -557,6 +587,7 @@
             
             renderModalTracks();
             renderDropupList();
+            savePlaylist();
         };
 
         // Form submission logic
@@ -591,6 +622,7 @@
 
             // Load added track immediately
             loadTrack(playlist.length - 1);
+            savePlaylist();
         });
 
         // Trigger Playlist Manager
