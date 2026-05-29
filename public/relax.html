@@ -703,7 +703,7 @@
             document.getElementById('lyrics-artist').innerText = track.desc;
             const contentDiv = document.getElementById('lyrics-content');
             
-            contentDiv.innerHTML = '<div class="flex justify-center items-center h-full"><div class="animate-pulse text-slate-400">Searching LRCLib for lyrics...</div></div>';
+            contentDiv.innerHTML = '<div class="flex justify-center items-center h-full"><div class="animate-pulse text-slate-400">Searching for lyrics based on title...</div></div>';
             
             try {
                 const query = encodeURIComponent(`${track.title} ${track.desc}`);
