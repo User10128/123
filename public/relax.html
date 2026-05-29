@@ -665,14 +665,13 @@
                 playerVars: {
                     'autoplay': 0,
                     'controls': 0,
-                    'loop': 1,
-                    'playlist': playlist[0].id,
                     'playsinline': 1,
                     'rel': 0,
                     'origin': window.location.origin
                 },
                 events: {
-                    'onReady': onPlayerReady
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
                 }
             });
         }
@@ -681,6 +680,20 @@
             apiReady = true;
             player.setVolume(40);
             renderDropupList();
+        }
+
+        function onPlayerStateChange(event) {
+            // When a track finishes playing natively (State 0)
+            if (event.data === YT.PlayerState.ENDED) {
+                if (currentTrackIndex + 1 < playlist.length) {
+                    // If there are more tracks, load and play the next one
+                    loadTrack(currentTrackIndex + 1);
+                    playMusic();
+                } else {
+                    // End of playlist reached, pause music and update UI
+                    pauseMusic();
+                }
+            }
         }
 
         // UI & Overlay Handlers
