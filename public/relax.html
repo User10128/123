@@ -15,6 +15,7 @@
     
     <!-- Tailwind CSS for modern layouts -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -359,6 +360,34 @@
     <!-- YouTube Dynamic Player Container -->
     <div id="player-container" class="absolute pointer-events-none opacity-0 w-1 h-1">
         <div id="player"></div>
+    </div>
+
+    <!-- Secret Peer Sync Modal -->
+    <div id="peer-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-sm rounded-2xl p-6 shadow-2xl flex flex-col relative text-center">
+            <button id="btn-close-peer" class="absolute top-4 right-4 text-slate-400 hover:text-white transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h3 class="text-lg font-semibold text-white mb-4">Secret Sync</h3>
+            
+            <div id="peer-initial-view" class="flex gap-4 justify-center">
+                <button id="btn-peer-send" class="bg-teal-500 hover:bg-teal-400 text-slate-950 font-medium px-4 py-2 rounded-lg text-sm transition-all shadow-md w-full">Send Data</button>
+                <button id="btn-peer-receive" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-lg text-sm transition-all shadow-md w-full">Receive Data</button>
+            </div>
+
+            <div id="peer-send-view" class="hidden flex flex-col items-center w-full">
+                <p class="text-sm text-slate-300 mb-2">Your 3-digit code:</p>
+                <p id="peer-code-display" class="text-4xl font-bold text-teal-400 tracking-widest mb-4">---</p>
+                <p id="peer-send-status" class="text-xs text-slate-400">Waiting for connection...</p>
+            </div>
+
+            <div id="peer-receive-view" class="hidden flex flex-col items-center w-full">
+                <p class="text-sm text-slate-300 mb-2">Enter 3-digit code:</p>
+                <input id="peer-code-input" type="text" maxlength="3" class="bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-center text-2xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors w-24 mb-4">
+                <button id="btn-peer-connect" class="bg-teal-500 hover:bg-teal-400 text-slate-950 font-medium px-4 py-2 rounded-lg text-sm transition-all shadow-md w-full">Connect & Sync</button>
+                <p id="peer-receive-status" class="text-xs text-slate-400 mt-2 hidden"></p>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1307,6 +1336,130 @@
             if (player && typeof player.setVolume === 'function') {
                 player.setVolume(val);
             }
+        });
+
+        // --- Secret Peer Sync ---
+        let keyBuffer = [];
+        let peerInstance = null;
+
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+            if (e.key.length === 1) {
+                keyBuffer.push(e.key.toLowerCase());
+                if (keyBuffer.length > 4) keyBuffer.shift();
+                
+                if (keyBuffer.join('') === 'send') {
+                    document.getElementById('peer-modal').classList.remove('hidden');
+                    document.getElementById('peer-initial-view').classList.remove('hidden');
+                    document.getElementById('peer-send-view').classList.add('hidden');
+                    document.getElementById('peer-receive-view').classList.add('hidden');
+                    keyBuffer = []; 
+                }
+            }
+        });
+
+        document.getElementById('btn-close-peer').addEventListener('click', () => {
+            document.getElementById('peer-modal').classList.add('hidden');
+            if (peerInstance) {
+                peerInstance.destroy();
+                peerInstance = null;
+            }
+        });
+
+        // Send Data Logic
+        document.getElementById('btn-peer-send').addEventListener('click', () => {
+            document.getElementById('peer-initial-view').classList.add('hidden');
+            document.getElementById('peer-send-view').classList.remove('hidden');
+            
+            const code = Math.floor(100 + Math.random() * 900).toString();
+            document.getElementById('peer-code-display').innerText = code;
+            document.getElementById('peer-send-status').innerText = "Waiting for connection...";
+
+            peerInstance = new Peer('zenscape-sync-' + code);
+            peerInstance.on('connection', (conn) => {
+                document.getElementById('peer-send-status').innerText = "Connected! Sending data...";
+                conn.on('open', () => {
+                    const dataToSend = {
+                        albums: albums,
+                        currentAlbumIndex: currentAlbumIndex,
+                        currentTrackIndex: currentTrackIndex,
+                        currentBgIndex: currentBgIndex,
+                        volume: document.getElementById('volume-slider').value
+                    };
+                    conn.send(JSON.stringify(dataToSend));
+                    setTimeout(() => {
+                        document.getElementById('peer-send-status').innerText = "Data sent successfully!";
+                        setTimeout(() => document.getElementById('btn-close-peer').click(), 2000);
+                    }, 500);
+                });
+            });
+        });
+
+        // Receive Data Logic
+        document.getElementById('btn-peer-receive').addEventListener('click', () => {
+            document.getElementById('peer-initial-view').classList.add('hidden');
+            document.getElementById('peer-receive-view').classList.remove('hidden');
+            document.getElementById('peer-code-input').value = '';
+            document.getElementById('peer-receive-status').classList.add('hidden');
+        });
+
+        document.getElementById('btn-peer-connect').addEventListener('click', () => {
+            const code = document.getElementById('peer-code-input').value.trim();
+            if (code.length !== 3) return;
+
+            const status = document.getElementById('peer-receive-status');
+            status.innerText = "Connecting...";
+            status.classList.remove('hidden');
+
+            peerInstance = new Peer();
+            peerInstance.on('open', () => {
+                const conn = peerInstance.connect('zenscape-sync-' + code);
+                conn.on('open', () => {
+                    status.innerText = "Connected! Waiting for data...";
+                });
+                conn.on('data', (data) => {
+                    try {
+                        const parsed = JSON.parse(data);
+                        if (parsed.albums) {
+                            albums = parsed.albums;
+                            currentAlbumIndex = parsed.currentAlbumIndex || 0;
+                            currentTrackIndex = parsed.currentTrackIndex || 0;
+                            
+                            if (parsed.currentBgIndex !== undefined) {
+                                currentBgIndex = parsed.currentBgIndex;
+                                document.getElementById('bg-container').style.backgroundImage = `url('${backgrounds[currentBgIndex]}')`;
+                            }
+                            if (parsed.volume !== undefined) {
+                                document.getElementById('volume-slider').value = parsed.volume;
+                                if (player && typeof player.setVolume === 'function') {
+                                    player.setVolume(parsed.volume);
+                                }
+                            }
+
+                            saveAlbums(); // Commits new albums configuration to local storage
+                            renderAlbumSelector();
+                            renderModalTracks();
+                            renderDropupList();
+                            
+                            const cp = getCurrentPlaylist();
+                            if (cp.length > 0) {
+                                loadTrack(currentTrackIndex);
+                            } else {
+                                handleEmptyState();
+                            }
+
+                            status.innerText = "Sync complete!";
+                            setTimeout(() => document.getElementById('btn-close-peer').click(), 2000);
+                        }
+                    } catch (e) {
+                        status.innerText = "Error syncing data.";
+                        console.error(e);
+                    }
+                });
+            });
         });
     </script>
 </body>
