@@ -128,7 +128,7 @@
                     </div>
                     <div class="flex flex-col">
                         <span id="temp" class="text-2xl font-light text-slate-100">--°F</span>
-                        <span id="weather-desc" class="text-[10px] uppercase tracking-widest text-slate-400 mt-0.5 font-medium">Checking...</span>
+                        <span id="weather-desc" class="text-[10px] uppercase tracking-widest text-slate-200 mt-0.5 font-medium">Checking...</span>
                     </div>
                 </div>
             </div>
@@ -203,12 +203,13 @@
 
     <!-- Frosted-Glass Ambience Track List / Playlist Editor Modal -->
     <div id="playlist-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-md rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+        <div class="glass-panel w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
             <!-- Header -->
             <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-slate-900/40">
-                <div>
-                    <h3 class="text-lg font-semibold text-white">Ambience Track List</h3>
-                    <p class="text-[11px] text-slate-400 font-light mt-0.5">Customize your stream with custom YouTube IDs</p>
+                <div class="flex items-center gap-3">
+                    <h3 class="text-lg font-semibold text-white">Albums</h3>
+                    <select id="album-selector" class="bg-slate-800 text-white text-sm rounded px-2 py-1 border border-white/20 focus:outline-none"></select>
+                    <button id="btn-new-album" class="text-teal-400 hover:text-teal-300 text-sm font-medium">+ New</button>
                 </div>
                 <button id="btn-close-modal" class="text-slate-400 hover:text-white transition duration-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -221,7 +222,10 @@
             <div class="p-6 overflow-y-auto space-y-6 flex-1">
                 <!-- Track List -->
                 <div>
-                    <h4 class="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-3">Current Tracks</h4>
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="text-xs uppercase tracking-widest text-slate-400 font-semibold">Tracks in Album</h4>
+                        <button id="btn-delete-album" class="text-rose-400 hover:text-rose-300 text-xs hidden">Delete Album</button>
+                    </div>
                     <div id="modal-tracks-list" class="space-y-2">
                         <!-- Dynamically populated current tracks -->
                     </div>
@@ -229,34 +233,51 @@
 
                 <!-- Add Track Form -->
                 <div class="pt-4 border-t border-white/5">
-                    <h4 class="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-3">Add Custom Track</h4>
-                    <form id="add-track-form" class="space-y-3" onsubmit="event.preventDefault();">
+                    <div class="flex gap-4 mb-3">
+                        <button id="tab-search" class="text-xs uppercase tracking-widest text-teal-400 font-semibold border-b border-teal-400 pb-1">Search YouTube</button>
+                        <button id="tab-manual" class="text-xs uppercase tracking-widest text-slate-500 font-semibold pb-1 hover:text-slate-300">Manual ID</button>
+                    </div>
+
+                    <!-- Search Tab -->
+                    <div id="pane-search" class="space-y-3">
+                        <div>
+                            <div class="flex gap-2">
+                                <input id="input-search-query" type="text" placeholder="Search for ambience, lofi, etc..." class="flex-1 bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
+                                <button id="btn-search-yt" class="bg-teal-500 hover:bg-teal-400 text-slate-950 font-medium px-4 py-2 rounded-lg text-sm transition-all shadow-md active:scale-98">Search</button>
+                            </div>
+                        </div>
+                        <div id="search-results" class="space-y-2 max-h-40 overflow-y-auto hidden">
+                            <!-- Results go here -->
+                        </div>
+                    </div>
+
+                    <!-- Manual Tab -->
+                    <form id="add-track-form" class="space-y-3 hidden" onsubmit="event.preventDefault();">
                         <div>
                             <label class="block text-[11px] text-slate-400 uppercase tracking-wider mb-1">Song Title</label>
-                            <input id="input-title" type="text" placeholder="e.g. Lofi Study Session" required class="w-full bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
+                            <input id="input-title" type="text" placeholder="e.g. Lofi Study Session" class="w-full bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
                         </div>
                         <div>
                             <label class="block text-[11px] text-slate-400 uppercase tracking-wider mb-1">Subtitle / Author</label>
-                            <input id="input-desc" type="text" placeholder="e.g. Chilled Ambient Beats" required class="w-full bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
+                            <input id="input-desc" type="text" placeholder="e.g. Chilled Ambient Beats" class="w-full bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
                         </div>
                         <div>
                             <label class="block text-[11px] text-slate-400 uppercase tracking-wider mb-1">YouTube Video ID</label>
-                            <input id="input-ytid" type="text" placeholder="e.g. Kr_b-9rn_Ag" required class="w-full bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
+                            <input id="input-ytid" type="text" placeholder="e.g. Kr_b-9rn_Ag" class="w-full bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
                             <span class="text-[10px] text-slate-500 mt-1 block">Paste the 11 character ID after the "v=" in a YouTube URL</span>
                         </div>
-                        
-                        <div id="modal-feedback" class="hidden text-xs text-rose-400 mt-1"></div>
 
-                        <button id="btn-submit-track" class="w-full mt-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-medium py-2 rounded-lg text-sm transition-all shadow-md active:scale-98">
-                            Add Track to List
+                        <button id="btn-submit-track" class="w-full mt-2 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 rounded-lg text-sm transition-all shadow-md active:scale-98">
+                            Add Track Manually
                         </button>
                     </form>
+                    <div id="modal-feedback" class="hidden text-xs text-rose-400 mt-2"></div>
                 </div>
             </div>
             
             <!-- Footer -->
             <div class="px-6 py-3 border-t border-white/10 bg-slate-900/20 text-[11px] text-slate-400 flex justify-between items-center">
-                <span>Tip: Triple-click play anytime to manage tracks</span>
+                <span>Tip: Search YouTube to instantly add tracks to your album</span>
                 <span class="text-teal-400 font-serif italic">Relax</span>
             </div>
         </div>
@@ -450,50 +471,21 @@
             }
         });
 
-        // --- 5. Playlist & Track Manager Logic ---
-        let playlist = [
-            { id: 'Kr_b-9rn_Ag', title: 'Relaxing Piano Pop', desc: 'Curated Ambient Stream' }
+        // --- 5. Albums & Track Manager Logic ---
+        const STORAGE_KEY_ALBUMS = 'zenscape_albums_v2';
+        const STORAGE_KEY_LEGACY = 'zenscape_playlist_v1';
+
+        let albums = [
+            {
+                id: 'default-album',
+                name: 'Default Ambience',
+                tracks: [
+                    { id: 'Kr_b-9rn_Ag', title: 'Relaxing Piano Pop', desc: 'Curated Ambient Stream' }
+                ]
+            }
         ];
-
-        const STORAGE_KEY = 'zenscape_playlist_v1';
-
-        // Save tracks directly to the local computer's browser storage
-        function savePlaylist() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(playlist));
-            } catch (e) {
-                console.warn("Local storage saving failed:", e);
-            }
-        }
-
-        // Load tracks from the local computer's browser storage
-        function loadPlaylist() {
-            try {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    // Ensure the list is parsed properly even if the user deleted all tracks
-                    if (Array.isArray(parsed)) {
-                        playlist = parsed;
-                    }
-                }
-            } catch (e) {
-                console.warn("Local storage loading failed:", e);
-            }
-        }
-
-        // Initialize playlist from local storage when the page opens
-        loadPlaylist();
         
-        // Initialize UI if empty on load
-        if (playlist.length === 0) {
-            document.getElementById('track-title').innerText = "Nothing playing";
-            document.getElementById('track-desc').innerText = "Add a track to begin";
-        } else {
-            document.getElementById('track-title').innerText = playlist[0].title;
-            document.getElementById('track-desc').innerText = playlist[0].desc;
-        }
-
+        let currentAlbumIndex = 0;
         let currentTrackIndex = 0;
 
         // Custom UI State
@@ -509,18 +501,255 @@
         const playlistIndicator = document.getElementById('playlist-indicator');
         const trackCountBadge = document.getElementById('track-count-badge');
 
+        const albumSelector = document.getElementById('album-selector');
+        const btnNewAlbum = document.getElementById('btn-new-album');
+        const btnDeleteAlbum = document.getElementById('btn-delete-album');
+
+        const tabSearch = document.getElementById('tab-search');
+        const tabManual = document.getElementById('tab-manual');
+        const paneSearch = document.getElementById('pane-search');
+        const addTrackForm = document.getElementById('add-track-form');
+
         const inputTitle = document.getElementById('input-title');
         const inputDesc = document.getElementById('input-desc');
         const inputYtId = document.getElementById('input-ytid');
-        const addTrackForm = document.getElementById('add-track-form');
-        const modalFeedback = document.getElementById('modal-feedback');
         const btnSubmitTrack = document.getElementById('btn-submit-track');
+        
+        const inputSearchQuery = document.getElementById('input-search-query');
+        const btnSearchYt = document.getElementById('btn-search-yt');
+        const searchResults = document.getElementById('search-results');
+        const modalFeedback = document.getElementById('modal-feedback');
+
+        // Save tracks directly to the local computer's browser storage
+        function saveAlbums() {
+            try {
+                localStorage.setItem(STORAGE_KEY_ALBUMS, JSON.stringify(albums));
+                localStorage.setItem('zenscape_last_album', currentAlbumIndex);
+            } catch (e) {
+                console.warn("Local storage saving failed:", e);
+            }
+        }
+
+        // Load tracks from the local computer's browser storage
+        function loadAlbums() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY_ALBUMS);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        albums = parsed;
+                    }
+                } else {
+                    const legacy = localStorage.getItem(STORAGE_KEY_LEGACY);
+                    if (legacy) {
+                        const parsedLegacy = JSON.parse(legacy);
+                        if (Array.isArray(parsedLegacy) && parsedLegacy.length > 0) {
+                            albums[0].tracks = parsedLegacy;
+                            saveAlbums();
+                        }
+                    }
+                }
+                const lastAlbum = localStorage.getItem('zenscape_last_album');
+                if (lastAlbum !== null && lastAlbum < albums.length) {
+                    currentAlbumIndex = parseInt(lastAlbum);
+                }
+            } catch (e) {
+                console.warn("Local storage loading failed:", e);
+            }
+        }
+
+        function getCurrentPlaylist() {
+            return albums[currentAlbumIndex] ? albums[currentAlbumIndex].tracks : [];
+        }
+
+        // Initialize playlist from local storage when the page opens
+        loadAlbums();
+        
+        // Initialize UI if empty on load
+        if (getCurrentPlaylist().length === 0) {
+            handleEmptyState();
+        } else {
+            document.getElementById('track-title').innerText = getCurrentPlaylist()[0].title;
+            document.getElementById('track-desc').innerText = getCurrentPlaylist()[0].desc;
+        }
+
+        // Handle empty track states globally
+        function handleEmptyState() {
+            document.getElementById('track-title').innerText = "Nothing playing";
+            document.getElementById('track-desc').innerText = "Add a track to begin";
+            if (player && typeof player.stopVideo === 'function') {
+                player.stopVideo();
+            }
+            isMusicPlaying = false;
+            pauseMusic(); // Updates the UI buttons back to 'play'
+            currentTrackIndex = 0;
+            
+            if (!document.getElementById('lyrics-overlay').classList.contains('hidden')) {
+                document.getElementById('lyrics-title').innerText = "Nothing playing";
+                document.getElementById('lyrics-artist').innerText = "";
+                document.getElementById('lyrics-content').innerHTML = '<div class="flex justify-center items-center h-full text-slate-400 text-lg">Add a track to search for lyrics.</div>';
+            }
+        }
+
+        // Albums UI Management
+        function renderAlbumSelector() {
+            albumSelector.innerHTML = '';
+            albums.forEach((album, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.innerText = album.name;
+                if (idx === currentAlbumIndex) opt.selected = true;
+                albumSelector.appendChild(opt);
+            });
+            btnDeleteAlbum.classList.toggle('hidden', albums.length <= 1);
+        }
+
+        albumSelector.addEventListener('change', (e) => {
+            currentAlbumIndex = parseInt(e.target.value);
+            currentTrackIndex = 0;
+            saveAlbums();
+            renderModalTracks();
+            renderDropupList();
+            const cp = getCurrentPlaylist();
+            if (cp.length > 0) {
+                loadTrack(0);
+                if(isMusicPlaying) playMusic();
+            } else {
+                handleEmptyState();
+            }
+        });
+
+        btnNewAlbum.addEventListener('click', () => {
+            albums.push({
+                id: 'album-' + Date.now(),
+                name: 'Album ' + (albums.length + 1),
+                tracks: []
+            });
+            currentAlbumIndex = albums.length - 1;
+            currentTrackIndex = 0;
+            saveAlbums();
+            renderAlbumSelector();
+            renderModalTracks();
+            renderDropupList();
+            handleEmptyState();
+        });
+
+        btnDeleteAlbum.addEventListener('click', () => {
+             if (albums.length > 1) {
+                 albums.splice(currentAlbumIndex, 1);
+                 currentAlbumIndex = 0;
+                 currentTrackIndex = 0;
+                 saveAlbums();
+                 renderAlbumSelector();
+                 renderModalTracks();
+                 renderDropupList();
+                 if (getCurrentPlaylist().length > 0) {
+                     loadTrack(0);
+                 } else {
+                     handleEmptyState();
+                 }
+             }
+        });
+
+        // Tabs UI
+        tabSearch.addEventListener('click', () => {
+            tabSearch.classList.replace('text-slate-500', 'text-teal-400');
+            tabSearch.classList.add('border-b', 'border-teal-400');
+            tabManual.classList.replace('text-teal-400', 'text-slate-500');
+            tabManual.classList.remove('border-b', 'border-teal-400');
+            paneSearch.classList.remove('hidden');
+            addTrackForm.classList.add('hidden');
+            modalFeedback.classList.add('hidden');
+        });
+
+        tabManual.addEventListener('click', () => {
+            tabManual.classList.replace('text-slate-500', 'text-teal-400');
+            tabManual.classList.add('border-b', 'border-teal-400');
+            tabSearch.classList.replace('text-teal-400', 'text-slate-500');
+            tabSearch.classList.remove('border-b', 'border-teal-400');
+            addTrackForm.classList.remove('hidden');
+            paneSearch.classList.add('hidden');
+            modalFeedback.classList.add('hidden');
+        });
+
+        btnSearchYt.addEventListener('click', async () => {
+            const apiKey = 'AIzaSyBJFs_SZU59RfyJ9tuQPBH8Llti0kLb-uw';
+            const query = inputSearchQuery.value.trim();
+            
+            if (!query) return;
+
+            modalFeedback.classList.add('hidden');
+            searchResults.innerHTML = '<div class="text-center text-slate-400 py-2">Searching...</div>';
+            searchResults.classList.remove('hidden');
+
+            try {
+                const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`);
+                const data = await res.json();
+                
+                if (data.error) throw new Error(data.error.message);
+                
+                searchResults.innerHTML = '';
+                if (!data.items || data.items.length === 0) {
+                    searchResults.innerHTML = '<div class="text-center text-slate-400 py-2">No results found.</div>';
+                    return;
+                }
+
+                data.items.forEach(item => {
+                    const resultEl = document.createElement('div');
+                    resultEl.className = 'flex items-center justify-between p-2 bg-slate-800/50 rounded border border-white/5 hover:bg-slate-800 transition cursor-pointer';
+                    // Decode HTML entities in title
+                    const titleDiv = document.createElement('div');
+                    titleDiv.innerHTML = item.snippet.title;
+                    const cleanTitle = titleDiv.textContent || titleDiv.innerText || "";
+                    
+                    resultEl.innerHTML = `
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            <img src="${item.snippet.thumbnails.default.url}" class="w-12 h-9 object-cover rounded shrink-0">
+                            <div class="truncate">
+                                <div class="text-xs text-white font-medium truncate">${cleanTitle}</div>
+                                <div class="text-[10px] text-slate-400 truncate">${item.snippet.channelTitle}</div>
+                            </div>
+                        </div>
+                        <button class="text-teal-400 hover:text-teal-300 px-3 shrink-0 font-bold">+</button>
+                    `;
+                    resultEl.addEventListener('click', () => {
+                        addTrackToCurrentAlbum(item.id.videoId, cleanTitle, item.snippet.channelTitle);
+                        inputSearchQuery.value = '';
+                        searchResults.classList.add('hidden');
+                    });
+                    searchResults.appendChild(resultEl);
+                });
+
+            } catch (err) {
+                console.error(err);
+                searchResults.innerHTML = '';
+                modalFeedback.innerText = "Error: " + err.message;
+                modalFeedback.classList.remove('hidden');
+            }
+        });
 
         // Functions to maintain tracks
+        function addTrackToCurrentAlbum(ytid, title, desc) {
+            albums[currentAlbumIndex].tracks.push({ id: ytid, title, desc });
+            saveAlbums();
+            renderModalTracks();
+            renderDropupList();
+            
+            // If it's the first track, load it
+            if (albums[currentAlbumIndex].tracks.length === 1) {
+                loadTrack(0);
+            } else {
+                // Otherwise jump to it
+                loadTrack(albums[currentAlbumIndex].tracks.length - 1);
+            }
+        }
+
         function loadTrack(index) {
-            if (playlist.length === 0) return;
+            const currentPlaylist = getCurrentPlaylist();
+            if (currentPlaylist.length === 0) return;
+            
             currentTrackIndex = index;
-            const track = playlist[index];
+            const track = currentPlaylist[index];
             
             document.getElementById('track-title').innerText = track.title;
             document.getElementById('track-desc').innerText = track.desc;
@@ -543,16 +772,17 @@
 
         function renderDropupList() {
             dropupTracksList.innerHTML = '';
-            trackCountBadge.innerText = `${playlist.length} Track${playlist.length === 1 ? '' : 's'}`;
+            const currentPlaylist = getCurrentPlaylist();
+            trackCountBadge.innerText = `${currentPlaylist.length} Track${currentPlaylist.length === 1 ? '' : 's'}`;
             
-            if (playlist.length <= 1) {
+            if (currentPlaylist.length <= 1) {
                 playlistIndicator.classList.add('hidden');
                 return;
             } else {
                 playlistIndicator.classList.remove('hidden');
             }
 
-            playlist.forEach((track, idx) => {
+            currentPlaylist.forEach((track, idx) => {
                 const isActive = idx === currentTrackIndex;
                 const trackEl = document.createElement('button');
                 trackEl.className = `w-full text-left px-4 py-2.5 hover:bg-white/10 flex items-center justify-between transition-colors ${isActive ? 'bg-teal-500/10 text-teal-300' : 'text-slate-300'}`;
@@ -570,7 +800,12 @@
 
         function renderModalTracks() {
             modalTracksList.innerHTML = '';
-            playlist.forEach((track, idx) => {
+            const currentPlaylist = getCurrentPlaylist();
+            if (currentPlaylist.length === 0) {
+                modalTracksList.innerHTML = '<div class="text-xs text-slate-500 italic p-2">No tracks in this album.</div>';
+                return;
+            }
+            currentPlaylist.forEach((track, idx) => {
                 const trackEl = document.createElement('div');
                 trackEl.className = 'flex items-center justify-between p-3 bg-slate-900/60 border border-white/5 rounded-xl text-slate-100';
                 trackEl.innerHTML = `
@@ -590,21 +825,13 @@
 
         // Global track removal function
         window.removeTrack = function(idx) {
-            playlist.splice(idx, 1);
+            albums[currentAlbumIndex].tracks.splice(idx, 1);
+            const currentPlaylist = getCurrentPlaylist();
             
-            if (playlist.length === 0) {
-                // Handle empty state
-                document.getElementById('track-title').innerText = "Nothing playing";
-                document.getElementById('track-desc').innerText = "Add a track to begin";
-                if (player && typeof player.stopVideo === 'function') {
-                    player.stopVideo();
-                }
-                isMusicPlaying = false;
-                pauseMusic(); // Updates the UI buttons back to 'play'
-                currentTrackIndex = 0;
+            if (currentPlaylist.length === 0) {
+                handleEmptyState();
             } else {
                 if (currentTrackIndex === idx) {
-                    // If we removed current track, play the first one
                     loadTrack(0);
                 } else if (currentTrackIndex > idx) {
                     currentTrackIndex--;
@@ -613,10 +840,10 @@
             
             renderModalTracks();
             renderDropupList();
-            savePlaylist();
+            saveAlbums();
         };
 
-        // Form submission logic
+        // Manual Form submission logic
         btnSubmitTrack.addEventListener('click', () => {
             const title = inputTitle.value.trim();
             const desc = inputDesc.value.trim();
@@ -635,26 +862,24 @@
             }
 
             modalFeedback.classList.add('hidden');
-            
-            // Add custom track
-            playlist.push({ id: ytid, title, desc });
-            
-            // Clear inputs
+            addTrackToCurrentAlbum(ytid, title, desc);
             addTrackForm.reset();
-
-            // Rerender UI
-            renderModalTracks();
-            renderDropupList();
-
-            // Load added track immediately
-            loadTrack(playlist.length - 1);
-            savePlaylist();
         });
 
         // Trigger Playlist Manager
         function openPlaylistModal() {
+            renderAlbumSelector();
             renderModalTracks();
             modal.classList.remove('hidden');
+            
+            // Auto-dismiss the start-overlay if the user opens the panel
+            const startOverlay = document.getElementById('start-overlay');
+            if (startOverlay && !startOverlay.classList.contains('hidden')) {
+                startOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    startOverlay.classList.add('hidden');
+                }, 1000);
+            }
         }
 
         document.getElementById('btn-close-modal').addEventListener('click', () => {
@@ -672,7 +897,7 @@
                 playlistToggleTimer = setTimeout(() => {
                     if (playlistToggleClicks === 1) {
                         // Single click: Toggle Playlist Dropup
-                        if (playlist.length > 1) {
+                        if (getCurrentPlaylist().length > 1) {
                             dropup.classList.toggle('hidden');
                         }
                     }
@@ -697,8 +922,9 @@
             const overlay = document.getElementById('lyrics-overlay');
             if (overlay.classList.contains('hidden')) {
                 overlay.classList.remove('hidden');
-                if (playlist.length > 0) {
-                    updateLyricsUI(playlist[currentTrackIndex]);
+                const cp = getCurrentPlaylist();
+                if (cp.length > 0) {
+                    updateLyricsUI(cp[currentTrackIndex]);
                 } else {
                     document.getElementById('lyrics-title').innerText = "Nothing playing";
                     document.getElementById('lyrics-artist').innerText = "";
@@ -760,7 +986,8 @@
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
         function onYouTubeIframeAPIReady() {
-            const initialVideoId = playlist.length > 0 ? playlist[0].id : '';
+            const cp = getCurrentPlaylist();
+            const initialVideoId = cp.length > 0 ? cp[0].id : '';
             player = new YT.Player('player', {
                 height: '100%',
                 width: '100%',
@@ -788,7 +1015,8 @@
         function onPlayerStateChange(event) {
             // When a track finishes playing natively (State 0)
             if (event.data === YT.PlayerState.ENDED) {
-                if (currentTrackIndex + 1 < playlist.length) {
+                const cp = getCurrentPlaylist();
+                if (currentTrackIndex + 1 < cp.length) {
                     // If there are more tracks, load and play the next one
                     loadTrack(currentTrackIndex + 1);
                     playMusic();
@@ -813,13 +1041,13 @@
                 this.classList.add('hidden');
             }, 1000);
 
-            if (playlist.length > 0) {
+            if (getCurrentPlaylist().length > 0) {
                 playMusic();
             }
         });
 
         function playMusic() {
-            if (playlist.length === 0) return;
+            if (getCurrentPlaylist().length === 0) return;
             if (player && typeof player.playVideo === 'function') {
                 player.playVideo();
                 isMusicPlaying = true;
@@ -858,11 +1086,16 @@
                 // Buffer to verify double or triple click pattern
                 playPauseClickTimer = setTimeout(() => {
                     if (playPauseClicks < 3) {
-                        // Normal play/pause toggle action
-                        if (isMusicPlaying) {
-                            pauseMusic();
+                        // Quality of Life: If the playlist is completely empty, single clicking opens the panel directly
+                        if (getCurrentPlaylist().length === 0) {
+                            openPlaylistModal();
                         } else {
-                            playMusic();
+                            // Normal play/pause toggle action
+                            if (isMusicPlaying) {
+                                pauseMusic();
+                            } else {
+                                playMusic();
+                            }
                         }
                     }
                     playPauseClicks = 0;
