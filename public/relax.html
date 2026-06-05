@@ -142,8 +142,9 @@
 
         <!-- Bottom Row: Dynamic Control Center -->
         <div class="flex items-end justify-between w-full relative">
-            <div class="text-left text-slate-400/60 text-xs hidden md:block">
-                Triple click the music play button to add/remove tracks. Press the music animation to swap tracks.
+            <div class="text-left text-slate-400/60 text-xs hidden md:block leading-relaxed">
+                <p>Right click anywhere to edit albums and access more commands.</p>
+                <p>Keyboard: Space (Play), Arrows (Skip/Vol), M (Mute), L (Lyrics).</p>
             </div>
 
             <!-- Tracklist Dropup Panel (Sits directly above the player widget) -->
@@ -161,7 +162,7 @@
             <div id="player-widget" class="glass-panel rounded-2xl p-4 flex items-center gap-4 pointer-events-auto w-80 transition-all duration-300 hover:bg-slate-900/40 relative">
                 
                 <!-- Visualizer anim/Album Icon (Clickable as list toggle when multiple exist) -->
-                <button id="btn-toggle-playlist" title="Double-click for Lyrics. Single-click for Playlist." class="w-12 h-12 rounded-xl bg-slate-900/60 border border-white/5 flex items-center justify-center relative overflow-hidden transition-all hover:bg-slate-800/80 active:scale-95 group focus:outline-none">
+                <button id="btn-toggle-playlist" title="Click to view Playlist." class="w-12 h-12 rounded-xl bg-slate-900/60 border border-white/5 flex items-center justify-center relative overflow-hidden transition-all hover:bg-slate-800/80 active:scale-95 group focus:outline-none">
                     <!-- Hover Overlay Indicator -->
                     <div id="playlist-indicator" class="absolute inset-0 bg-teal-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                     </div>
@@ -188,8 +189,8 @@
                     </div>
                 </div>
 
-                <!-- Play/Pause Button (Triple click for playlist manager) -->
-                <button id="btn-play-pause" title="Triple-click to edit playlist" class="w-8 h-8 rounded-full bg-white text-slate-900 flex items-center justify-center hover:scale-105 transition-all active:scale-95 relative group">
+                <!-- Play/Pause Button -->
+                <button id="btn-play-pause" title="Play / Pause" class="w-8 h-8 rounded-full bg-white text-slate-900 flex items-center justify-center hover:scale-105 transition-all active:scale-95 relative group">
                     <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 hidden" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
                     </svg>
@@ -208,7 +209,18 @@
             <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-slate-900/40">
                 <div class="flex items-center gap-3">
                     <h3 class="text-lg font-semibold text-white">Albums</h3>
-                    <select id="album-selector" class="bg-slate-800 text-white text-sm rounded px-2 py-1 border border-white/20 focus:outline-none"></select>
+                    <div id="album-select-container" class="flex items-center gap-2">
+                        <select id="album-selector" class="bg-slate-800 text-white text-sm rounded px-2 py-1 border border-white/20 focus:outline-none"></select>
+                        <button id="btn-rename-album" class="text-slate-400 hover:text-white transition" title="Rename Album">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                        </button>
+                    </div>
+                    <div id="album-rename-container" class="hidden flex items-center gap-2">
+                        <input id="input-album-name" type="text" class="bg-slate-800 text-white text-sm rounded px-2 py-1 border border-teal-500 focus:outline-none w-32">
+                        <button id="btn-save-album-name" class="text-teal-400 hover:text-teal-300 transition" title="Save">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        </button>
+                    </div>
                     <button id="btn-new-album" class="text-teal-400 hover:text-teal-300 text-sm font-medium">+ New</button>
                 </div>
                 <button id="btn-close-modal" class="text-slate-400 hover:text-white transition duration-200">
@@ -231,53 +243,51 @@
                     </div>
                 </div>
 
-                <!-- Add Track Form -->
+                <!-- Add Track / Search YouTube -->
                 <div class="pt-4 border-t border-white/5">
-                    <div class="flex gap-4 mb-3">
-                        <button id="tab-search" class="text-xs uppercase tracking-widest text-teal-400 font-semibold border-b border-teal-400 pb-1">Search YouTube</button>
-                        <button id="tab-manual" class="text-xs uppercase tracking-widest text-slate-500 font-semibold pb-1 hover:text-slate-300">Manual ID</button>
-                    </div>
-
-                    <!-- Search Tab -->
+                    <h4 class="text-xs uppercase tracking-widest text-teal-400 font-semibold mb-3">Search YouTube to Add</h4>
+                    
+                    <!-- Search Input Pane -->
                     <div id="pane-search" class="space-y-3">
-                        <div>
-                            <div class="flex gap-2">
-                                <input id="input-search-query" type="text" placeholder="Search for ambience, lofi, etc..." class="flex-1 bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
-                                <button id="btn-search-yt" class="bg-teal-500 hover:bg-teal-400 text-slate-950 font-medium px-4 py-2 rounded-lg text-sm transition-all shadow-md active:scale-98">Search</button>
-                            </div>
+                        <div class="flex gap-2">
+                            <input id="input-search-query" type="text" placeholder="Search for ambience, lofi, etc..." class="flex-1 bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
+                            <button id="btn-search-yt" class="bg-teal-500 hover:bg-teal-400 text-slate-950 font-medium px-4 py-2 rounded-lg text-sm transition-all shadow-md active:scale-98">Search</button>
                         </div>
                         <div id="search-results" class="space-y-2 max-h-40 overflow-y-auto hidden">
                             <!-- Results go here -->
                         </div>
                     </div>
 
-                    <!-- Manual Tab -->
-                    <form id="add-track-form" class="space-y-3 hidden" onsubmit="event.preventDefault();">
-                        <div>
-                            <label class="block text-[11px] text-slate-400 uppercase tracking-wider mb-1">Song Title</label>
-                            <input id="input-title" type="text" placeholder="e.g. Lofi Study Session" class="w-full bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
+                    <!-- Edit Track Details Pane -->
+                    <div id="pane-edit-details" class="space-y-3 hidden">
+                        <div class="p-4 bg-slate-800/50 rounded-xl border border-white/5 shadow-inner">
+                            <h5 class="text-xs font-semibold text-teal-400 mb-3 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                Edit Track Details
+                            </h5>
+                            
+                            <input type="hidden" id="edit-hidden-ytid">
+                            
+                            <label class="block text-[11px] text-slate-400 uppercase tracking-wider mb-1 mt-2">Song Title</label>
+                            <input id="edit-input-title" type="text" class="w-full bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
+                            
+                            <label class="block text-[11px] text-slate-400 uppercase tracking-wider mb-1 mt-3">Subtitle / Author</label>
+                            <input id="edit-input-desc" type="text" class="w-full bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
+                            
+                            <div class="flex gap-2 mt-5">
+                                <button id="btn-cancel-add" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 rounded-lg text-sm transition-all shadow-md active:scale-98">Cancel</button>
+                                <button id="btn-confirm-add" class="flex-1 bg-teal-500 hover:bg-teal-400 text-slate-950 font-medium py-2 rounded-lg text-sm transition-all shadow-md active:scale-98">Confirm & Add</button>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-[11px] text-slate-400 uppercase tracking-wider mb-1">Subtitle / Author</label>
-                            <input id="input-desc" type="text" placeholder="e.g. Chilled Ambient Beats" class="w-full bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] text-slate-400 uppercase tracking-wider mb-1">YouTube Video ID</label>
-                            <input id="input-ytid" type="text" placeholder="e.g. Kr_b-9rn_Ag" class="w-full bg-slate-900/60 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors">
-                            <span class="text-[10px] text-slate-500 mt-1 block">Paste the 11 character ID after the "v=" in a YouTube URL</span>
-                        </div>
-
-                        <button id="btn-submit-track" class="w-full mt-2 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 rounded-lg text-sm transition-all shadow-md active:scale-98">
-                            Add Track Manually
-                        </button>
-                    </form>
+                    </div>
+                    
                     <div id="modal-feedback" class="hidden text-xs text-rose-400 mt-2"></div>
                 </div>
             </div>
             
             <!-- Footer -->
             <div class="px-6 py-3 border-t border-white/10 bg-slate-900/20 text-[11px] text-slate-400 flex justify-between items-center">
-                <span>Tip: Search YouTube to instantly add tracks to your album</span>
+                <span>Search YouTube to instantly add tracks to your album</span>
                 <span class="text-teal-400 font-serif italic">Relax</span>
             </div>
         </div>
@@ -301,14 +311,49 @@
 
     <!-- Right-Click Context Menu (Frosted Glass Aesthetics) -->
     <div id="context-menu" class="hidden absolute glass-panel rounded-2xl shadow-2xl w-60 py-2.5 z-50 text-slate-200 text-sm menu-enter border border-white/10 overflow-hidden">
-        <a href="https://checkers.page" target="_blank" class="block w-full text-left px-5 py-3 hover:bg-white/10 transition duration-200 flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-            Open Checkers.page
-        </a>
-        <a href="https://slate.checkers.page" target="_blank" class="block w-full text-left px-5 py-3 hover:bg-white/10 transition duration-200 flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-            Open Slate Board
-        </a>
+        <!-- Music Commands -->
+        <button id="btn-ctx-edit" class="w-full text-left px-5 py-3 hover:bg-white/10 transition duration-200 flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+            Edit Albums/Tracks
+        </button>
+        <button id="btn-ctx-album" class="w-full text-left px-5 py-3 hover:bg-white/10 transition duration-200 flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+            Next Album
+        </button>
+        <button id="btn-ctx-song" class="w-full text-left px-5 py-3 hover:bg-white/10 transition duration-200 flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
+            Next Song
+        </button>
+        <button id="btn-ctx-mute" class="w-full text-left px-5 py-3 hover:bg-white/10 transition duration-200 flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" /></svg>
+            Toggle Mute
+        </button>
+        <button id="btn-ctx-lyrics" class="w-full text-left px-5 py-3 hover:bg-white/10 transition duration-200 flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            Show Lyrics
+        </button>
+        
+        <div class="h-px bg-white/10 my-2"></div>
+        
+        <!-- Expandable "Other" Menu -->
+        <button id="btn-ctx-other" class="w-full text-left px-5 py-3 hover:bg-white/10 transition duration-200 flex items-center justify-between group">
+            <div class="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" /></svg>
+                Other...
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        
+        <div id="ctx-other-menu" class="hidden bg-slate-900/40">
+            <a href="https://checkers.page" target="_blank" class="block w-full text-left px-5 py-3 hover:bg-white/10 transition duration-200 flex items-center gap-3 pl-8 text-slate-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                Checkers.page
+            </a>
+            <a href="https://slate.checkers.page" target="_blank" class="block w-full text-left px-5 py-3 hover:bg-white/10 transition duration-200 flex items-center gap-3 pl-8 text-slate-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                Slate Board
+            </a>
+        </div>
     </div>
 
     <!-- YouTube Dynamic Player Container -->
@@ -443,16 +488,19 @@
         fetchWeather();
         setInterval(fetchWeather, 30 * 60 * 1000); 
 
-        // --- 4. Custom Context Menu ---
+        // --- 4. Custom Context Menu & Keyboard Commands ---
         const menu = document.getElementById('context-menu');
         
         document.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             
+            // Reset 'Other' sub-menu visibility
+            document.getElementById('ctx-other-menu').classList.add('hidden');
+
             const winWidth = window.innerWidth;
             const winHeight = window.innerHeight;
             const menuWidth = 240; 
-            const menuHeight = menu.offsetHeight || 220;
+            const menuHeight = menu.offsetHeight || 260; // Adjusted for new items
             
             let x = e.clientX;
             let y = e.clientY;
@@ -466,9 +514,122 @@
         });
 
         document.addEventListener('click', (e) => {
-            if (e.target.offsetParent !== menu) {
+            if (e.target.closest('#context-menu') === null) {
                 menu.classList.add('hidden');
             }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            // Ignore if focus is in an input field
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            // Don't intercept normal shortcuts if modifiers are pressed
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+            const currentPlaylist = getCurrentPlaylist();
+
+            switch (e.key) {
+                case ' ':
+                    e.preventDefault();
+                    if (isMusicPlaying) pauseMusic();
+                    else if (currentPlaylist.length > 0) playMusic();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    if (currentPlaylist.length > 0) {
+                        let next = (currentTrackIndex + 1) % currentPlaylist.length;
+                        loadTrack(next);
+                        playMusic();
+                    }
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    if (currentPlaylist.length > 0) {
+                        let prev = (currentTrackIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
+                        loadTrack(prev);
+                        playMusic();
+                    }
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    if (player && typeof player.getVolume === 'function') {
+                        let vol = player.getVolume();
+                        let newVol = Math.min(100, vol + 5);
+                        player.setVolume(newVol);
+                        document.getElementById('volume-slider').value = newVol;
+                    }
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    if (player && typeof player.getVolume === 'function') {
+                        let vol = player.getVolume();
+                        let newVol = Math.max(0, vol - 5);
+                        player.setVolume(newVol);
+                        document.getElementById('volume-slider').value = newVol;
+                    }
+                    break;
+                case 'm':
+                case 'M':
+                    e.preventDefault();
+                    toggleMute();
+                    break;
+                case 'l':
+                case 'L':
+                    e.preventDefault();
+                    toggleLyricsOverlay();
+                    break;
+            }
+        });
+
+        function toggleMute() {
+            if (player && typeof player.isMuted === 'function') {
+                if (player.isMuted()) {
+                    player.unMute();
+                } else {
+                    player.mute();
+                }
+            }
+        }
+
+        // Context Menu Handlers
+        document.getElementById('btn-ctx-edit').addEventListener('click', () => {
+            openPlaylistModal();
+            menu.classList.add('hidden');
+        });
+
+        document.getElementById('btn-ctx-album').addEventListener('click', () => {
+            if (albums.length > 1) {
+                currentAlbumIndex = (currentAlbumIndex + 1) % albums.length;
+                albumSelector.value = currentAlbumIndex;
+                albumSelector.dispatchEvent(new Event('change'));
+            }
+            menu.classList.add('hidden');
+        });
+
+        document.getElementById('btn-ctx-song').addEventListener('click', () => {
+            const cp = getCurrentPlaylist();
+            if (cp.length > 1) {
+                let next = (currentTrackIndex + 1) % cp.length;
+                loadTrack(next);
+                playMusic();
+            }
+            menu.classList.add('hidden');
+        });
+
+        document.getElementById('btn-ctx-mute').addEventListener('click', () => {
+            toggleMute();
+            menu.classList.add('hidden');
+        });
+
+        document.getElementById('btn-ctx-lyrics').addEventListener('click', () => {
+            toggleLyricsOverlay();
+            menu.classList.add('hidden');
+        });
+
+        document.getElementById('btn-ctx-other').addEventListener('click', (e) => {
+            e.stopPropagation(); // Keep menu open
+            document.getElementById('ctx-other-menu').classList.toggle('hidden');
         });
 
         // --- 5. Albums & Track Manager Logic ---
@@ -505,20 +666,22 @@
         const btnNewAlbum = document.getElementById('btn-new-album');
         const btnDeleteAlbum = document.getElementById('btn-delete-album');
 
-        const tabSearch = document.getElementById('tab-search');
-        const tabManual = document.getElementById('tab-manual');
-        const paneSearch = document.getElementById('pane-search');
-        const addTrackForm = document.getElementById('add-track-form');
-
-        const inputTitle = document.getElementById('input-title');
-        const inputDesc = document.getElementById('input-desc');
-        const inputYtId = document.getElementById('input-ytid');
-        const btnSubmitTrack = document.getElementById('btn-submit-track');
+        const albumSelectContainer = document.getElementById('album-select-container');
+        const albumRenameContainer = document.getElementById('album-rename-container');
+        const inputAlbumName = document.getElementById('input-album-name');
         
+        let editingTrackIndex = -1; // -1 means adding new track, >= 0 means editing existing track
+
         const inputSearchQuery = document.getElementById('input-search-query');
         const btnSearchYt = document.getElementById('btn-search-yt');
         const searchResults = document.getElementById('search-results');
         const modalFeedback = document.getElementById('modal-feedback');
+        
+        const paneSearch = document.getElementById('pane-search');
+        const paneEditDetails = document.getElementById('pane-edit-details');
+        const editHiddenYtId = document.getElementById('edit-hidden-ytid');
+        const editInputTitle = document.getElementById('edit-input-title');
+        const editInputDesc = document.getElementById('edit-input-desc');
 
         // Save tracks directly to the local computer's browser storage
         function saveAlbums() {
@@ -602,7 +765,36 @@
                 albumSelector.appendChild(opt);
             });
             btnDeleteAlbum.classList.toggle('hidden', albums.length <= 1);
+            
+            // Reset rename UI state
+            albumSelectContainer.classList.remove('hidden');
+            albumRenameContainer.classList.add('hidden');
         }
+        
+        document.getElementById('btn-rename-album').addEventListener('click', () => {
+            inputAlbumName.value = albums[currentAlbumIndex].name;
+            albumSelectContainer.classList.add('hidden');
+            albumRenameContainer.classList.remove('hidden');
+            inputAlbumName.focus();
+        });
+
+        function saveAlbumName() {
+            const newName = inputAlbumName.value.trim();
+            if (newName) {
+                albums[currentAlbumIndex].name = newName;
+                saveAlbums();
+                renderAlbumSelector(); // Re-renders and resets visibility
+            } else {
+                // Cancel rename if empty
+                albumSelectContainer.classList.remove('hidden');
+                albumRenameContainer.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('btn-save-album-name').addEventListener('click', saveAlbumName);
+        inputAlbumName.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') saveAlbumName();
+        });
 
         albumSelector.addEventListener('change', (e) => {
             currentAlbumIndex = parseInt(e.target.value);
@@ -651,28 +843,7 @@
              }
         });
 
-        // Tabs UI
-        tabSearch.addEventListener('click', () => {
-            tabSearch.classList.replace('text-slate-500', 'text-teal-400');
-            tabSearch.classList.add('border-b', 'border-teal-400');
-            tabManual.classList.replace('text-teal-400', 'text-slate-500');
-            tabManual.classList.remove('border-b', 'border-teal-400');
-            paneSearch.classList.remove('hidden');
-            addTrackForm.classList.add('hidden');
-            modalFeedback.classList.add('hidden');
-        });
-
-        tabManual.addEventListener('click', () => {
-            tabManual.classList.replace('text-slate-500', 'text-teal-400');
-            tabManual.classList.add('border-b', 'border-teal-400');
-            tabSearch.classList.replace('text-teal-400', 'text-slate-500');
-            tabSearch.classList.remove('border-b', 'border-teal-400');
-            addTrackForm.classList.remove('hidden');
-            paneSearch.classList.add('hidden');
-            modalFeedback.classList.add('hidden');
-        });
-
-        btnSearchYt.addEventListener('click', async () => {
+        function performSearch() {
             const apiKey = 'AIzaSyBJFs_SZU59RfyJ9tuQPBH8Llti0kLb-uw';
             const query = inputSearchQuery.value.trim();
             
@@ -682,50 +853,110 @@
             searchResults.innerHTML = '<div class="text-center text-slate-400 py-2">Searching...</div>';
             searchResults.classList.remove('hidden');
 
-            try {
-                const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`);
-                const data = await res.json();
-                
-                if (data.error) throw new Error(data.error.message);
-                
-                searchResults.innerHTML = '';
-                if (!data.items || data.items.length === 0) {
-                    searchResults.innerHTML = '<div class="text-center text-slate-400 py-2">No results found.</div>';
-                    return;
-                }
-
-                data.items.forEach(item => {
-                    const resultEl = document.createElement('div');
-                    resultEl.className = 'flex items-center justify-between p-2 bg-slate-800/50 rounded border border-white/5 hover:bg-slate-800 transition cursor-pointer';
-                    // Decode HTML entities in title
-                    const titleDiv = document.createElement('div');
-                    titleDiv.innerHTML = item.snippet.title;
-                    const cleanTitle = titleDiv.textContent || titleDiv.innerText || "";
+            fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) throw new Error(data.error.message);
                     
-                    resultEl.innerHTML = `
-                        <div class="flex items-center gap-3 overflow-hidden">
-                            <img src="${item.snippet.thumbnails.default.url}" class="w-12 h-9 object-cover rounded shrink-0">
-                            <div class="truncate">
-                                <div class="text-xs text-white font-medium truncate">${cleanTitle}</div>
-                                <div class="text-[10px] text-slate-400 truncate">${item.snippet.channelTitle}</div>
-                            </div>
-                        </div>
-                        <button class="text-teal-400 hover:text-teal-300 px-3 shrink-0 font-bold">+</button>
-                    `;
-                    resultEl.addEventListener('click', () => {
-                        addTrackToCurrentAlbum(item.id.videoId, cleanTitle, item.snippet.channelTitle);
-                        inputSearchQuery.value = '';
-                        searchResults.classList.add('hidden');
-                    });
-                    searchResults.appendChild(resultEl);
-                });
+                    searchResults.innerHTML = '';
+                    if (!data.items || data.items.length === 0) {
+                        searchResults.innerHTML = '<div class="text-center text-slate-400 py-2">No results found.</div>';
+                        return;
+                    }
 
-            } catch (err) {
-                console.error(err);
-                searchResults.innerHTML = '';
-                modalFeedback.innerText = "Error: " + err.message;
+                    data.items.forEach(item => {
+                        const resultEl = document.createElement('div');
+                        resultEl.className = 'flex items-center justify-between p-2 bg-slate-800/50 rounded border border-white/5 hover:bg-slate-800 transition cursor-pointer';
+                        
+                        // Decode HTML entities in title safely
+                        const titleDiv = document.createElement('div');
+                        titleDiv.innerHTML = item.snippet.title;
+                        const cleanTitle = titleDiv.textContent || titleDiv.innerText || "";
+                        
+                        resultEl.innerHTML = `
+                            <div class="flex items-center gap-3 overflow-hidden">
+                                <img src="${item.snippet.thumbnails.default.url}" class="w-12 h-9 object-cover rounded shrink-0">
+                                <div class="truncate">
+                                    <div class="text-xs text-white font-medium truncate">${cleanTitle}</div>
+                                    <div class="text-[10px] text-slate-400 truncate">${item.snippet.channelTitle}</div>
+                                </div>
+                            </div>
+                            <button class="text-teal-400 hover:text-teal-300 px-3 shrink-0 font-bold">+</button>
+                        `;
+                        
+                        resultEl.addEventListener('click', () => {
+                            // Transition to Edit Details Panel for ADDING NEW
+                            paneSearch.classList.add('hidden');
+                            paneEditDetails.classList.remove('hidden');
+                            
+                            document.getElementById('btn-confirm-add').innerText = "Confirm & Add";
+                            editingTrackIndex = -1;
+                            
+                            editHiddenYtId.value = item.id.videoId;
+                            editInputTitle.value = cleanTitle;
+                            editInputDesc.value = item.snippet.channelTitle;
+                        });
+                        searchResults.appendChild(resultEl);
+                    });
+                })
+                .catch(err => {
+                    console.error(err);
+                    searchResults.innerHTML = '';
+                    modalFeedback.innerText = "Error: " + err.message;
+                    modalFeedback.classList.remove('hidden');
+                });
+        }
+
+        btnSearchYt.addEventListener('click', performSearch);
+        inputSearchQuery.addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') performSearch();
+        });
+
+        // Edit Details Confirm/Cancel
+        document.getElementById('btn-confirm-add').addEventListener('click', () => {
+            const title = editInputTitle.value.trim();
+            const desc = editInputDesc.value.trim();
+            const ytid = editHiddenYtId.value;
+
+            if (!title || !desc) {
+                modalFeedback.innerText = "Please provide both a Title and Subtitle.";
                 modalFeedback.classList.remove('hidden');
+                return;
             }
+
+            modalFeedback.classList.add('hidden');
+            
+            if (editingTrackIndex >= 0) {
+                // Editing existing track
+                albums[currentAlbumIndex].tracks[editingTrackIndex].title = title;
+                albums[currentAlbumIndex].tracks[editingTrackIndex].desc = desc;
+                saveAlbums();
+                renderModalTracks();
+                renderDropupList();
+                
+                // Update currently playing UI if we edited the active track
+                if (editingTrackIndex === currentTrackIndex) {
+                    document.getElementById('track-title').innerText = title;
+                    document.getElementById('track-desc').innerText = desc;
+                }
+            } else {
+                // Adding new track
+                addTrackToCurrentAlbum(ytid, title, desc);
+            }
+            
+            // Reset to Search View
+            paneEditDetails.classList.add('hidden');
+            paneSearch.classList.remove('hidden');
+            inputSearchQuery.value = '';
+            searchResults.classList.add('hidden');
+            editingTrackIndex = -1;
+        });
+
+        document.getElementById('btn-cancel-add').addEventListener('click', () => {
+            paneEditDetails.classList.add('hidden');
+            paneSearch.classList.remove('hidden');
+            modalFeedback.classList.add('hidden');
+            editingTrackIndex = -1;
         });
 
         // Functions to maintain tracks
@@ -807,21 +1038,44 @@
             }
             currentPlaylist.forEach((track, idx) => {
                 const trackEl = document.createElement('div');
-                trackEl.className = 'flex items-center justify-between p-3 bg-slate-900/60 border border-white/5 rounded-xl text-slate-100';
+                trackEl.className = 'flex items-center justify-between p-3 bg-slate-900/60 border border-white/5 rounded-xl text-slate-100 group';
                 trackEl.innerHTML = `
                     <div class="truncate pr-4">
                         <p class="text-xs font-semibold truncate">${track.title}</p>
-                        <p class="text-[10px] text-slate-400 italic font-serif truncate mt-0.5">${track.desc} <span class="font-sans text-slate-500 ml-2">(${track.id})</span></p>
+                        <p class="text-[10px] text-slate-400 italic font-serif truncate mt-0.5">${track.desc}</p>
                     </div>
-                    <button onclick="removeTrack(${idx})" class="p-1.5 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-lg transition duration-150 shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                    </button>
+                    <div class="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="startEditTrack(${idx})" class="p-1.5 hover:bg-white/10 text-slate-300 hover:text-white rounded-lg transition duration-150 shrink-0" title="Edit Metadata">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                        </button>
+                        <button onclick="removeTrack(${idx})" class="p-1.5 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-lg transition duration-150 shrink-0" title="Remove Track">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
                 `;
                 modalTracksList.appendChild(trackEl);
             });
         }
+        
+        window.startEditTrack = function(idx) {
+            editingTrackIndex = idx;
+            const track = albums[currentAlbumIndex].tracks[idx];
+            
+            editHiddenYtId.value = track.id;
+            editInputTitle.value = track.title;
+            editInputDesc.value = track.desc;
+            
+            paneSearch.classList.add('hidden');
+            paneEditDetails.classList.remove('hidden');
+            document.getElementById('btn-confirm-add').innerText = "Save Changes";
+            
+            // Scroll pane into view seamlessly
+            paneEditDetails.scrollIntoView({ behavior: 'smooth' });
+        };
 
         // Global track removal function
         window.removeTrack = function(idx) {
@@ -843,29 +1097,6 @@
             saveAlbums();
         };
 
-        // Manual Form submission logic
-        btnSubmitTrack.addEventListener('click', () => {
-            const title = inputTitle.value.trim();
-            const desc = inputDesc.value.trim();
-            const ytid = inputYtId.value.trim();
-
-            if (!title || !desc || !ytid) {
-                modalFeedback.innerText = "Please fill in all inputs.";
-                modalFeedback.classList.remove('hidden');
-                return;
-            }
-
-            if (ytid.length < 11) {
-                modalFeedback.innerText = "Please provide a valid YouTube Video ID.";
-                modalFeedback.classList.remove('hidden');
-                return;
-            }
-
-            modalFeedback.classList.add('hidden');
-            addTrackToCurrentAlbum(ytid, title, desc);
-            addTrackForm.reset();
-        });
-
         // Trigger Playlist Manager
         function openPlaylistModal() {
             renderAlbumSelector();
@@ -886,29 +1117,10 @@
             modal.classList.add('hidden');
         });
 
-        // Toggle dropup selector & Lyrics Overlay via Multi-click
-        let playlistToggleClicks = 0;
-        let playlistToggleTimer = null;
-
+        // Single click: Toggle Playlist Dropup
         document.getElementById('btn-toggle-playlist').addEventListener('click', (e) => {
-            playlistToggleClicks++;
-            
-            if (playlistToggleClicks === 1) {
-                playlistToggleTimer = setTimeout(() => {
-                    if (playlistToggleClicks === 1) {
-                        // Single click: Toggle Playlist Dropup
-                        if (getCurrentPlaylist().length > 1) {
-                            dropup.classList.toggle('hidden');
-                        }
-                    }
-                    playlistToggleClicks = 0;
-                }, 300); // 300ms window for double click
-            } else if (playlistToggleClicks === 2) {
-                // Double click: Toggle Lyrics
-                clearTimeout(playlistToggleTimer);
-                playlistToggleClicks = 0;
-                dropup.classList.add('hidden'); // Ensure dropup closes
-                toggleLyricsOverlay();
+            if (getCurrentPlaylist().length > 1) {
+                dropup.classList.toggle('hidden');
             }
             e.stopPropagation();
         });
@@ -1075,41 +1287,18 @@
             }
         }
 
-        // --- Multi-Click Controller Engine on Play Button ---
-        let playPauseClicks = 0;
-        let playPauseClickTimer = null;
-
+        // Single Click Play/Pause Engine
         playPauseBtn.addEventListener('click', (e) => {
-            playPauseClicks++;
-            
-            if (playPauseClicks === 1) {
-                // Buffer to verify double or triple click pattern
-                playPauseClickTimer = setTimeout(() => {
-                    if (playPauseClicks < 3) {
-                        // Quality of Life: If the playlist is completely empty, single clicking opens the panel directly
-                        if (getCurrentPlaylist().length === 0) {
-                            openPlaylistModal();
-                        } else {
-                            // Normal play/pause toggle action
-                            if (isMusicPlaying) {
-                                pauseMusic();
-                            } else {
-                                playMusic();
-                            }
-                        }
-                    }
-                    playPauseClicks = 0;
-                }, 350); // 350ms window allows quick natural double/triple clicks
-            } else if (playPauseClicks === 3) {
-                clearTimeout(playPauseClickTimer);
-                playPauseClicks = 0;
-                
-                // Fire Custom Ambience Track Manager
+            if (getCurrentPlaylist().length === 0) {
                 openPlaylistModal();
-                
-                e.preventDefault();
-                e.stopPropagation();
+            } else {
+                if (isMusicPlaying) {
+                    pauseMusic();
+                } else {
+                    playMusic();
+                }
             }
+            e.stopPropagation();
         });
 
         // Volume logic
