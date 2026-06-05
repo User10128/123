@@ -339,6 +339,10 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
             Next Song
         </button>
+        <button id="btn-ctx-bg" class="w-full text-left px-5 py-3 hover:bg-white/10 transition duration-200 flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            Change Scenery
+        </button>
         <button id="btn-ctx-mute" class="w-full text-left px-5 py-3 hover:bg-white/10 transition duration-200 flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" /></svg>
             Toggle Mute
@@ -484,7 +488,7 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // --- 3. Weather Integration with Strict Code Translation ---
+        // --- 3. Weather Integration ---
         function getWeatherDetails(code) {
             const wmoCodes = {
                 0: { desc: "Clear Sky", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14 12a2 2 0 11-4 0 2 2 0 014 0z" /></svg>` },
@@ -591,6 +595,7 @@
                     if (currentPlaylist.length > 0) {
                         let next = (currentTrackIndex + 1) % currentPlaylist.length;
                         loadTrack(next);
+                        saveUserData();
                         playMusic();
                     }
                     break;
@@ -599,6 +604,7 @@
                     if (currentPlaylist.length > 0) {
                         let prev = (currentTrackIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
                         loadTrack(prev);
+                        saveUserData();
                         playMusic();
                     }
                     break;
@@ -609,6 +615,7 @@
                         let newVol = Math.min(100, vol + 5);
                         player.setVolume(newVol);
                         document.getElementById('volume-slider').value = newVol;
+                        saveUserData();
                     }
                     break;
                 case 'ArrowDown':
@@ -618,6 +625,7 @@
                         let newVol = Math.max(0, vol - 5);
                         player.setVolume(newVol);
                         document.getElementById('volume-slider').value = newVol;
+                        saveUserData();
                     }
                     break;
                 case 'm':
@@ -629,6 +637,14 @@
                 case 'L':
                     e.preventDefault();
                     toggleLyricsOverlay();
+                    break;
+                case 'c':
+                case 'C':
+                case 'b':
+                case 'B':
+                    e.preventDefault();
+                    swapBackground();
+                    saveUserData();
                     break;
             }
         });
@@ -663,8 +679,15 @@
             if (cp.length > 1) {
                 let next = (currentTrackIndex + 1) % cp.length;
                 loadTrack(next);
+                saveUserData();
                 playMusic();
             }
+            menu.classList.add('hidden');
+        });
+
+        document.getElementById('btn-ctx-bg').addEventListener('click', () => {
+            swapBackground();
+            saveUserData();
             menu.classList.add('hidden');
         });
 
@@ -700,6 +723,10 @@
         let currentAlbumIndex = 0;
         let currentTrackIndex = 0;
 
+        function getCurrentPlaylist() {
+            return albums[currentAlbumIndex] ? albums[currentAlbumIndex].tracks : [];
+        }
+
         // Custom UI State
         let isMusicPlaying = false;
         let apiReady = false;
@@ -734,60 +761,105 @@
         const editInputTitle = document.getElementById('edit-input-title');
         const editInputDesc = document.getElementById('edit-input-desc');
 
-        // Dynamic saving based on Auth State
-        async function saveAlbums() {
+        // Dynamic deep saving based on Auth State
+        async function saveUserData() {
+            const userData = {
+                albums: albums,
+                currentAlbumIndex: currentAlbumIndex,
+                currentTrackIndex: currentTrackIndex,
+                currentBgIndex: currentBgIndex,
+                volume: document.getElementById('volume-slider').value
+            };
+
+            // Safely push everything to Cloud Storage if logged in
             if (currentUser) {
                 try {
-                    // Save to user's personalized cloud storage area
-                    const docRef = doc(db, 'artifacts', 'zenscape', 'users', currentUser.uid, 'userdata', 'albums');
-                    await setDoc(docRef, { data: albums });
-                    
-                    // Small local backup cache for smoothness
-                    localStorage.setItem('zenscape_last_album', currentAlbumIndex);
+                    const docRef = doc(db, 'artifacts', 'zenscape', 'users', currentUser.uid, 'userdata', 'profile');
+                    await setDoc(docRef, userData);
                 } catch (e) {
                     console.warn("Cloud storage saving failed:", e);
                 }
-            } else {
-                try {
-                    // Offline fallback
-                    localStorage.setItem(STORAGE_KEY_ALBUMS, JSON.stringify(albums));
-                    localStorage.setItem('zenscape_last_album', currentAlbumIndex);
-                } catch (e) {
-                    console.warn("Local storage saving failed:", e);
-                }
+            }
+            
+            // Continually persist local backups for offline speed
+            try {
+                localStorage.setItem(STORAGE_KEY_ALBUMS, JSON.stringify(albums));
+                localStorage.setItem('zenscape_last_album', currentAlbumIndex);
+                localStorage.setItem('zenscape_last_track', currentTrackIndex);
+                localStorage.setItem('zenscape_bg_index', currentBgIndex);
+                localStorage.setItem('zenscape_volume', userData.volume);
+            } catch (e) {
+                console.warn("Local storage saving failed:", e);
             }
         }
 
-        // Offline loading logic (invoked directly if user is absent, or before auth resolves)
-        function loadLocalAlbums() {
+        function applyLoadedData(data) {
+            // Apply tracks
+            if (data.albums && Array.isArray(data.albums) && data.albums.length > 0) {
+                albums = data.albums;
+            }
+            
+            // Apply indices
+            currentAlbumIndex = (data.currentAlbumIndex !== undefined && data.currentAlbumIndex < albums.length) ? data.currentAlbumIndex : 0;
+            const currentPlaylist = getCurrentPlaylist();
+            currentTrackIndex = (data.currentTrackIndex !== undefined && data.currentTrackIndex < currentPlaylist.length) ? data.currentTrackIndex : 0;
+            
+            // Apply aesthetics and volume
+            if (data.currentBgIndex !== undefined && data.currentBgIndex < backgrounds.length) {
+                currentBgIndex = data.currentBgIndex;
+                document.getElementById('bg-container').style.backgroundImage = `url('${backgrounds[currentBgIndex]}')`;
+            }
+            if (data.volume !== undefined) {
+                document.getElementById('volume-slider').value = data.volume;
+                if (player && typeof player.setVolume === 'function') {
+                    player.setVolume(data.volume);
+                }
+            }
+            
+            refreshAppUIState();
+        }
+
+        function loadLocalData() {
+            let localData = {
+                albums: null,
+                currentAlbumIndex: 0,
+                currentTrackIndex: 0,
+                currentBgIndex: 0,
+                volume: 40
+            };
+            
             try {
-                const saved = localStorage.getItem(STORAGE_KEY_ALBUMS);
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        albums = parsed;
-                    }
-                } else {
+                const savedAlbums = localStorage.getItem(STORAGE_KEY_ALBUMS);
+                if (savedAlbums) localData.albums = JSON.parse(savedAlbums);
+                
+                // Also check for legacy playlist data if brand new
+                if (!savedAlbums) {
                     const legacy = localStorage.getItem(STORAGE_KEY_LEGACY);
                     if (legacy) {
                         const parsedLegacy = JSON.parse(legacy);
                         if (Array.isArray(parsedLegacy) && parsedLegacy.length > 0) {
-                            albums[0].tracks = parsedLegacy;
-                            saveAlbums();
+                            localData.albums = [ { id: 'legacy', name: 'Imported Album', tracks: parsedLegacy } ];
                         }
                     }
                 }
+                
                 const lastAlbum = localStorage.getItem('zenscape_last_album');
-                if (lastAlbum !== null && lastAlbum < albums.length) {
-                    currentAlbumIndex = parseInt(lastAlbum);
-                }
+                if (lastAlbum !== null) localData.currentAlbumIndex = parseInt(lastAlbum);
+                
+                const lastTrack = localStorage.getItem('zenscape_last_track');
+                if (lastTrack !== null) localData.currentTrackIndex = parseInt(lastTrack);
+
+                const bgIndex = localStorage.getItem('zenscape_bg_index');
+                if (bgIndex !== null) localData.currentBgIndex = parseInt(bgIndex);
+
+                const vol = localStorage.getItem('zenscape_volume');
+                if (vol !== null) localData.volume = parseInt(vol);
+
             } catch (e) {
                 console.warn("Local storage loading failed:", e);
             }
-        }
-
-        function getCurrentPlaylist() {
-            return albums[currentAlbumIndex] ? albums[currentAlbumIndex].tracks : [];
+            
+            applyLoadedData(localData);
         }
 
         // --- Firebase Auth State Management ---
@@ -795,57 +867,50 @@
             currentUser = user;
             
             if (user) {
-                // UI Updates for Logged in
                 btnGoogleSignIn.classList.add('hidden');
                 userProfile.classList.remove('hidden');
                 userAvatar.src = user.photoURL || '';
                 userName.innerText = user.displayName?.split(' ')[0] || 'User';
-                syncStatusFooter.innerText = "Albums safely synced to your Google Account cloud.";
+                syncStatusFooter.innerText = "All settings safely synced to your Google Account cloud.";
 
                 try {
-                    // Fetch existing cloud data
-                    const docRef = doc(db, 'artifacts', 'zenscape', 'users', user.uid, 'userdata', 'albums');
+                    const docRef = doc(db, 'artifacts', 'zenscape', 'users', user.uid, 'userdata', 'profile');
                     const docSnap = await getDoc(docRef);
                     
-                    if (docSnap.exists() && docSnap.data().data) {
-                        // User has cloud data, load it into app
-                        albums = docSnap.data().data;
+                    if (docSnap.exists() && docSnap.data().albums) {
+                        applyLoadedData(docSnap.data());
                     } else {
-                        // Brand new sign in. Push local progress to their new cloud account
-                        saveAlbums();
+                        // Check for older version database saves and port them to the new super-profile
+                        const legacyRef = doc(db, 'artifacts', 'zenscape', 'users', user.uid, 'userdata', 'albums');
+                        const legacySnap = await getDoc(legacyRef);
+                        
+                        if (legacySnap.exists() && legacySnap.data().data) {
+                            albums = legacySnap.data().data;
+                            saveUserData();
+                            refreshAppUIState();
+                        } else {
+                            // Brand new cloud account, push local progress up instantly
+                            saveUserData();
+                            refreshAppUIState();
+                        }
                     }
-                    
-                    // Recover last played index if available
-                    const lastAlbum = localStorage.getItem('zenscape_last_album');
-                    if (lastAlbum !== null && lastAlbum < albums.length) {
-                        currentAlbumIndex = parseInt(lastAlbum);
-                    } else {
-                        currentAlbumIndex = 0;
-                    }
-                    
-                    refreshAppUIState();
-
                 } catch (e) {
                     console.error("Cloud fetch error:", e);
                 }
 
             } else {
-                // UI Updates for Logged out
                 btnGoogleSignIn.classList.remove('hidden');
                 userProfile.classList.add('hidden');
-                syncStatusFooter.innerText = "Sign in to save albums to the cloud. Local storage active.";
+                syncStatusFooter.innerText = "Sign in to save settings to the cloud. Local storage active.";
                 
-                loadLocalAlbums();
-                refreshAppUIState();
+                loadLocalData();
             }
         });
 
-        // Initialize with local right away for speed while Firebase loads
-        loadLocalAlbums();
-        refreshAppUIState();
+        // Initialize with local immediately for perceived speed
+        loadLocalData();
         
         function refreshAppUIState() {
-            currentTrackIndex = 0;
             renderAlbumSelector();
             renderModalTracks();
             renderDropupList();
@@ -853,9 +918,19 @@
             if (getCurrentPlaylist().length === 0) {
                 handleEmptyState();
             } else {
-                document.getElementById('track-title').innerText = getCurrentPlaylist()[0].title;
-                document.getElementById('track-desc').innerText = getCurrentPlaylist()[0].desc;
-                loadTrack(0);
+                const track = getCurrentPlaylist()[currentTrackIndex];
+                if (track) {
+                    document.getElementById('track-title').innerText = track.title;
+                    document.getElementById('track-desc').innerText = track.desc;
+                    
+                    if (player && typeof player.cueVideoById === 'function') {
+                        if (isMusicPlaying) {
+                            player.loadVideoById({ videoId: track.id });
+                        } else {
+                            player.cueVideoById({ videoId: track.id });
+                        }
+                    }
+                }
             }
         }
 
@@ -903,7 +978,7 @@
             const newName = inputAlbumName.value.trim();
             if (newName) {
                 albums[currentAlbumIndex].name = newName;
-                saveAlbums();
+                saveUserData();
                 renderAlbumSelector(); 
             } else {
                 albumSelectContainer.classList.remove('hidden');
@@ -919,7 +994,7 @@
         albumSelector.addEventListener('change', (e) => {
             currentAlbumIndex = parseInt(e.target.value);
             currentTrackIndex = 0;
-            saveAlbums();
+            saveUserData();
             renderModalTracks();
             renderDropupList();
             const cp = getCurrentPlaylist();
@@ -939,7 +1014,7 @@
             });
             currentAlbumIndex = albums.length - 1;
             currentTrackIndex = 0;
-            saveAlbums();
+            saveUserData();
             renderAlbumSelector();
             renderModalTracks();
             renderDropupList();
@@ -951,7 +1026,7 @@
                  albums.splice(currentAlbumIndex, 1);
                  currentAlbumIndex = 0;
                  currentTrackIndex = 0;
-                 saveAlbums();
+                 saveUserData();
                  renderAlbumSelector();
                  renderModalTracks();
                  renderDropupList();
@@ -1047,7 +1122,7 @@
             if (editingTrackIndex >= 0) {
                 albums[currentAlbumIndex].tracks[editingTrackIndex].title = title;
                 albums[currentAlbumIndex].tracks[editingTrackIndex].desc = desc;
-                saveAlbums();
+                saveUserData();
                 renderModalTracks();
                 renderDropupList();
                 
@@ -1076,7 +1151,7 @@
         // Functions to maintain tracks
         function addTrackToCurrentAlbum(ytid, title, desc) {
             albums[currentAlbumIndex].tracks.push({ id: ytid, title, desc });
-            saveAlbums();
+            saveUserData();
             renderModalTracks();
             renderDropupList();
             
@@ -1135,7 +1210,10 @@
                     </div>
                     ${isActive ? '<div class="w-1.5 h-1.5 bg-teal-400 rounded-full shrink-0"></div>' : ''}
                 `;
-                trackEl.addEventListener('click', () => loadTrack(idx));
+                trackEl.addEventListener('click', () => { 
+                    loadTrack(idx); 
+                    saveUserData(); 
+                });
                 dropupTracksList.appendChild(trackEl);
             });
         }
@@ -1204,7 +1282,7 @@
             
             renderModalTracks();
             renderDropupList();
-            saveAlbums();
+            saveUserData();
         };
 
         function openPlaylistModal() {
@@ -1325,7 +1403,7 @@
 
         function onPlayerReady(event) {
             apiReady = true;
-            player.setVolume(40);
+            player.setVolume(document.getElementById('volume-slider').value || 40);
             renderDropupList();
         }
 
@@ -1334,6 +1412,7 @@
                 const cp = getCurrentPlaylist();
                 if (currentTrackIndex + 1 < cp.length) {
                     loadTrack(currentTrackIndex + 1);
+                    saveUserData();
                     playMusic();
                 } else {
                     pauseMusic();
@@ -1407,6 +1486,11 @@
             if (player && typeof player.setVolume === 'function') {
                 player.setVolume(val);
             }
+        });
+
+        // Only save volume to the cloud database after you stop dragging to prevent lag
+        volumeSlider.addEventListener('change', (e) => {
+            saveUserData();
         });
     </script>
 </body>
