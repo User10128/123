@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanks for your feedback</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #0b192c;
+            background-image: linear-gradient(135deg, #0b192c 0%, #1a365d 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #ffffff;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 50px 40px;
+            text-align: center;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            max-width: 500px;
+            width: 100%;
+        }
+        .icon-wrapper {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px auto;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0 0 15px 0;
+            letter-spacing: 0.5px;
+        }
+        p {
+            color: #d1e8ff;
+            font-size: 16px;
+            line-height: 1.6;
+            margin: 0 0 20px 0;
+            font-weight: 300;
+        }
+        .sub-text {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 35px;
+        }
+        .btn {
+            background: #3b82f6;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 14px 28px;
+            font-size: 15px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-card">
+        <div class="icon-wrapper">
+            <!-- Alert icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        </div>
+        <h1>Thanks for the heads up!</h1>
+        <p>We appreciate you letting us know that our email landed in your spam folder. This feedback helps us improve our system.</p>
+        <p class="sub-text">To make sure you don't miss future updates, please consider marking our email as "Not Spam" or adding us to your contacts.</p>
+        <a href="#" class="btn" onclick="window.close(); return false;">Close Window</a>
+    </div>
+</body>
+</html>
