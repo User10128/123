@@ -519,7 +519,7 @@
                 isDone = true;
                 // Wait 1 second so they can read the last line, then redirect
                 setTimeout(returnToMainSite, 1000); 
-                return;
+                window.location.href = '/';
             }
 
             const lineData = sequence[currentLineIndex];
