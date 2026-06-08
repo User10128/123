@@ -12,6 +12,29 @@
 
   gtag('config', 'G-TLSR2KL9X3');
 </script>
+    <script>
+    (function() {
+        // 1. Get the current date
+        const today = new Date();
+        const currentMonth = today.getMonth(); // 0 is January, 3 is April
+        const currentDate = today.getDate();
+
+        // 2. Check if today is April 1st
+        const isAprilFools = true;
+
+        // 3. Check if they've already been pranked this session
+        const hasBeenPranked = sessionStorage.getItem('aprilFoolsPrankCompleted');
+
+        if (isAprilFools && !hasBeenPranked) {
+            // Mark that they are being pranked so they don't get stuck in a loop
+            sessionStorage.setItem('aprilFoolsPrankCompleted', 'true');
+            
+            // Redirect to the prank page
+            // Make sure this path matches where you uploaded the HTML file!
+            window.location.href = '/april-fools.html'; 
+        }
+    })();
+</script>
     <title>Checkers</title>
     <meta name="description" content="Experience the classic game of Checkers. Whether you’re looking to play vs AI, play with others, or host a private game, checkers.page is an area for all players.">
     <meta charset="UTF-8">
