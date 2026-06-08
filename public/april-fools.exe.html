@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Error</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #terminal {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-bottom: 20px;
+        }
+
+        .line {
+            margin: 5px 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 1.2em;
+            background-color: #0f0;
+            vertical-align: bottom;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .error { color: #f00; }
+        .warning { color: #ff0; }
+        .success { color: #0f0; }
+        .highlight { color: #fff; background-color: #00f; padding: 0 5px; }
+    </style>
+</head>
+<body>
+
+    <div id="terminal"></div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        
+        // The giant pool of random lines to show different things to different people
+        const jokePool = [
+            {
+                text: "INITIALIZING SPAGHETTI CODE...",
+                class: "",
+                delay: 800
+            },
+            {
+                text: "REROUTING POWER TO THE TOASTER...",
+                class: "warning",
+                delay: 1000
+            },
+            {
+                text: "DOWNLOADING MORE RAM...",
+                class: "",
+                delay: 1200
+            },
+            {
+                text: "UPLOADING HOMEWORK TO THE MOON...",
+                class: "success",
+                delay: 1500
+            },
+            {
+                text: "BYPASSING THE REFRIGERATOR MAINFRAME...",
+                class: "",
+                delay: 800
+            },
+            {
+                text: "DEFRAGGING THE FLUFFY CLOUDS...",
+                class: "",
+                delay: 900
+            },
+            {
+                text: "RETICULATING SPLINES...",
+                class: "",
+                delay: 600
+            },
+            {
+                text: "CALCULATING THE MEANING OF LIFE...",
+                class: "",
+                delay: 2000
+            },
+            {
+                text: "RESULT IS 42. VERIFYING...",
+                class: "success",
+                delay: 1000
+            },
+            {
+                text: "SEARCHING FOR LOST SOCKS...",
+                class: "warning",
+                delay: 1500
+            },
+            {
+                text: "WARNING: SOCK NOT FOUND.",
+                class: "error",
+                delay: 1000
+            },
+            {
+                text: "UPGRADING POTATO BATTERY...",
+                class: "",
+                delay: 900
+            },
+            {
+                text: "INSTALLING CHEESE WIZARD...",
+                class: "",
+                delay: 1200
+            },
+            {
+                text: "DECRYPTING SECRET COOKIE RECIPE...",
+                class: "warning",
+                delay: 1800
+            },
+            {
+                text: "ANALYZING DOG BARK TRANSLATIONS...",
+                class: "",
+                delay: 1100
+            },
+            {
+                text: "1042 DOGS DETECTED. 3 CATS DETECTED.",
+                class: "",
+                delay: 800
+            },
+            {
+                text: "DIVIDING BY ZERO...",
+                class: "error",
+                delay: 2500
+            },
+            {
+                text: "WARNING: UNIVERSE IMPLOSION IMMINENT.",
+                class: "error",
+                delay: 1500
+            },
+            {
+                text: "CANCELLING IMPLOSION. TOO MUCH PAPERWORK.",
+                class: "success",
+                delay: 1200
+            },
+            {
+                text: "COMMUNICATING WITH ALIENS...",
+                class: "",
+                delay: 1500
+            },
+            {
+                text: "THEY LEFT US ON READ.",
+                class: "error",
+                delay: 1000
+            },
+            {
+                text: "RECALIBRATING THE FLUX CAPACITOR...",
+                class: "",
+                delay: 1200
+            },
+            {
+                text: "DEPLOYING TACTICAL PENGUINS...",
+                class: "success",
+                delay: 1800
+            },
+            {
+                text: "CONVERTING OXYGEN TO WI-FI...",
+                class: "",
+                delay: 1000
+            },
+            {
+                text: "HACKING THE SMART TOOTHBRUSH...",
+                class: "warning",
+                delay: 1500
+            },
+            {
+                text: "ERROR: TOOTHBRUSH DEMANDS MORE TOOTHPASTE.",
+                class: "error",
+                delay: 1200
+            },
+            {
+                text: "DOWNLOADING 10,000 PICTURES OF CAPYBARAS...",
+                class: "success",
+                delay: 2000
+            },
+            {
+                text: "SORTING M&MS BY COLOR...",
+                class: "",
+                delay: 900
+            },
+            {
+                text: "OVERCLOCKING THE MICROWAVE...",
+                class: "warning",
+                delay: 1100
+            },
+            {
+                text: "BEAMING PIZZA DIRECTLY TO STOMACH...",
+                class: "success",
+                delay: 1600
+            },
+            {
+                text: "TRANSLATING BIRD SONGS...",
+                class: "",
+                delay: 1300
+            },
+            {
+                text: "BIRDS ARE PLOTTING TO STEAL YOUR FRIES.",
+                class: "warning",
+                delay: 1500
+            },
+            {
+                text: "ACTIVATING INVISIBILITY CLOAK...",
+                class: "",
+                delay: 1800
+            },
+            {
+                text: "CLOAK FAILED. YOU ARE STILL VISIBLE.",
+                class: "error",
+                delay: 1000
+            },
+            {
+                text: "SYNCING BRAIN WAVES WITH THE GOLDFISH...",
+                class: "",
+                delay: 1400
+            },
+            {
+                text: "GOLDFISH SAYS: 'BLUB.'",
+                class: "success",
+                delay: 800
+            },
+            {
+                text: "BYPASSING THE FIREWALL WITH A TRAMPOLINE...",
+                class: "",
+                delay: 1200
+            },
+            {
+                text: "COMPILING 3D PRINTED ICE CREAM...",
+                class: "",
+                delay: 1500
+            },
+            {
+                text: "ERROR: ICE CREAM MELTED IN THE CLOUD.",
+                class: "error",
+                delay: 1100
+            },
+            {
+                text: "REBOOTING THE SUN...",
+                class: "warning",
+                delay: 2000
+            },
+            {
+                text: "SUN REBOOTED. PLEASE WEAR SUNGLASSES.",
+                class: "success",
+                delay: 1200
+            },
+            {
+                text: "SEARCHING FOR END OF THE RAINBOW...",
+                class: "",
+                delay: 1700
+            },
+            {
+                text: "LEPRECHAUN FIREWALL DETECTED.",
+                class: "error",
+                delay: 1000
+            },
+            {
+                text: "INSTALLING ANTI-GRAVITY BOOTS...",
+                class: "",
+                delay: 1400
+            },
+            {
+                text: "CALIBRATING LIGHTSABER SOUND EFFECTS...",
+                class: "",
+                delay: 1100
+            },
+            {
+                text: "VROOOOM. WSHHHHH. KSSSH.",
+                class: "success",
+                delay: 900
+            },
+            {
+                text: "DOWNLOADING VIRTUAL BUBBLE WRAP...",
+                class: "",
+                delay: 1300
+            },
+            {
+                text: "POPPING BUBBLE 1 OF 1,000,000...",
+                class: "warning",
+                delay: 800
+            },
+            {
+                text: "HACKING THE SCHOOL BELL TO PLAY KAZOO MUSIC...",
+                class: "success",
+                delay: 1600
+            },
+            {
+                text: "ENCRYPTING MY DIARY WITH PIG LATIN...",
+                class: "",
+                delay: 1200
+            },
+            {
+                text: "IG-PAY ATIN-LAY UCCESSFUL-SAY.",
+                class: "success",
+                delay: 1000
+            },
+            {
+                text: "GENERATING INFINITE CHOCOLATE GLITCH...",
+                class: "warning",
+                delay: 1900
+            },
+            {
+                text: "PATCHING HOLE IN THE OZONE LAYER WITH DUCT TAPE...",
+                class: "",
+                delay: 1500
+            },
+            {
+                text: "UPLOADING CAT VIDEOS TO THE MARS ROVER...",
+                class: "",
+                delay: 1700
+            },
+            {
+                text: "MARS ROVER GAVE IT A THUMBS UP.",
+                class: "success",
+                delay: 1100
+            },
+            {
+                text: "DEFRAGMENTING THE LEGO BIN...",
+                class: "",
+                delay: 1400
+            },
+            {
+                text: "OUCH. STEPPED ON A VIRTUAL LEGO.",
+                class: "error",
+                delay: 800
+            },
+            {
+                text: "OVERRIDING VEGETABLE PROTOCOL...",
+                class: "warning",
+                delay: 1200
+            },
+            {
+                text: "REPLACING BROCCOLI WITH MAC AND CHEESE...",
+                class: "success",
+                delay: 1500
+            },
+            {
+                text: "DETECTING NINJAS IN THE MAINFRAME...",
+                class: "",
+                delay: 1100
+            },
+            {
+                text: "NINJAS EVADED DETECTION.",
+                class: "warning",
+                delay: 1000
+            },
+            {
+                text: "CONNECTING TO THE MATRIX...",
+                class: "",
+                delay: 1600
+            },
+            {
+                text: "MATRIX IS OFFLINE FOR MAINTENANCE.",
+                class: "error",
+                delay: 1200
+            },
+            {
+                text: "SYNTHESIZING NEW COLOR CALLED 'BLURPLE'...",
+                class: "",
+                delay: 1400
+            },
+            {
+                text: "EXTRACTING DNA FROM A GUMMY BEAR...",
+                class: "warning",
+                delay: 1700
+            },
+            {
+                text: "GUMMY BEAR CLONING SEQUENCE INITIATED...",
+                class: "success",
+                delay: 1300
+            },
+            {
+                text: "HACKING THE VENDING MACHINE FOR FREE SNACKS...",
+                class: "",
+                delay: 1500
+            },
+            {
+                text: "ACCESS DENIED. MACHINE WANTS A HUG.",
+                class: "error",
+                delay: 1100
+            },
+            {
+                text: "DOWNLOADING DRAGON RIDING SIMULATOR...",
+                class: "",
+                delay: 1800
+            },
+            {
+                text: "FEEDING VIRTUAL PET ROCK...",
+                class: "warning",
+                delay: 1200
+            },
+            {
+                text: "PET ROCK LEVELED UP!",
+                class: "success",
+                delay: 900
+            },
+            {
+                text: "SCANNING FOR PARALLEL UNIVERSES...",
+                class: "",
+                delay: 1600
+            },
+            {
+                text: "FOUND A UNIVERSE WHERE YOU ENJOYED DOING CHORES.",
+                class: "warning",
+                delay: 1400
+            },
+            {
+                text: "IMPOSSIBLE. DELETING PARALLEL UNIVERSE.",
+                class: "error",
+                delay: 1200
+            },
+            {
+                text: "CHARGING LASER BEAMS...",
+                class: "",
+                delay: 1100
+            },
+            {
+                text: "PEW PEW PEW.",
+                class: "success",
+                delay: 700
+            },
+            {
+                text: "ALIGNING SATELLITES TO SPELL YOUR NAME...",
+                class: "",
+                delay: 1900
+            },
+            {
+                text: "BOOPING THE SNOOT OF THE FIREWALL...",
+                class: "warning",
+                delay: 1300
+            },
+            {
+                text: "FIREWALL IS NOW YOUR BEST FRIEND.",
+                class: "success",
+                delay: 1100
+            },
+            {
+                text: "ACTIVATING TURBO MODE...",
+                class: "",
+                delay: 1200
+            },
+            {
+                text: "EVERYTHING IS NOW 20% COOLER.",
+                class: "success",
+                delay: 1000
+            },
+            {
+                text: "INITIATING HIGH FIVE PROTOCOL...",
+                class: "",
+                delay: 1400
+            },
+            {
+                text: "HIGH FIVE SUCCESSFUL.",
+                class: "success",
+                delay: 900
+            }
+        ];
+
+        let sequence = [];
+        let currentLineIndex = 0;
+        let currentCharIndex = 0;
+        let currentTextSpan = null;
+        let cursor = null;
+        let isDone = false;
+        
+        // How many characters appear per keystroke (makes it feel satisfying and fast!)
+        const charsPerKeystroke = 3; 
+
+        function initHackerTyper() {
+            // Shuffle the pool to get a unique experience every time
+            const shuffledPool = jokePool.sort(() => 0.5 - Math.random());
+            
+            // Pick exactly 15 random lines from our giant list
+            sequence = shuffledPool.slice(0, 15);
+            
+            // Add a starting instruction so they know to type
+            sequence.unshift({
+                text: "> SYSTEM LOCKED. MASH KEYBOARD TO OVERRIDE MAINFRAME <",
+                class: "highlight"
+            });
+
+            // Add the mandatory ending lines
+            sequence.push({
+                text: "Just kidding. Happy April Fools! :)",
+                class: "highlight"
+            });
+            sequence.push({
+                text: "Redirecting you back to safety...",
+                class: ""
+            });
+
+            setupNextLine();
+            
+            // Listen for any key press on the entire page
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+        function setupNextLine() {
+            if (currentLineIndex >= sequence.length) {
+                isDone = true;
+                // Wait 1 second so they can read the last line, then redirect
+                setTimeout(returnToMainSite, 1000); 
+                return;
+            }
+
+            const lineData = sequence[currentLineIndex];
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'line';
+            if (lineData.class) lineDiv.classList.add(lineData.class);
+            
+            currentTextSpan = document.createElement('span');
+            cursor = document.createElement('span');
+            cursor.className = 'cursor';
+            
+            lineDiv.appendChild(currentTextSpan);
+            lineDiv.appendChild(cursor);
+            terminal.appendChild(lineDiv);
+            
+            currentCharIndex = 0;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function handleKeyPress(e) {
+            // Ignore things like Shift, Ctrl, Alt so it doesn't trigger on them alone
+            const ignoreKeys = ['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'Escape'];
+            if (ignoreKeys.includes(e.key) || e.ctrlKey || e.altKey || e.metaKey) {
+                return;
+            }
+            
+            if (isDone) return;
+            
+            // Prevent default actions like Spacebar scrolling the page
+            e.preventDefault();
+
+            const lineData = sequence[currentLineIndex];
+            
+            // Type a chunk of characters for every key press
+            for (let i = 0; i < charsPerKeystroke; i++) {
+                if (currentCharIndex < lineData.text.length) {
+                    currentTextSpan.textContent += lineData.text.charAt(currentCharIndex);
+                    currentCharIndex++;
+                }
+            }
+            
+            terminal.scrollTop = terminal.scrollHeight;
+
+            // If the line is finished, move to the next one
+            if (currentCharIndex >= lineData.text.length) {
+                cursor.remove(); // Remove the cursor block from the finished line
+                currentLineIndex++;
+                setupNextLine();
+            }
+        }
+
+        function returnToMainSite() {
+            // Using history.back() tries to go to the previous page.
+            // If they landed here directly, fallback to the root domain.
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/'; 
+            }
+        }
+
+        // Start the fake hack when the page loads
+        window.onload = initHackerTyper;
+    </script>
+</body>
+</html>
