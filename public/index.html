@@ -20,14 +20,14 @@
         const currentDate = today.getDate();
 
         // 2. Check if today is April 1st
-        const isAprilFools = true;
+        const isAprilFools = (currentMonth === 3 && currentDate === 1);
 
         // 3. Check if they've already been pranked this session
-        const hasBeenPranked = sessionStorage.getItem('aprilFoolsPrankCompleted!!');
+        const hasBeenPranked = sessionStorage.getItem('2027');
 
         if (isAprilFools && !hasBeenPranked) {
             // Mark that they are being pranked so they don't get stuck in a loop
-            sessionStorage.setItem('aprilFoolsPrankCompleted!!', 'true');
+            sessionStorage.setItem('2027', 'true');
             
             // Redirect to the prank page
             // Make sure this path matches where you uploaded the HTML file!
