@@ -23,11 +23,11 @@
         const isAprilFools = true;
 
         // 3. Check if they've already been pranked this session
-        const hasBeenPranked = sessionStorage.getItem('aprilFoolsPrankCompleted!');
+        const hasBeenPranked = sessionStorage.getItem('aprilFoolsPrankCompleted!!');
 
         if (isAprilFools && !hasBeenPranked) {
             // Mark that they are being pranked so they don't get stuck in a loop
-            sessionStorage.setItem('aprilFoolsPrankCompleted!', 'true');
+            sessionStorage.setItem('aprilFoolsPrankCompleted!!', 'true');
             
             // Redirect to the prank page
             // Make sure this path matches where you uploaded the HTML file!
