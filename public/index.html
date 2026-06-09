@@ -23,11 +23,11 @@
         const isAprilFools = (currentMonth === 3 && currentDate === 1);
 
         // 3. Check if they've already been pranked this session
-        const hasBeenPranked = sessionStorage.getItem('2027');
+        const hasBeenPranked = sessionStorage.getItem('2027-fun');
 
         if (isAprilFools && !hasBeenPranked) {
             // Mark that they are being pranked so they don't get stuck in a loop
-            sessionStorage.setItem('2027', 'true');
+            sessionStorage.setItem('2027-fun', 'true');
             
             // Redirect to the prank page
             // Make sure this path matches where you uploaded the HTML file!
