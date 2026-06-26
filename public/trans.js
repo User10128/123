@@ -112,7 +112,6 @@ Object.assign(translations, {
     "Connection taking longer than expected...": { "en-US": "Connection taking longer than expected...", "en-GB": "Connection taking longer than expected...", "es": "La conexión tarda...", "fr": "La connexion prend plus de temps...", "de": "Verbindung dauert...", "nl": "Verbinding duurt..." },
     "Attempt Reconnection": { "en-US": "Attempt Reconnection", "en-GB": "Attempt Reconnection", "es": "Intentar reconectar", "fr": "Tenter une reconnexion", "de": "Neuverbindung versuchen", "nl": "Proberen opnieuw te verbinden" },
     "Cancel Game": { "en-US": "Cancel Game", "en-GB": "Cancel Game", "es": "Cancelar juego", "fr": "Annuler la partie", "de": "Spiel abbrechen", "nl": "Spel annuleren" },
-    "Title": { "en-US": "Title", "en-GB": "Title", "es": "Título", "fr": "Titre", "de": "Titel", "nl": "Titel" },
     "Waiting": { "en-US": "Waiting", "en-GB": "Waiting", "es": "Esperando", "fr": "En attente", "de": "Warten", "nl": "Wachten" },
     "Waiting for an opponent to join...": { "en-US": "Waiting for an opponent to join...", "en-GB": "Waiting for an opponent to join...", "es": "Esperando oponente...", "fr": "En attente d'un adversaire...", "de": "Warten auf Gegner...", "nl": "Wachten op tegenstander..." },
     "Player Profile": { "en-US": "Player Profile", "en-GB": "Player Profile", "es": "Perfil del jugador", "fr": "Profil du joueur", "de": "Spielerprofil", "nl": "Spelersprofiel" },
