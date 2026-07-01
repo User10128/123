@@ -4369,50 +4369,9 @@ await setDoc(gameRef, {
         });
     </script>   
     <script>
-        // Check if the browser supports service workers
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').then(registration => {
-                    console.log('Service Worker registered successfully.');
-                    
-                    // Force update if one is waiting
-                    registration.addEventListener('updatefound', () => {
-                        const newWorker = registration.installing;
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('New SW available. Refreshing page...');
-                                window.location.reload();
-                            }
-                        });
-                    });
-                }).catch(error => {
-                    console.log('Service Worker registration failed:', error);
-                });
-            });
-        }
-    </script>
-    <script>
-    // 1. Function to redirect to the offline page
-    function redirectToOffline() {
-        if (!navigator.onLine) {
-            window.location.href = './offline';
-        }
-    }
-
-    // 2. Check immediately when the page loads
-    window.addEventListener('load', () => {
-        redirectToOffline();
-    });
-
-    // 3. Listen for the connection dropping while the user is on the site
-    window.addEventListener('offline', () => {
-        redirectToOffline();
-    });
-        /*
-        <a href="https://codetrendy.com" target="_blank" rel="noopener noreferrer">
-  <img src="https://codetrendy.com/api/badge?style=classic" alt="Listed on codetrendy.com" height="54" />
-</a>
-*/
+  if (typeof navigator.serviceWorker !== 'undefined') {
+    navigator.serviceWorker.register('sw.js')
+  }
 </script>
 <script src="/trans.js"></script>
     <script>
