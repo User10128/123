@@ -148,6 +148,13 @@
             box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2), 0 0 25px rgba(45, 212, 191, 0.9); 
             transform: scale(1.1);
         }
+
+        /* This targets the app when it is running installed */
+@media (display-mode: standalone) {
+  #install-button {
+    display: none !important;
+  }
+}
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 to-slate-800 text-slate-200 h-screen w-screen overflow-hidden flex flex-col font-sans selection:bg-teal-500/30 relative">
@@ -272,6 +279,11 @@
             <button onclick="openModal('modal-rules')" class="glass-btn w-max mx-auto px-5 py-2 mt-4 text-sm flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
                 Rules & Instructions
+            </button>
+
+            <button id="install-button" class="glass-btn w-max mx-auto px-5 py-2 mt-4 text-sm flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                Install
             </button>
         </div>
 
@@ -4472,5 +4484,44 @@ await setDoc(gameRef, {
         });
     })();
     </script>
+    <script>
+  // 1. Create a variable to hold the browser's install prompt
+  let deferredPrompt;
+  const installButton = document.getElementById('install-button');
+
+  // 2. Listen for the browser telling us the app is ready to install
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent the browser from showing its own default mini-prompt
+    e.preventDefault();
+    
+    // Save the event so we can trigger it later
+    deferredPrompt = e;
+    
+    // Show your custom install button (we hid it with CSS earlier)
+    installButton.style.display = 'inline-block'; 
+  });
+
+  // 3. What happens when the user clicks your button
+  installButton.addEventListener('click', async () => {
+    if (deferredPrompt !== null) {
+      // Open the rich install popup you saw in your screenshot!
+      deferredPrompt.prompt();
+      
+      // Wait for the user to click "Install" or "Cancel"
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        console.log('User installed the Checkers app!');
+      } else {
+        console.log('User canceled the installation.');
+      }
+      
+      // The prompt can only be used once, so we clear it
+      deferredPrompt = null;
+      
+      // Hide the button again after they make a choice
+      installButton.style.display = 'none';
+    }
+  });
+</script>
 </body>
 </html>
