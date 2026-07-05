@@ -1,5 +1,5 @@
 {
-  "name": "checkers.page",
+  "name": "Checkers",
   "short_name": "Checkers",
   "start_url": "/",
   "display": "standalone",
