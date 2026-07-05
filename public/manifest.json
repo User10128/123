@@ -1,6 +1,6 @@
 {
-  "name": "Checkers",
-  "short_name": "Checkers",
+  "name": "checkers.page",
+  "short_name": "checkers.page",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
