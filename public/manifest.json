@@ -2,6 +2,7 @@
   "name": "checkers.page",
   "short_name": "checkers.page",
   "start_url": "/",
+  "version": "1.0.2.0",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
