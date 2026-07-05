@@ -2,6 +2,7 @@
   "name": "Checkers",
   "short_name": "Checkers",
   "start_url": "/",
+  "description": "Play the classic game of Checkers online! Challenge your friends, track your stats, and enjoy a seamless board game experience directly from the app.",
   "version": "1.0.2.0",
   "display": "standalone",
   "background_color": "#0f172a",
