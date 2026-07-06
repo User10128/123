@@ -8,7 +8,8 @@
   "related_applications": [
     {
       "platform": "webapp",
-      "url": "https://checkers.page/manifest.json"
+      "url": "https://checkers.page/manifest.json",
+      "id": "/"
     }
   ],
   "background_color": "#0f172a",
