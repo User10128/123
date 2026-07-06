@@ -4587,18 +4587,5 @@ await setDoc(gameRef, {
         if (installBtnWrapper) installBtnWrapper.remove();
     }
 </script>
-    <script>
-        // 1. Look at the URL of the current page
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        // 2. Check if "?action=settings" is in the URL
-        const action = urlParams.get('action');
-
-        // 3. If it matches, do something cool!
-        if (action === 'ai') {
-            // Find our hidden settings menu and make it visible
-            document.getElementById('view-ai-setup').style.display = 'block';
-        }
-    </script>
 </body>
 </html>
