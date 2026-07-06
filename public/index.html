@@ -4535,13 +4535,12 @@ await setDoc(gameRef, {
     }
   });
 </script>
-    <script>
-    // Detect iOS devices (iPhone, iPod, and older iPads)
+<script>
+    // Detect iOS devices, OR check if the URL has "?test=ios" at the end
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-    // Detect newer iPads that Apple sneaky-flags as Macs
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+    window.location.search.includes('test=ios'); // <-- THE SECRET BACKDOOR
     
-    // If it's iOS, target the wrapper ID and delete it completely
     if (isIOS) {
         const installBtnWrapper = document.getElementById('install-button');
         if (installBtnWrapper) {
