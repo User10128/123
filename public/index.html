@@ -4536,56 +4536,43 @@ await setDoc(gameRef, {
   });
 </script>
 <script>
-    let deferredPrompt;
-    const installBtnWrapper = document.getElementById('install-button');
+    async function checkInstallStatus() {
+        // 1. Keep your existing iOS detector + backdoor test
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+        window.location.search.includes('test=ios');
 
-    // 1. Guard Rail: Handle iOS Devices & your Backdoor Testing URL
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
-                  window.location.search.includes('test=ios');
+        if (isIOS) {
+            removeInstallButton();
+            return;
+        }
 
-    if (isIOS) {
-        // If iOS or testing, destroy the element completely
-        if (installBtnWrapper) installBtnWrapper.remove();
-    } else {
-        
-        // 2. The Smart Filter: Only show the button if the app is actually installable
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent older Android versions from showing a messy native banner
-            e.preventDefault();
-            // Stash the event so we can trigger it when they click your custom button
-            deferredPrompt = e;
-            
-            // The browser confirmed it's NOT installed! Unhide your button wrapper
-            if (installBtnWrapper) {
-                installBtnWrapper.classList.remove('hidden');
-            }
-        });
-
-        // 3. Execution: Handle the actual click event to install Checkers
-        if (installBtnWrapper) {
-            installBtnWrapper.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    // Pop open the native Chrome installation prompt
-                    deferredPrompt.prompt();
-                    
-                    // Wait for the player to click 'Install' or 'Cancel'
-                    const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        // They installed it! Hide the button instantly
-                        installBtnWrapper.classList.add('hidden');
-                    }
-                    // Reset the prompt variable clear
-                    deferredPrompt = null;
+        // 2. New check: See if the PWA is already installed on the computer
+        if ('getInstalledRelatedApps' in navigator) {
+            try {
+                const relatedApps = await navigator.getInstalledRelatedApps();
+                // If it finds your webapp in the installed list, it means it's already installed!
+                const isInstalled = relatedApps.some(app => app.platform === 'webapp');
+                
+                if (isInstalled) {
+                    removeInstallButton();
                 }
-            });
+            } catch (error) {
+                console.error("Error checking install status:", error);
+            }
         }
     }
 
-    // 4. Extra Safety: Double check they didn't just launch the site inside the standalone PWA window
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-        if (installBtnWrapper) installBtnWrapper.remove();
+    // Helper function to cleanly remove your exact button wrapper
+    function removeInstallButton() {
+        const installBtnWrapper = document.getElementById('install-button');
+        if (installBtnWrapper) {
+            installBtnWrapper.remove();
+        }
     }
+
+    // Run the check as soon as the page loads
+    checkInstallStatus();
 </script>
 </body>
 </html>
