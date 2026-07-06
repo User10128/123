@@ -4536,17 +4536,43 @@ await setDoc(gameRef, {
   });
 </script>
 <script>
-    // Detect iOS devices, OR check if the URL has "?test=ios" at the end
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
-    window.location.search.includes('test=ios'); // <-- THE SECRET BACKDOOR
-    
-    if (isIOS) {
+    async function checkInstallStatus() {
+        // 1. Keep your existing iOS detector + backdoor test
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+        window.location.search.includes('test=ios');
+
+        if (isIOS) {
+            removeInstallButton();
+            return;
+        }
+
+        // 2. New check: See if the PWA is already installed on the computer
+        if ('getInstalledRelatedApps' in navigator) {
+            try {
+                const relatedApps = await navigator.getInstalledRelatedApps();
+                // If it finds your webapp in the installed list, it means it's already installed!
+                const isInstalled = relatedApps.some(app => app.platform === 'webapp');
+                
+                if (isInstalled) {
+                    removeInstallButton();
+                }
+            } catch (error) {
+                console.error("Error checking install status:", error);
+            }
+        }
+    }
+
+    // Helper function to cleanly remove your exact button wrapper
+    function removeInstallButton() {
         const installBtnWrapper = document.getElementById('install-button');
         if (installBtnWrapper) {
             installBtnWrapper.remove();
         }
     }
+
+    // Run the check as soon as the page loads
+    checkInstallStatus();
 </script>
 </body>
 </html>
