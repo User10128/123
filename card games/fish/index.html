@@ -1,0 +1,865 @@
+<!DOCTYPE html> 
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Go Fish!</title>
+    <link rel="icon" type="image/png" href="/favicon.png?v=1">
+    <link rel="manifest" href="manifest.json" />
+
+
+    <script>
+      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        window.location.href = './mobile';
+      }
+    </script>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+      import {
+        getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, collection, getDocs, deleteDoc,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+      import {
+        getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+      let firebaseConfig;
+      try {
+        firebaseConfig = JSON.parse(__firebase_config);
+      } catch (e) {
+        firebaseConfig = {
+          apiKey: "AIzaSyD7C-cYXzXwDOYj_GirtC9NvToMbs3HSVk",
+          authDomain: "flutter-ai-playground-f5543.firebaseapp.com",
+          projectId: "flutter-ai-playground-f5543",
+          storageBucket: "flutter-ai-playground-f5543.firebasestorage.app",
+          messagingSenderId: "723494791222",
+          appId: "1:723494791222:web:4625b4086b5c0247139097",
+        };
+      }
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+      window.fb = {
+        db, auth, doc, setDoc, getDoc, updateDoc, onSnapshot, collection, getDocs, deleteDoc,
+        signInAnonymously, signInWithCustomToken, onAuthStateChanged,
+      };
+    </script>
+
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body>
+<script>
+  if (typeof navigator.serviceWorker !== 'undefined') {
+    navigator.serviceWorker.register('sw.js')
+  }
+</script>
+    
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect, useRef } = React;
+
+      // --- STYLING & ASSETS ---
+      const globalStyles = `
+          @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+          
+          body {
+            font-family: 'Fredoka', sans-serif;
+            background: radial-gradient(#bae6fd 3px, transparent 3px), linear-gradient(135deg, #7dd3fc 0%, #38bdf8 100%);
+            background-size: 32px 32px, 100% 100%;
+            background-attachment: fixed;
+            margin: 0;
+            overflow-x: hidden;
+            user-select: none;
+          }
+
+          .cartoon-border { border: 4px solid #1e293b; }
+          .cartoon-shadow { box-shadow: 6px 6px 0px #1e293b; }
+          .cartoon-shadow-sm { box-shadow: 3px 3px 0px #1e293b; }
+          .cartoon-shadow-lg { box-shadow: 8px 10px 0px #1e293b; }
+
+          .cartoon-btn { transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
+          .cartoon-btn:hover:not(:disabled) { transform: translateY(-4px) scale(1.02); box-shadow: 6px 8px 0px #1e293b; filter: brightness(1.05); }
+          .cartoon-btn:active:not(:disabled) { transform: translateY(2px) scale(0.98); box-shadow: 2px 2px 0px #1e293b; }
+
+          .card-hover { transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+          .card-hover:hover { transform: translateY(-16px) rotate(-3deg) scale(1.05); z-index: 50 !important; }
+
+          .animate-bounce-slight { animation: bounceSlight 3s infinite ease-in-out; }
+          .animate-pulse-soft { animation: pulseSoft 2s infinite ease-in-out; }
+          .animate-slide-in { animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+          .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+          .animate-fade-in { animation: fadeIn 0.2s forwards; }
+
+          @keyframes bounceSlight { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+          @keyframes pulseSoft { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+          @keyframes slideIn { from { opacity: 0; transform: translateX(20px) scale(0.95); } to { opacity: 1; transform: translateX(0) scale(1); } }
+          @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+          @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+          ::-webkit-scrollbar { width: 8px; }
+          ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 10px; }
+          ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; border: 2px solid #1e293b; }
+          ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        `;
+
+      const SUITS = [
+        { id: "H", symbol: "♥", color: "text-rose-500" },
+        { id: "D", symbol: "♦", color: "text-rose-500" },
+        { id: "C", symbol: "♣", color: "text-slate-800" },
+        { id: "S", symbol: "♠", color: "text-slate-800" },
+      ];
+      const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+
+      const createDeck = () => {
+        let deck = [];
+        for (let suit of SUITS) {
+          for (let rank of RANKS) {
+            deck.push({ id: `${suit.id}-${rank}`, rank, suit: suit.symbol, color: suit.color });
+          }
+        }
+        for (let i = deck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+        return deck;
+      };
+
+      // --- SHARED UI COMPONENTS ---
+      const AlertModal = ({ msg, onClose }) => {
+        if (!msg) return null;
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/70 animate-fade-in backdrop-blur-sm">
+            <div className="bg-white cartoon-border rounded-3xl p-8 w-full max-w-md cartoon-shadow animate-slide-up text-center">
+              <h3 className="text-3xl font-black text-rose-500 mb-4">Notice</h3>
+              <p className="text-slate-700 font-bold mb-8 text-lg whitespace-pre-wrap">{msg}</p>
+              <button onClick={onClose} className="cartoon-btn w-full bg-blue-400 cartoon-border cartoon-shadow-sm text-slate-900 font-black text-2xl py-4 rounded-xl">
+                Got it
+              </button>
+            </div>
+          </div>
+        );
+      };
+
+      const Card = ({ card, onClick, selectable, mini }) => (
+        <div 
+          onClick={selectable ? onClick : undefined}
+          className={`bg-slate-50 cartoon-border rounded-xl flex items-center justify-center p-1 sm:p-2 
+            ${mini ? 'w-14 h-20 text-sm' : 'w-20 h-28 sm:w-28 sm:h-40 text-xl sm:text-2xl'} 
+            ${selectable ? 'cursor-pointer card-hover cartoon-shadow hover:bg-white' : 'cartoon-shadow-sm scale-95'} 
+            ${card.color} transition-all shrink-0`}
+        >
+          <div className="flex flex-col items-center leading-none">
+            <span className="font-black text-2xl sm:text-4xl">{card.rank}</span>
+            <span className="text-2xl sm:text-4xl mt-1 sm:mt-2">{card.suit}</span>
+          </div>
+        </div>
+      );
+
+      const CardBack = ({ mini }) => (
+        <div className={`bg-gradient-to-br from-indigo-500 to-purple-600 cartoon-border rounded-xl flex items-center justify-center
+          ${mini ? 'w-14 h-20' : 'w-20 h-28 sm:w-28 sm:h-40'} cartoon-shadow-sm shrink-0 overflow-hidden relative opacity-100`}
+        >
+          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.4) 1px, transparent 0)', backgroundSize: '8px 8px' }}></div>
+          <img 
+            src="https://checkers.page/fish.png" 
+            alt="Fish" 
+            className={`z-10 animate-bounce-slight ${mini ? 'w-10 h-10' : 'w-16 h-16 sm:w-20 sm:h-20'} object-contain`} 
+            style={{ animationDuration: '4s' }}
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+        </div>
+      );
+
+      // --- MAIN APP ---
+      function App() {
+        const [peerLoaded, setPeerLoaded] = useState(false);
+        const [appState, setAppState] = useState("menu");
+        const [gameMode, setGameMode] = useState(null);
+        const [alertMsg, setAlertMsg] = useState(null);
+
+        const peerRef = useRef(null);
+        const connRef = useRef(null);
+        const [peerCode, setPeerCode] = useState("");
+        const [joinCodeInput, setJoinCodeInput] = useState("");
+        const [isHost, setIsHost] = useState(false);
+        const [connectionStatus, setConnectionStatus] = useState("");
+
+        const [fbListener, setFbListener] = useState(null);
+        const [user, setUser] = useState(null);
+        const gameStartedRef = useRef(false);
+        const lastActionIdRef = useRef(null);
+
+        const [matchState, setMatchState] = useState({
+          deck: [], playerHand: [], opponentHand: [], playerBooks: [], opponentBooks: [],
+          turn: "player", messages: [], gameOver: false, phase: "ask", currentAsk: null,
+        });
+
+        const [guestState, setGuestState] = useState(null);
+
+        // --- 1. INITIALIZATION ---
+        useEffect(() => {
+          if (!window.Peer) {
+            const script = document.createElement("script");
+            script.src = "https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js";
+            script.onload = () => setPeerLoaded(true);
+            document.head.appendChild(script);
+          } else { setPeerLoaded(true); }
+
+          const styleSheet = document.createElement("style");
+          styleSheet.innerText = globalStyles;
+          document.head.appendChild(styleSheet);
+
+          let unsubscribeAuth = () => {};
+          const initAuth = async () => {
+            if (!window.fb) return;
+            try {
+              if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
+                try {
+                  await window.fb.signInWithCustomToken(window.fb.auth, __initial_auth_token);
+                } catch (e) {
+                  await window.fb.signInAnonymously(window.fb.auth);
+                }
+              } else {
+                await window.fb.signInAnonymously(window.fb.auth);
+              }
+              unsubscribeAuth = window.fb.onAuthStateChanged(window.fb.auth, setUser);
+            } catch (e) { console.error("Auth error", e); }
+          };
+          setTimeout(initAuth, 200);
+
+          return () => { document.head.removeChild(styleSheet); unsubscribeAuth(); };
+        }, []);
+
+        // --- 2. GAME ENGINE LOGIC ---
+        const processAction = (state, actionType, payload) => {
+          let draft = JSON.parse(JSON.stringify(state));
+          let newMessages = [];
+          
+          // Secure localized logging
+          const addMsg = (hostMsg, guestMsg) => newMessages.push({ 
+             hostText: hostMsg, 
+             guestText: guestMsg || hostMsg 
+          });
+
+          const checkBooksAndRefill = () => {
+            const checkBooks = (playerType, name) => {
+              let hand = draft[`${playerType}Hand`];
+              let books = draft[`${playerType}Books`];
+              const rankCounts = {};
+              hand.forEach((c) => { rankCounts[c.rank] = (rankCounts[c.rank] || 0) + 1; });
+
+              for (const r in rankCounts) {
+                if (rankCounts[r] === 4) {
+                  if (playerType === 'player') {
+                     addMsg(`You completed a book of ${r}s!`, `Opponent completed a book of ${r}s!`);
+                  } else {
+                     addMsg(`Opponent completed a book of ${r}s!`, `You completed a book of ${r}s!`);
+                  }
+                  books.push(r);
+                  draft[`${playerType}Hand`] = hand.filter((c) => c.rank !== r);
+                }
+              }
+            };
+            checkBooks("player", "You"); checkBooks("opponent", "Opponent");
+
+            const refillHand = (playerType, name) => {
+              if (draft[`${playerType}Hand`].length === 0 && draft.deck.length > 0) {
+                const cardsToDraw = Math.min(5, draft.deck.length);
+                const drawn = draft.deck.splice(-cardsToDraw, cardsToDraw);
+                draft[`${playerType}Hand`].push(...drawn);
+                
+                if (playerType === 'player') {
+                   addMsg(`You drew ${cardsToDraw} cards to refill.`, `Opponent drew ${cardsToDraw} cards to refill.`);
+                } else {
+                   addMsg(`Opponent drew ${cardsToDraw} cards to refill.`, `You drew ${cardsToDraw} cards to refill.`);
+                }
+              }
+            };
+            refillHand("player", "You"); refillHand("opponent", "Opponent");
+
+            if (draft.playerBooks.length + draft.opponentBooks.length === 13 || 
+               (draft.deck.length === 0 && (draft.playerHand.length === 0 || draft.opponentHand.length === 0))) {
+              draft.gameOver = true;
+              let pScore = draft.playerBooks.length; let oScore = draft.opponentBooks.length;
+              if (pScore > oScore) addMsg("Game Over! You Win!", "Game Over! Opponent Wins!");
+              else if (oScore > pScore) addMsg("Game Over! Opponent Wins!", "Game Over! You Win!");
+              else addMsg("Game Over! It's a Tie!", "Game Over! It's a Tie!");
+            }
+          };
+
+          if (actionType === "ASK") {
+            const rank = payload;
+            const asker = draft.turn;
+            const target = asker === "player" ? "opponent" : "player";
+            draft.phase = "respond";
+            draft.currentAsk = { rank, asker, target };
+            
+            if (asker === 'player') {
+               addMsg(`You asked for ${rank}s.`, `Opponent asked for ${rank}s.`);
+            } else {
+               addMsg(`Opponent asked for ${rank}s.`, `You asked for ${rank}s.`);
+            }
+          } else if (actionType === "GIVE_CARDS") {
+            const { rank, asker, target } = draft.currentAsk;
+            const matchingCards = draft[`${target}Hand`].filter((c) => c.rank === rank);
+            draft[`${target}Hand`] = draft[`${target}Hand`].filter((c) => c.rank !== rank);
+            draft[`${asker}Hand`].push(...matchingCards);
+            
+            if (target === 'player') {
+               addMsg(`You had ${matchingCards.length}!`, `Opponent had ${matchingCards.length}!`);
+            } else {
+               addMsg(`Opponent had ${matchingCards.length}!`, `You had ${matchingCards.length}!`);
+            }
+            
+            checkBooksAndRefill();
+            draft.phase = "ask"; draft.currentAsk = null;
+          } else if (actionType === "SAY_GO_FISH") {
+            const { target } = draft.currentAsk;
+            
+            if (target === 'player') {
+               addMsg(`You said "Go Fish!"`, `Opponent said "Go Fish!"`);
+            } else {
+               addMsg(`Opponent said "Go Fish!"`, `You said "Go Fish!"`);
+            }
+            
+            if (draft.deck.length > 0) {
+              draft.phase = "draw";
+            } else {
+              addMsg(`The deck is empty!`, `The deck is empty!`);
+              draft.turn = target;
+              checkBooksAndRefill();
+              draft.phase = "ask"; draft.currentAsk = null;
+            }
+          } else if (actionType === "DRAW_FISH") {
+            const { rank, asker, target } = draft.currentAsk;
+            const drawnCard = draft.deck.pop();
+            draft[`${asker}Hand`].push(drawnCard);
+            
+            if (asker === 'player') {
+               addMsg(`You fished a ${drawnCard.rank}.`, `Opponent fished a card.`);
+            } else {
+               addMsg(`Opponent fished a card.`, `You fished a ${drawnCard.rank}.`);
+            }
+            
+            if (drawnCard.rank === rank) {
+              if (asker === 'player') {
+                 addMsg(`You fished exactly what you wanted!`, `Opponent fished exactly what they wanted!`);
+              } else {
+                 addMsg(`Opponent fished exactly what they wanted!`, `You fished exactly what you wanted!`);
+              }
+            } else {
+              draft.turn = target;
+            }
+            checkBooksAndRefill();
+            draft.phase = "ask"; draft.currentAsk = null;
+          }
+
+          draft.messages = [...newMessages, ...draft.messages].slice(0, 30);
+          return draft;
+        };
+
+        const initializeGame = () => {
+          const newDeck = createDeck();
+          setMatchState({
+            deck: newDeck.slice(14), playerHand: newDeck.slice(0, 7), opponentHand: newDeck.slice(7, 14),
+            playerBooks: [], opponentBooks: [], turn: "player", 
+            messages: [{hostText: "Game started! Your turn.", guestText: "Game started! Opponent's turn."}],
+            gameOver: false, phase: "ask", currentAsk: null,
+          });
+        };
+
+        // --- 3. AI LOGIC ---
+        useEffect(() => {
+          if (gameMode !== "ai" || matchState.gameOver) return;
+          const timer = setTimeout(() => {
+            if (matchState.phase === "ask" && matchState.turn === "opponent") {
+              const oppHand = matchState.opponentHand;
+              if (oppHand.length > 0) {
+                const randCard = oppHand[Math.floor(Math.random() * oppHand.length)];
+                setMatchState((prev) => processAction(prev, "ASK", randCard.rank));
+              } else { setMatchState((prev) => ({ ...prev, turn: "player" })); }
+            } else if (matchState.phase === "respond" && matchState.currentAsk?.target === "opponent") {
+              const hasCard = matchState.opponentHand.some((c) => c.rank === matchState.currentAsk.rank);
+              setMatchState((prev) => processAction(prev, hasCard ? "GIVE_CARDS" : "SAY_GO_FISH"));
+            } else if (matchState.phase === "draw" && matchState.currentAsk?.asker === "opponent") {
+              setMatchState((prev) => processAction(prev, "DRAW_FISH"));
+            }
+          }, 1800);
+          return () => clearTimeout(timer);
+        }, [matchState.turn, matchState.phase, matchState.currentAsk, gameMode, matchState.gameOver]);
+
+        // --- 4. MULTIPLAYER LOGIC ---
+        const generatePeerCode = () => Math.floor(1000 + Math.random() * 9000).toString();
+
+        const hostLocalGame = () => {
+          if (!window.Peer) return;
+          const code = generatePeerCode();
+          setPeerCode(code); setIsHost(true); setConnectionStatus("Waiting for opponent...");
+          const peer = new window.Peer(`gofish-game-${code}`);
+          peerRef.current = peer;
+          peer.on("connection", (conn) => { connRef.current = conn; setupLocalConnection(conn, true); });
+        };
+
+        const joinLocalGame = () => {
+          if (!window.Peer || joinCodeInput.length !== 4) return;
+          setIsHost(false); setConnectionStatus("Connecting...");
+          const peer = new window.Peer(); peerRef.current = peer;
+          peer.on("open", () => {
+            const conn = peer.connect(`gofish-game-${joinCodeInput}`);
+            connRef.current = conn; setupLocalConnection(conn, false);
+          });
+        };
+
+        const setupLocalConnection = (conn, isHostRole) => {
+          conn.on("open", () => {
+            setConnectionStatus("Connected! Starting game...");
+            setTimeout(() => { setAppState("playing"); if (isHostRole) initializeGame(); }, 1000);
+          });
+          conn.on("data", (data) => {
+            if (data.type === "SYNC" && !isHostRole) setGuestState(data.state);
+            else if (data.type === "ACTION" && isHostRole) setMatchState((prev) => processAction(prev, data.actionType, data.payload));
+          });
+          conn.on("close", () => { setAlertMsg("Connection lost!"); resetGame(); });
+        };
+
+        const playWorldwide = async () => {
+          if (!window.fb || !user) { setAlertMsg("Authenticating... please wait a second and try again."); return; }
+          setGameMode("worldwide"); setAppState("lobby"); setConnectionStatus("Searching for a match...");
+
+          const { db, collection, getDocs, doc, setDoc, updateDoc, onSnapshot } = window.fb;
+          const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
+          const matchesRef = collection(db, "artifacts", appId, "public", "data", "gofish_matches");
+
+          try {
+            const snapshot = await getDocs(matchesRef);
+            let joinableMatch = null;
+            snapshot.forEach((docSnap) => { if (docSnap.data().status === "waiting") joinableMatch = { id: docSnap.id }; });
+
+            if (joinableMatch) {
+              setIsHost(false); setPeerCode(joinableMatch.id);
+              const matchDoc = doc(db, "artifacts", appId, "public", "data", "gofish_matches", joinableMatch.id);
+              await updateDoc(matchDoc, { status: "playing" });
+              setConnectionStatus("Match found! Connecting...");
+
+              const unsubscribe = onSnapshot(matchDoc, (snap) => {
+                if (!snap.exists()) return;
+                const data = snap.data();
+                if (data.hostState) setGuestState(data.hostState);
+              }, (err) => console.error(err));
+              setFbListener(() => unsubscribe);
+              setTimeout(() => { setAppState("playing"); }, 1000);
+            } else {
+              setIsHost(true); const code = generatePeerCode(); setPeerCode(code);
+              const matchDoc = doc(db, "artifacts", appId, "public", "data", "gofish_matches", code);
+              await setDoc(matchDoc, { status: "waiting", createdAt: Date.now() });
+              setConnectionStatus("Waiting for a random opponent...");
+
+              const unsubscribe = onSnapshot(matchDoc, (snap) => {
+                if (!snap.exists()) return;
+                const data = snap.data();
+                if (data.status === "playing" && !gameStartedRef.current) {
+                  gameStartedRef.current = true; setConnectionStatus("Opponent connected! Starting...");
+                  setTimeout(() => { setAppState("playing"); initializeGame(); }, 1000);
+                }
+                if (data.guestAction && data.guestAction.id !== lastActionIdRef.current) {
+                  lastActionIdRef.current = data.guestAction.id;
+                  setMatchState((prev) => processAction(prev, data.guestAction.type, data.guestAction.payload));
+                }
+              }, (err) => console.error(err));
+              setFbListener(() => unsubscribe);
+            }
+          } catch (err) {
+            console.error("Matchmaking error:", err);
+            if (err.code === 'permission-denied' || (err.message && err.message.toLowerCase().includes('permission'))) {
+               setAlertMsg("Firebase Permission Denied!\n\nTo run this on your own Firebase project, you must update your Firestore Rules to allow access.\n\nallow read, write: if true;");
+            } else {
+               setAlertMsg("Could not connect to matchmaking servers: " + err.message);
+            }
+            resetGame();
+          }
+        };
+
+        useEffect(() => {
+          if (isHost && appState === "playing") {
+            const stateForGuest = {
+              deckCount: matchState.deck.length, myHand: matchState.opponentHand, 
+              opponentHandCount: matchState.playerHand.length, myBooks: matchState.opponentBooks,
+              opponentBooks: matchState.playerBooks, isMyTurn: matchState.turn === "opponent",
+              messages: matchState.messages, gameOver: matchState.gameOver,
+              phase: matchState.phase, currentAsk: matchState.currentAsk
+            };
+            
+            if (gameMode === "peer" && connRef.current) {
+              connRef.current.send({ type: "SYNC", state: stateForGuest });
+            } else if (gameMode === "worldwide" && window.fb && user) {
+              const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
+              const gameRef = window.fb.doc(window.fb.db, "artifacts", appId, "public", "data", "gofish_matches", peerCode);
+              window.fb.updateDoc(gameRef, { hostState: stateForGuest }).catch(console.error);
+            }
+          }
+        }, [matchState, gameMode, isHost, appState, peerCode, user]);
+
+        // --- 5. UI INTERACTIONS ---
+        const triggerAction = (actionType, payload) => {
+          if (uiState.gameOver) return;
+          
+          if (gameMode === "ai" || isHost) {
+            setMatchState((prev) => processAction(prev, actionType, payload));
+          } else if (gameMode === "peer" && !isHost) {
+            connRef.current.send({ type: "ACTION", actionType, payload });
+          } else if (gameMode === "worldwide" && !isHost && window.fb && user) {
+            const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
+            const gameRef = window.fb.doc(window.fb.db, "artifacts", appId, "public", "data", "gofish_matches", peerCode);
+            window.fb.updateDoc(gameRef, {
+                guestAction: { type: actionType, payload: payload !== undefined ? payload : null, id: Date.now() },
+            }).catch(console.error);
+            if (actionType === "ASK") setGuestState((prev) => ({ ...prev, isMyTurn: false }));
+          }
+        };
+
+        const handleAskCard = (rank) => {
+          if (uiState.gameOver || !uiState.isMyTurn || uiState.phase !== "ask") return;
+          triggerAction("ASK", rank);
+        };
+
+        const handleDeckClick = () => {
+          if (uiState.phase === "draw" && uiState.isMeAsker) triggerAction("DRAW_FISH");
+        };
+
+        const resetGame = () => {
+          if (peerRef.current) { peerRef.current.destroy(); peerRef.current = null; }
+          connRef.current = null;
+          if (fbListener) { fbListener(); setFbListener(null); }
+          
+          if (gameMode === "worldwide" && peerCode && window.fb && user) {
+            const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
+            const matchDoc = window.fb.doc(window.fb.db, "artifacts", appId, "public", "data", "gofish_matches", peerCode);
+            window.fb.deleteDoc(matchDoc).catch(console.error);
+          }
+
+          gameStartedRef.current = false; setAppState("menu"); setGameMode(null);
+          setGuestState(null); setConnectionStatus(""); setPeerCode("");
+        };
+
+        // --- 6. DERIVED UI STATE ---
+        let uiState = {
+          myHand: [], opponentHandCount: 0, myBooks: [], opponentBooks: [], deckCount: 0,
+          isMyTurn: false, messages: [], gameOver: false, phase: "ask", currentAsk: null,
+          isMeAsker: false, isMeTarget: false, hasRequestedCard: false, currentAskRank: null,
+        };
+
+        if (gameMode === "ai" || isHost) {
+          uiState = {
+            myHand: [...matchState.playerHand].sort((a, b) => RANKS.indexOf(a.rank) - RANKS.indexOf(b.rank)),
+            opponentHandCount: matchState.opponentHand.length,
+            myBooks: matchState.playerBooks, opponentBooks: matchState.opponentBooks,
+            deckCount: matchState.deck.length, isMyTurn: matchState.turn === "player",
+            messages: matchState.messages.map(m => m.hostText !== undefined ? m.hostText : m),
+            gameOver: matchState.gameOver, phase: matchState.phase, currentAsk: matchState.currentAsk,
+            isMeAsker: matchState.currentAsk?.asker === "player", isMeTarget: matchState.currentAsk?.target === "player",
+            hasRequestedCard: matchState.currentAsk && matchState.playerHand.some((c) => c.rank === matchState.currentAsk.rank),
+            currentAskRank: matchState.currentAsk?.rank,
+          };
+        } else if (guestState) {
+          uiState = {
+            ...guestState,
+            myHand: [...guestState.myHand].sort((a, b) => RANKS.indexOf(a.rank) - RANKS.indexOf(b.rank)),
+            messages: guestState.messages.map(m => m.guestText !== undefined ? m.guestText : m),
+            isMeAsker: guestState.currentAsk?.asker === "opponent", isMeTarget: guestState.currentAsk?.target === "opponent",
+            hasRequestedCard: guestState.currentAsk && guestState.myHand.some((c) => c.rank === guestState.currentAsk.rank),
+            currentAskRank: guestState.currentAsk?.rank,
+          };
+        }
+
+        // --- 7. RENDERS ---
+
+        if (appState === "menu") {
+          return (
+            <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+              <AlertModal msg={alertMsg} onClose={() => setAlertMsg(null)} />
+              <div className="absolute top-10 left-10 opacity-40 rotate-[-15deg]"><CardBack mini /></div>
+              <div className="absolute bottom-20 right-10 opacity-40 rotate-[20deg]"><CardBack mini /></div>
+
+              <div className="relative flex justify-center space-x-[-20px] animate-bounce-slight mb-4 sm:mb-8 mt-12">
+                <div className="rotate-[-15deg] translate-y-4"><CardBack mini/></div>
+                <div className="z-10 translate-y-[-10px] scale-110"><CardBack mini/></div>
+                <div className="rotate-[15deg] translate-y-4"><CardBack mini/></div>
+              </div>
+
+              <div className="w-full max-w-4xl mb-12 sm:mb-16 flex justify-center z-10 px-4 mt-8">
+                 <h1 className="text-6xl sm:text-8xl md:text-[140px] font-black text-blue-600 mb-8 sm:mb-12 tracking-wide text-center">
+                    GO FISH!
+                 </h1>
+              </div>
+
+              <div className="flex flex-col space-y-4 w-full max-w-sm z-10">
+                <button className="cartoon-btn bg-blue-300 text-slate-900 cartoon-border font-black text-2xl py-4 px-6 rounded-2xl flex items-center justify-center"
+                  onClick={() => { setGameMode("ai"); initializeGame(); setAppState("playing"); }}>
+                  <span>Play vs AI</span>
+                </button>
+                <button className="cartoon-btn bg-blue-400 text-slate-900 cartoon-border font-black text-2xl py-4 px-6 rounded-2xl flex justify-center items-center"
+                  onClick={() => { setGameMode("peer"); setAppState("lobby"); }}>
+                  <span>Play Local</span>
+                </button>
+                <button className="cartoon-btn bg-blue-500 text-white cartoon-border font-black text-2xl py-4 px-6 rounded-2xl flex justify-center items-center"
+                  onClick={playWorldwide}>
+                  <span>Play Worldwide</span>
+                </button>
+                <button className="cartoon-btn bg-white cartoon-border text-slate-700 font-bold text-xl py-3 px-6 rounded-xl mt-4 hover:text-slate-900"
+                  onClick={() => setAppState("rules")}>
+                  How to Play
+                </button>
+              </div>
+            </div>
+          );
+        }
+
+        if (appState === "rules") {
+          return (
+            <div className="min-h-screen flex flex-col items-center justify-center p-4">
+              <div className="bg-white cartoon-border cartoon-shadow rounded-3xl p-8 max-w-2xl w-full">
+                <h2 className="text-4xl font-black text-slate-800 mb-6 border-b-4 border-slate-200 pb-2">How to Play</h2>
+                <ul className="space-y-4 text-lg text-slate-700 font-semibold mb-8 list-disc pl-5">
+                  <li>Your goal is to collect groups of 4 matching cards ("Books").</li>
+                  <li>On your turn, click a card in your hand to ask your opponent if they have that rank.</li>
+                  <li>If they have it, they give you all their cards of that rank, and you go again!</li>
+                  <li>If they don't, they say "Go Fish!" and you draw a card from the deck.</li>
+                  <li>If you draw the card you asked for, you go again! Otherwise, your turn ends.</li>
+                  <li>The game ends when all 13 books are collected. The player with the most books wins!</li>
+                </ul>
+                <button className="cartoon-btn w-full bg-blue-400 cartoon-border text-slate-900 font-bold text-2xl py-4 rounded-2xl"
+                  onClick={() => setAppState("menu")}>
+                  Got it! Let's Play
+                </button>
+              </div>
+            </div>
+          );
+        }
+
+        if (appState === "lobby") {
+          return (
+            <div className="min-h-screen flex flex-col items-center justify-center p-4">
+              <AlertModal msg={alertMsg} onClose={() => setAlertMsg(null)} />
+              {gameMode === "peer" && !peerLoaded && <p className="text-xl font-bold mb-4">Loading Network...</p>}
+              
+              <div className="bg-white cartoon-border cartoon-shadow rounded-3xl p-8 max-w-md w-full text-center">
+                <h2 className="text-4xl font-black text-slate-800 mb-6">
+                    {gameMode === "worldwide" ? "Worldwide Play" : "Local Play"}
+                </h2>
+                
+                {connectionStatus ? (
+                  <div className="py-8">
+                    <p className="text-2xl font-bold text-slate-700 animate-pulse">{connectionStatus}</p>
+                    {isHost && gameMode === "peer" && <p className="text-5xl font-black tracking-widest text-indigo-500 mt-4">{peerCode}</p>}
+                  </div>
+                ) : (
+                  <>
+                    {gameMode === "peer" && (
+                      <>
+                        <div className="mb-8 p-6 bg-slate-100 rounded-2xl cartoon-border border-2">
+                          <h3 className="font-bold text-xl text-slate-700 mb-2">Host a Game</h3>
+                          <button onClick={hostLocalGame} disabled={!peerLoaded}
+                            className="cartoon-btn w-full bg-blue-400 cartoon-border text-slate-900 font-bold text-xl py-3 rounded-xl">
+                            Create Code
+                          </button>
+                        </div>
+                        <div className="relative flex items-center justify-center mb-8">
+                          <div className="border-t-4 border-slate-200 w-full"></div>
+                          <span className="bg-white px-4 font-bold text-slate-400 absolute">OR</span>
+                        </div>
+                        <div className="p-6 bg-slate-100 rounded-2xl cartoon-border border-2">
+                          <h3 className="font-bold text-xl text-slate-700 mb-2">Join a Game</h3>
+                          <input type="text" maxLength={4} placeholder="4-Digit Code"
+                            className="w-full cartoon-border text-center text-3xl font-black tracking-widest p-3 rounded-xl mb-4 outline-none focus:ring-4 focus:ring-indigo-300"
+                            value={joinCodeInput} onChange={(e) => setJoinCodeInput(e.target.value.replace(/\D/g, ""))} />
+                          <button onClick={joinLocalGame} disabled={!peerLoaded || joinCodeInput.length !== 4}
+                            className="cartoon-btn w-full bg-blue-500 cartoon-border text-white font-bold text-xl py-3 rounded-xl disabled:opacity-50">
+                            Join Game
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+                <button className="text-slate-500 font-bold hover:text-slate-800 mt-4 underline decoration-2 underline-offset-4" onClick={resetGame}>
+                  Back to Menu
+                </button>
+              </div>
+            </div>
+          );
+        }
+
+        // --- PLAYING SCREEN ---
+        const bannerColor = uiState.gameOver ? 'bg-purple-500 scale-105 animate-bounce-slight' :
+          (uiState.phase === 'respond' && uiState.isMeTarget) ? 'bg-yellow-400 animate-pulse-soft cartoon-shadow-lg' :
+          (uiState.phase === 'draw' && uiState.isMeAsker) ? 'bg-blue-400 animate-pulse-soft cartoon-shadow-lg' :
+          (uiState.isMyTurn && uiState.phase === 'ask') ? 'bg-green-400 animate-pulse-soft cartoon-shadow-lg' :
+          'bg-slate-300 opacity-90 scale-95';
+
+        return (
+          <div className="min-h-screen flex flex-col md:flex-row p-2 sm:p-4 gap-4 max-w-[1600px] mx-auto">
+            <AlertModal msg={alertMsg} onClose={() => setAlertMsg(null)} />
+            
+            {/* LEFT AREA: Game Board */}
+            <div className="flex-1 flex flex-col justify-between relative bg-white/60 backdrop-blur-sm cartoon-border rounded-3xl p-4 sm:p-8 overflow-hidden shadow-xl">
+              
+              {/* Opponent Area */}
+              <div className="flex flex-col items-center">
+                <div className="flex items-center space-x-4 bg-slate-800 text-white px-6 py-2 rounded-full cartoon-border cartoon-shadow-sm mb-6">
+                  <span className="font-bold text-lg">Opponent</span>
+                  <span className="bg-rose-500 px-3 py-1 rounded-full text-sm font-black cartoon-border border-2">Score: {uiState.opponentBooks.length}</span>
+                </div>
+                
+                <div className="flex justify-center flex-wrap gap-[-20px] sm:space-x-[-45px]">
+                  {Array.from({ length: uiState.opponentHandCount }).map((_, i) => (
+                    <div key={i} className={`relative transition-all duration-300 ${i !== 0 ? '-ml-10 sm:-ml-14' : ''}`} style={{ zIndex: i }}>
+                      <CardBack />
+                    </div>
+                  ))}
+                  {uiState.opponentHandCount === 0 && (
+                    <div className="h-28 sm:h-40 flex items-center justify-center opacity-50 font-bold text-slate-600 bg-slate-200/50 rounded-xl px-8 border-2 border-dashed border-slate-400">Empty Hand</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Center Area: Deck, Turn, & Actions */}
+              <div className="flex flex-col md:flex-row items-center justify-center py-8 relative gap-6 w-full px-2 sm:px-12">
+                <div className="flex flex-col items-center">
+                   <p className="text-xs font-bold text-slate-500 mb-2 tracking-widest">DECK</p>
+                   <div className={`relative group ${uiState.phase === 'draw' && uiState.isMeAsker ? 'cursor-pointer card-hover' : ''}`} 
+                        onClick={handleDeckClick} title={`${uiState.deckCount} cards left`}>
+                      {uiState.deckCount > 0 ? <CardBack /> : (
+                        <div className="w-20 h-28 sm:w-28 sm:h-40 border-4 border-dashed border-slate-400 rounded-xl flex items-center justify-center opacity-50 bg-slate-100/50">
+                          <span className="font-bold text-slate-500">Empty</span>
+                        </div>
+                      )}
+                      {uiState.deckCount > 0 && (
+                        <div className="absolute -bottom-4 -right-4 bg-yellow-400 cartoon-border text-sm font-black rounded-full w-10 h-10 flex items-center justify-center cartoon-shadow-sm z-10">
+                          {uiState.deckCount}
+                        </div>
+                      )}
+                   </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-6 flex-1 max-w-2xl w-full">
+                  <div className={`px-6 py-5 rounded-3xl cartoon-border shadow-xl transition-all duration-300 w-full sm:w-auto text-center ${bannerColor}`}>
+                    <h2 className={`text-2xl sm:text-3xl font-black ${uiState.gameOver ? 'text-white' : 'text-slate-900'} tracking-wide`}>
+                      {uiState.gameOver ? 'GAME OVER!' : 
+                       (uiState.phase === 'respond' && uiState.isMeTarget) ? 'YOUR RESPONSE!' :
+                       (uiState.phase === 'draw' && uiState.isMeAsker) ? 'FISH A CARD!' :
+                       (uiState.isMyTurn ? 'YOUR TURN' : "OPPONENT'S TURN")}
+                    </h2>
+                  </div>
+
+                  {uiState.currentAsk && (
+                    <div className="px-6 py-4 rounded-3xl cartoon-border shadow-xl bg-white flex flex-col items-center justify-center animate-slide-in shrink-0 min-w-[200px]">
+                      <p className="font-bold text-slate-700 text-center leading-tight">
+                        <span className="text-lg">{uiState.isMeAsker ? 'You' : 'Opponent'}</span> want<br/>
+                        <span className="text-4xl font-black">{uiState.currentAskRank}s</span>
+                      </p>
+
+                      {uiState.phase === 'respond' && (
+                        <div className="flex gap-2 mt-4 w-full">
+                          <button disabled={!uiState.isMeTarget || !uiState.hasRequestedCard} onClick={() => triggerAction('GIVE_CARDS')}
+                            className={`flex-1 cartoon-border font-bold py-2 px-2 text-sm rounded-xl transition-all ${uiState.isMeTarget && uiState.hasRequestedCard ? 'bg-green-400 cartoon-btn' : 'bg-slate-200 text-slate-400 opacity-50'}`}>
+                            Give
+                          </button>
+                          <button disabled={!uiState.isMeTarget || uiState.hasRequestedCard} onClick={() => triggerAction('SAY_GO_FISH')}
+                            className={`flex-1 cartoon-border font-bold py-2 px-2 text-sm rounded-xl transition-all ${uiState.isMeTarget && !uiState.hasRequestedCard ? 'bg-rose-400 cartoon-btn' : 'bg-slate-200 text-slate-400 opacity-50'}`}>
+                            Go Fish
+                          </button>
+                        </div>
+                      )}
+
+                      {uiState.phase === 'draw' && (
+                         <div className="flex gap-2 mt-4 w-full">
+                            <button disabled={!uiState.isMeAsker} onClick={() => triggerAction('DRAW_FISH')}
+                              className={`w-full cartoon-border font-bold py-2 px-4 rounded-xl transition-all ${uiState.isMeAsker ? 'bg-blue-400 cartoon-btn animate-pulse-soft' : 'bg-slate-200 text-slate-400 opacity-50'}`}>
+                              Fish!
+                            </button>
+                         </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Player Area */}
+              <div className="flex flex-col items-center">
+                <div className="flex justify-center flex-wrap px-2 pt-10 pb-4">
+                  {uiState.myHand.map((card, i) => (
+                    <div key={card.id} className={`relative transition-all duration-300 ${i !== 0 ? '-ml-8 sm:-ml-12' : ''}`} style={{ zIndex: i }}>
+                      <Card card={card} selectable={uiState.isMyTurn && !uiState.gameOver && uiState.phase === 'ask'} onClick={() => handleAskCard(card.rank)}/>
+                    </div>
+                  ))}
+                  {uiState.myHand.length === 0 && (
+                    <div className="h-28 sm:h-40 flex items-center justify-center opacity-50 font-bold text-slate-600 bg-slate-200/50 rounded-xl px-8 border-2 border-dashed border-slate-400">Empty Hand</div>
+                  )}
+                </div>
+                
+                <div className="flex items-center space-x-4 bg-white px-8 py-2 rounded-full cartoon-border cartoon-shadow-sm mt-4">
+                  <span className="font-bold text-slate-800 text-lg">You</span>
+                  <span className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm font-black cartoon-border border-2">Score: {uiState.myBooks.length}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT AREA: Logs & Books */}
+            <div className="w-full md:w-80 lg:w-96 flex flex-col gap-4 h-auto md:h-full max-h-screen">
+              
+              <div className="bg-white/80 backdrop-blur-sm cartoon-border cartoon-shadow-sm rounded-3xl p-5 shrink-0">
+                <h3 className="font-black text-2xl text-slate-800 mb-4 text-center border-b-4 border-slate-200 pb-2">Books</h3>
+                <div className="flex flex-col gap-5">
+                   <div className="bg-rose-50 p-3 rounded-2xl border-2 border-rose-100">
+                      <p className="text-sm font-bold text-rose-500 mb-2 uppercase tracking-wider">Opponent's Books</p>
+                      <div className="flex flex-wrap gap-2">
+                        {uiState.opponentBooks.map((rank, i) => (
+                          <div key={i} className="w-10 h-10 bg-white cartoon-border border-2 rounded-lg flex items-center justify-center font-black text-rose-500 shadow-sm">{rank}</div>
+                        ))}
+                        {uiState.opponentBooks.length === 0 && <span className="text-rose-300 text-sm font-bold italic">None yet...</span>}
+                      </div>
+                   </div>
+                   <div className="bg-indigo-50 p-3 rounded-2xl border-2 border-indigo-100">
+                      <p className="text-sm font-bold text-indigo-500 mb-2 uppercase tracking-wider">Your Books</p>
+                      <div className="flex flex-wrap gap-2">
+                        {uiState.myBooks.map((rank, i) => (
+                          <div key={i} className="w-10 h-10 bg-white cartoon-border border-2 rounded-lg flex items-center justify-center font-black text-indigo-600 shadow-sm">{rank}</div>
+                        ))}
+                        {uiState.myBooks.length === 0 && <span className="text-indigo-300 text-sm font-bold italic">None yet...</span>}
+                      </div>
+                   </div>
+                </div>
+              </div>
+
+              <div className="bg-slate-800 cartoon-border cartoon-shadow-sm rounded-3xl p-5 flex flex-col flex-1 min-h-[300px] relative">
+                <h3 className="font-black text-xl text-white mb-3 shrink-0">Activity Log</h3>
+                <div className="flex-1 overflow-y-auto min-h-0 pr-2 space-y-3 pb-2">
+                   {uiState.messages.map((msg, i) => (
+                     <div key={i} className={`p-3 rounded-2xl font-bold text-sm leading-relaxed shadow-sm
+                       ${i === 0 ? 'bg-gradient-to-r from-yellow-300 to-yellow-400 text-slate-900 border-2 border-slate-900 animate-slide-in' : 'bg-slate-700 text-slate-200 border-2 border-slate-600'}`}>
+                       {msg}
+                     </div>
+                   ))}
+                </div>
+              </div>
+              
+              <button onClick={resetGame} className="cartoon-btn bg-white cartoon-border text-slate-800 font-black text-lg py-4 rounded-2xl hover:bg-rose-100 hover:text-rose-600 transition-colors shrink-0">
+                Quit Game
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      const container = document.getElementById('root');
+      const root = ReactDOM.createRoot(container);
+      root.render(<App />);
+    </script>
+  </body>
+</html>
