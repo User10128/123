@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citrus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="/public/favicon.png">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow: hidden;
+            user-select: none;
+            height: 100vh;
+        }
+
+        /* Sleek Modern Animated Background */
+        .bg-modern {
+            background: radial-gradient(circle at 15% 50%, #1e1b4b, #0f172a, #020617);
+            background-size: 200% 200%;
+            animation: gentleShift 20s ease infinite;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -2;
+        }
+        
+        .ambient-glow {
+            position: fixed; width: 50vw; height: 50vw; border-radius: 50%;
+            background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(0,0,0,0) 70%);
+            top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: -1;
+            pointer-events: none;
+        }
+
+        @keyframes gentleShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Clean Buttons */
+        .btn-modern {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-modern:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
+        }
+        .btn-modern:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+        .btn-modern.alt {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            box-shadow: none;
+        }
+        .btn-modern.alt:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .btn-modern:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Cards - Modern & No Overlap */
+        .card {
+            width: 100px;
+            height: 140px;
+            border-radius: 16px;
+            background: linear-gradient(145deg, #ffffff, #f1f5f9);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.5);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .card.in-hand:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 30px rgba(0,0,0,0.2);
+            border-color: #6366f1;
+        }
+        .card.selected {
+            border: 2px solid #8b5cf6;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4), 0 20px 30px rgba(0,0,0,0.2);
+            transform: translateY(-12px) scale(1.05);
+        }
+
+        .center-pile {
+            width: 120px;
+            height: 160px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.03);
+            border: 2px dashed rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .center-pile .card {
+            width: 110px; height: 150px;
+            cursor: default; pointer-events: none;
+        }
+        
+        .valid-target {
+            border-color: #34d399;
+            background: rgba(52, 211, 153, 0.1);
+            animation: pulse-glow 2s infinite;
+            cursor: pointer;
+        }
+        .valid-target:hover {
+            transform: scale(1.02);
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(52, 211, 153, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+        }
+
+        /* Layouts */
+        .hand-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 20px 10px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(8px);
+            color: white; padding: 16px 24px; border-radius: 12px; font-weight: 600;
+            border-left: 4px solid #6366f1;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .toast.error { border-left-color: #ef4444; }
+        @keyframes slideInRight { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+    </style>
+</head>
+<body class="flex items-center justify-center relative">
+
+    <div class="bg-modern"></div>
+    <div class="ambient-glow"></div>
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- MAIN MENU -->
+    <div id="main-menu" class="absolute inset-0 flex flex-col items-center justify-center z-50 transition-opacity duration-300">
+        <div class="text-center mb-12">
+            <h1 class="text-7xl md:text-9xl font-extrabold mb-2 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-pink-500 to-indigo-500 drop-shadow-2xl">
+                CITRUS
+            </h1>
+            <p class="text-slate-300 text-lg md:text-xl font-medium tracking-wide">Modern Card Stacking</p>
+        </div>
+
+        <div class="flex flex-col gap-4 w-72">
+            <button onclick="UI.showModal('ai-setup-modal')" class="btn-modern text-lg font-bold py-4 px-6 rounded-2xl w-full">
+                Play vs AI
+            </button>
+            <button onclick="UI.showModal('multiplayer-setup-modal')" class="btn-modern text-lg font-bold py-4 px-6 rounded-2xl w-full">
+                Local Multiplayer
+            </button>
+            <button onclick="UI.showModal('rules-modal')" class="btn-modern alt text-lg font-bold py-4 px-6 rounded-2xl w-full">
+                How to Play
+            </button>
+        </div>
+    </div>
+
+    <!-- AI SETUP MODAL -->
+    <div id="ai-setup-modal" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4">
+        <div class="glass-panel rounded-3xl p-8 max-w-sm w-full text-center">
+            <h2 class="text-2xl font-bold mb-6 text-white">Select Opponents</h2>
+            
+            <div class="flex flex-row items-center justify-center gap-6 mb-8">
+                <button id="btn-decrease-ai" onclick="UI.changeAICount(-1)" disabled class="btn-modern w-16 h-12 rounded-xl text-2xl flex items-center justify-center transition-transform hover:scale-105">◀</button>
+                
+                <div class="flex flex-col items-center justify-center min-w-[80px]">
+                    <span id="ai-count-display" class="text-6xl font-extrabold text-white">1</span>
+                    <span class="text-indigo-300 text-sm uppercase tracking-widest mt-1 font-semibold">Bots</span>
+                </div>
+                
+                <button id="btn-increase-ai" onclick="UI.changeAICount(1)" class="btn-modern w-16 h-12 rounded-xl text-2xl flex items-center justify-center transition-transform hover:scale-105">▶</button>
+            </div>
+
+            <button onclick="Game.startAIGame(UI.currentAICount)" class="btn-modern w-full py-4 rounded-xl font-semibold text-lg mb-4">Start Game</button>
+            <button onclick="UI.hideModal('ai-setup-modal')" class="text-slate-400 hover:text-white transition-colors">Cancel</button>
+        </div>
+    </div>
+
+    <!-- MULTIPLAYER SETUP MODAL -->
+    <div id="multiplayer-setup-modal" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4">
+        <div class="glass-panel rounded-3xl p-8 max-w-md w-full text-center">
+            <h2 class="text-2xl font-bold mb-8 text-white">Multiplayer</h2>
+            
+            <div id="mp-choices" class="flex flex-col gap-4 mb-6">
+                <button onclick="Network.hostGame()" class="btn-modern py-4 rounded-xl font-semibold text-lg">Host a Game</button>
+                <button onclick="UI.showJoinForm()" class="btn-modern alt py-4 rounded-xl font-semibold text-lg">Join a Game</button>
+            </div>
+
+            <div id="mp-join-form" class="hidden flex flex-col gap-4 mb-6">
+                <input type="text" id="join-code-input" placeholder="Enter Room Code" class="bg-white/10 border border-white/20 rounded-xl px-4 py-4 text-xl text-center uppercase font-bold text-white focus:outline-none focus:border-indigo-400 placeholder-white/40">
+                <button onclick="Network.joinGame()" class="btn-modern py-4 rounded-xl font-semibold text-lg">Connect</button>
+            </div>
+
+            <button onclick="UI.hideModal('multiplayer-setup-modal'); UI.resetMPForms();" class="text-slate-400 hover:text-white transition-colors">Cancel</button>
+        </div>
+    </div>
+
+    <!-- LOBBY SCREEN -->
+    <div id="lobby-screen" class="hidden absolute inset-0 flex flex-col items-center justify-center z-40 p-4 transition-opacity duration-300">
+        <div class="glass-panel rounded-3xl p-8 max-w-lg w-full text-center">
+            <h2 class="text-3xl font-bold mb-6 text-white" id="lobby-title">Waiting for Players...</h2>
+            
+            <div id="room-code-container" class="bg-black/20 rounded-2xl p-6 mb-8 border border-white/10">
+                <p class="text-slate-400 text-sm font-semibold mb-2 uppercase tracking-wider">Room Code</p>
+                <p id="room-code-display" class="text-5xl font-extrabold tracking-widest text-indigo-400 cursor-pointer hover:text-indigo-300 transition-colors" onclick="UI.copyCode()">----</p>
+                <p id="copy-toast" class="text-xs text-green-400 font-bold opacity-0 transition-opacity mt-2">Copied!</p>
+            </div>
+
+            <div class="mb-8">
+                <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Players Connected</h3>
+                <div id="lobby-player-list" class="flex flex-col gap-3">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <button id="start-mp-btn" onclick="Game.startMultiplayerGame()" class="hidden btn-modern py-4 rounded-xl font-semibold text-lg w-full mb-4">
+                Start Game
+            </button>
+            <button onclick="Network.disconnect()" class="text-red-400 font-medium hover:text-red-300 transition-colors">Leave Lobby</button>
+        </div>
+    </div>
+
+    <!-- RULES MODAL -->
+    <div id="rules-modal" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4">
+        <div class="glass-panel rounded-3xl p-8 max-w-2xl w-full max-h-full overflow-y-auto">
+            <h2 class="text-3xl font-bold mb-6 text-white border-b border-white/10 pb-4">How to Play</h2>
+            
+            <div class="text-slate-200 font-medium space-y-5 text-md leading-relaxed">
+                <p><strong>Goal:</strong> Be the last player standing! Play to the single center pile. If you can't play on your turn, you are eliminated.</p>
+                
+                <h3 class="text-xl font-bold text-indigo-300 mt-2">The Color Wheel (Adjacency)</h3>
+                <div class="flex flex-wrap justify-center items-center gap-3 my-4 font-bold text-lg bg-black/20 p-4 rounded-xl">
+                    <span class="text-pink-400">Grapefruit</span> ↔ <span class="text-orange-400">Orange</span> ↔ <span class="text-yellow-400">Lemon</span> ↔ <span class="text-green-400">Lime</span>
+                </div>
+                
+                <h3 class="text-xl font-bold text-indigo-300">How to Stack</h3>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><strong>Different Fruit:</strong> Play a fruit that is <em>adjacent</em> to the center fruit on the wheel above. (Size does not matter).</li>
+                    <li><strong>Same Fruit:</strong> Play the exact same fruit, but the physical size of your fruit MUST be larger than the center one!</li>
+                </ul>
+
+                <h3 class="text-xl font-bold text-indigo-300 mt-2">Special Rules</h3>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><strong>Restocking:</strong> If you play your last card, you instantly draw 5 more to keep fighting!</li>
+                </ul>
+            </div>
+            
+            <div class="mt-8 text-center">
+                <button onclick="UI.hideModal('rules-modal')" class="btn-modern py-3 px-10 rounded-xl font-semibold">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="game-screen" class="hidden w-full h-full flex flex-col justify-between p-4 pb-8 box-border relative">
+        
+        <!-- Opponents Area (Top) -->
+        <div id="opponents-container" class="flex justify-center flex-wrap gap-4 pt-4 min-h-[60px]">
+            <!-- Opponent tags injected here -->
+        </div>
+
+        <!-- Center Area (Stack) -->
+        <div class="flex-grow flex flex-col items-center justify-center relative w-full">
+            
+            <!-- OVERLAY STATUS POPUP (ALIGNED Y-AXIS WITH CENTER STACK) -->
+            <div class="absolute left-2 md:left-8 lg:left-[10%] top-1/2 transform -translate-y-1/2 pointer-events-none z-[100]">
+                <div id="game-status" class="glass-panel rounded-3xl p-6 shadow-2xl text-center transition-transform duration-300 scale-0 bg-slate-900 max-w-[200px] md:max-w-[300px]">
+                    <h2 id="status-text" class="text-3xl md:text-5xl font-extrabold text-white mb-2 leading-tight">Your Turn</h2>
+                    <p id="status-subtext" class="text-base md:text-lg text-indigo-300 font-medium">Select a card to play</p>
+                </div>
+            </div>
+
+            <p class="text-slate-400 font-bold mb-4 tracking-widest uppercase text-sm z-10">Center Stack</p>
+            <div id="center-pile" class="center-pile z-10" 
+                 ondragover="event.preventDefault(); this.classList.add('valid-target')" 
+                 ondragleave="this.classList.remove('valid-target')" 
+                 ondrop="event.preventDefault(); this.classList.remove('valid-target'); UI.handleDrop(event)">
+                <!-- Top card injected here -->
+            </div>
+        </div>
+
+        <!-- Player Area (Bottom) -->
+        <div id="player-container" class="flex flex-col items-center w-full max-w-5xl mx-auto relative mt-auto">
+            <div id="my-hand" class="hand-container w-full overflow-y-auto max-h-[40vh]">
+                <!-- Hand cards injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONSTANTS & CONFIG ---
+        const SUITS = {
+            GRAPEFRUIT: { id: 'Grapefruit', color: '#f472b6' },
+            ORANGE:     { id: 'Orange',     color: '#fb923c' },
+            LEMON:      { id: 'Lemon',      color: '#facc15' },
+            LIME:       { id: 'Lime',       color: '#4ade80' }
+        };
+
+        const ADJACENCY = {
+            'Grapefruit': ['Orange'],
+            'Orange': ['Grapefruit', 'Lemon'],
+            'Lemon': ['Orange', 'Lime'],
+            'Lime': ['Lemon']
+        };
+
+        const MAX_CARDS = 13;
+        const HAND_SIZE = 7;
+
+        // --- GLOBAL STATE ---
+        let gameState = {
+            phase: 'MENU',
+            players: [], // { id, name, isAI, isOut, hand: [] }
+            turnIndex: 0,
+            centerPile: [],
+            deck: []
+        };
+        let myPlayerId = 0;
+
+        // --- SVGs ---
+        function getFruitSVG(suitId, value) {
+            const scale = 0.35 + ((value - 1) / (MAX_CARDS - 1)) * 0.60;
+            let color = '';
+            let rind = '#ea580c';
+            if (suitId === 'Grapefruit') { color = '#f472b6'; rind = '#db2777'; }
+            if (suitId === 'Orange') { color = '#fb923c'; rind = '#ea580c'; }
+            if (suitId === 'Lemon') { color = '#facc15'; rind = '#ca8a04'; }
+            if (suitId === 'Lime') { color = '#4ade80'; rind = '#16a34a'; }
+
+            return `
+            <svg viewBox="0 0 100 100" style="transform: scale(${scale}); transform-origin: center; width: 85px; height: 85px; filter: drop-shadow(0px 8px 10px rgba(0,0,0,0.1));">
+                <!-- Leaf -->
+                <path d="M50 15 Q 65 -5 80 10 Q 65 25 50 15" fill="#22c55e" stroke="rgba(0,0,0,0.1)" stroke-width="2"/>
+                <!-- Rind -->
+                <circle cx="50" cy="55" r="40" fill="${rind}" />
+                <!-- Pith -->
+                <circle cx="50" cy="55" r="34" fill="#f8fafc" />
+                <!-- Flesh -->
+                <circle cx="50" cy="55" r="30" fill="${color}" />
+                <!-- Segments -->
+                <line x1="50" y1="25" x2="50" y2="85" stroke="#f8fafc" stroke-width="3" stroke-linecap="round"/>
+                <line x1="20" y1="55" x2="80" y2="55" stroke="#f8fafc" stroke-width="3" stroke-linecap="round"/>
+                <line x1="29" y1="34" x2="71" y2="76" stroke="#f8fafc" stroke-width="3" stroke-linecap="round"/>
+                <line x1="29" y1="76" x2="71" y2="34" stroke="#f8fafc" stroke-width="3" stroke-linecap="round"/>
+            </svg>`;
+        }
+
+        // --- GAME LOGIC ---
+        const Game = {
+            createDeck() {
+                let deck = [];
+                const normalSuits = [SUITS.GRAPEFRUIT, SUITS.ORANGE, SUITS.LEMON, SUITS.LIME];
+                normalSuits.forEach(suit => {
+                    for (let val = 1; val <= MAX_CARDS; val++) {
+                        deck.push({ suit: suit.id, value: val });
+                    }
+                });
+
+                // Shuffle
+                for (let i = deck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [deck[i], deck[j]] = [deck[j], deck[i]];
+                }
+                return deck;
+            },
+
+            isValidMove(playCard, targetCard) {
+                if (!targetCard) return true;
+
+                if (playCard.suit === targetCard.suit) {
+                    return playCard.value > targetCard.value;
+                } else {
+                    return ADJACENCY[playCard.suit].includes(targetCard.suit);
+                }
+            },
+
+            checkPlayerHasValidMoves(player) {
+                if (player.isOut || player.hand.length === 0) return false;
+                const topCard = gameState.centerPile[gameState.centerPile.length - 1];
+                for (let hCard of player.hand) {
+                    if (this.isValidMove(hCard, topCard)) return true;
+                }
+                return false;
+            },
+
+            drawCards(playerId, count) {
+                const p = gameState.players[playerId];
+                for(let i=0; i<count; i++) {
+                    if (gameState.deck.length === 0) {
+                        // Reshuffle center pile (keep top card)
+                        if (gameState.centerPile.length <= 1) break; // literally no cards left anywhere
+                        const topCard = gameState.centerPile.pop();
+                        gameState.deck = gameState.centerPile;
+                        gameState.centerPile = [topCard];
+                        
+                        for (let k = gameState.deck.length - 1; k > 0; k--) {
+                            const j = Math.floor(Math.random() * (k + 1));
+                            [gameState.deck[k], gameState.deck[j]] = [gameState.deck[j], gameState.deck[k]];
+                        }
+                    }
+                    if (gameState.deck.length > 0) {
+                        p.hand.push(gameState.deck.pop());
+                    }
+                }
+            },
+
+            getNextActivePlayer(currentIndex) {
+                let count = 0;
+                let nextIdx = currentIndex;
+                while (count < gameState.players.length) {
+                    nextIdx = (nextIdx + 1) % gameState.players.length;
+                    if (!gameState.players[nextIdx].isOut) return nextIdx;
+                    count++;
+                }
+                return null;
+            },
+
+            startAIGame(botCount) {
+                UI.hideModal('ai-setup-modal');
+                UI.showScreen('game-screen');
+                Network.isHost = true; 
+                myPlayerId = 0;
+                
+                gameState.players = [{ id: 0, name: "You", isAI: false, isOut: false, hand: [] }];
+                for (let i = 1; i <= botCount; i++) {
+                    gameState.players.push({ id: i, name: `Bot ${i}`, isAI: true, isOut: false, hand: [] });
+                }
+                
+                this.initMatch();
+            },
+
+            startMultiplayerGame() {
+                UI.showScreen('game-screen');
+                this.initMatch();
+            },
+
+            initMatch() {
+                gameState.phase = 'PLAYING';
+                gameState.turnIndex = 0;
+                gameState.centerPile = [];
+                gameState.deck = this.createDeck();
+
+                // Deal 7 cards to everyone
+                gameState.players.forEach(p => {
+                    p.isOut = false;
+                    p.hand = [];
+                    this.drawCards(p.id, HAND_SIZE);
+                });
+
+                // Top card to center pile
+                gameState.centerPile.push(gameState.deck.pop());
+
+                if (Network.isHost) Network.broadcastState();
+                this.processTurn();
+            },
+
+            processTurn() {
+                UI.renderBoard();
+                
+                const activePlayers = gameState.players.filter(p => !p.isOut);
+                
+                if (activePlayers.length <= 1) {
+                    const winnerName = activePlayers.length === 1 ? activePlayers[0].name : "Nobody";
+                    return this.endGame(`${winnerName} wins the game!`);
+                }
+
+                const currentPlayer = gameState.players[gameState.turnIndex];
+                
+                if (currentPlayer.isOut) {
+                    this.nextTurn();
+                    return;
+                }
+
+                UI.showStatus(`${currentPlayer.name}'s Turn`, currentPlayer.id === myPlayerId ? "Select a card to play" : "Thinking...");
+
+                if (!this.checkPlayerHasValidMoves(currentPlayer)) {
+                    setTimeout(() => {
+                        currentPlayer.isOut = true;
+                        UI.showStatus(`Eliminated!`, `${currentPlayer.name} had no valid moves.`, 2500);
+                        if (Network.isHost) Network.broadcastState();
+                        setTimeout(() => this.nextTurn(), 2500);
+                    }, 1200);
+                    return;
+                }
+
+                if (currentPlayer.isAI && Network.isHost) {
+                    setTimeout(() => this.executeAITurn(currentPlayer), 1500);
+                }
+            },
+
+            executeAITurn(aiPlayer) {
+                let possibleMoves = [];
+                const topCard = gameState.centerPile[gameState.centerPile.length - 1];
+                
+                aiPlayer.hand.forEach((hCard, hIdx) => {
+                    if (this.isValidMove(hCard, topCard)) {
+                        possibleMoves.push(hIdx);
+                    }
+                });
+
+                if (possibleMoves.length > 0) {
+                    const moveIdx = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                    this.applyMove(aiPlayer.id, moveIdx);
+                }
+            },
+            
+            attemptPlay(handIdx) {
+                if (gameState.turnIndex !== myPlayerId) return;
+                const playCard = gameState.players[myPlayerId].hand[handIdx];
+                const topCard = gameState.centerPile[gameState.centerPile.length - 1];
+
+                if (this.isValidMove(playCard, topCard)) {
+                    this.applyMove(myPlayerId, handIdx);
+                } else {
+                    const pileEl = document.getElementById('center-pile');
+                    pileEl.style.transform = 'translateX(-10px)';
+                    setTimeout(() => pileEl.style.transform = 'translateX(10px)', 50);
+                    setTimeout(() => pileEl.style.transform = 'translateX(-10px)', 100);
+                    setTimeout(() => pileEl.style.transform = 'translateX(0)', 150);
+                }
+            },
+
+            applyMove(playerId, handCardIndex) {
+                const player = gameState.players[playerId];
+                const card = player.hand.splice(handCardIndex, 1)[0];
+                gameState.centerPile.push(card);
+                
+                let delay = 1000;
+
+                // Handle Empty Hand logic (Draw 5)
+                if (player.hand.length === 0) {
+                    this.drawCards(playerId, 5);
+                    UI.showToast(`${player.name} ran out and drew 5 cards!`);
+                    delay = 2000;
+                }
+                
+                if (Network.isHost) {
+                    Network.broadcastState();
+                    setTimeout(() => this.nextTurn(), delay);
+                } else {
+                    Network.sendAction('PLAY', { handCardIndex });
+                }
+            },
+
+            nextTurn() {
+                const nextId = this.getNextActivePlayer(gameState.turnIndex);
+                if (nextId !== null) {
+                    gameState.turnIndex = nextId;
+                }
+                if(Network.isHost) {
+                    Network.broadcastState();
+                    this.processTurn();
+                }
+            },
+
+            endGame(message) {
+                gameState.phase = 'GAMEOVER';
+                UI.showStatus("Game Over!", message, 5000);
+                UI.renderBoard(); 
+                setTimeout(() => {
+                    UI.showScreen('main-menu');
+                    if(Network.isHost && Network.peer) Network.disconnect();
+                }, 5000);
+            }
+        };
+
+
+        // --- UI & RENDERING ---
+        const UI = {
+            screens: ['main-menu', 'lobby-screen', 'game-screen'],
+            currentAICount: 1,
+
+            changeAICount(delta) {
+                this.currentAICount += delta;
+                // Keep players between 1 and 5 bots
+                if (this.currentAICount < 1) this.currentAICount = 1;
+                if (this.currentAICount > 5) this.currentAICount = 5;
+                document.getElementById('ai-count-display').innerText = this.currentAICount;
+                
+                // Update button states
+                document.getElementById('btn-decrease-ai').disabled = this.currentAICount <= 1;
+                document.getElementById('btn-increase-ai').disabled = this.currentAICount >= 5;
+            },
+            
+            showScreen(id) {
+                this.screens.forEach(s => document.getElementById(s).classList.add('hidden'));
+                document.getElementById(id).classList.remove('hidden');
+                
+                this.hideModal('ai-setup-modal');
+                this.hideModal('multiplayer-setup-modal');
+                this.hideModal('rules-modal');
+            },
+
+            showModal(id) { 
+                document.getElementById(id).classList.remove('hidden'); 
+                if (id === 'ai-setup-modal') {
+                    document.getElementById('btn-decrease-ai').disabled = this.currentAICount <= 1;
+                    document.getElementById('btn-increase-ai').disabled = this.currentAICount >= 5;
+                }
+            },
+            hideModal(id) { document.getElementById(id).classList.add('hidden'); },
+            
+            showJoinForm() {
+                document.getElementById('mp-choices').classList.add('hidden');
+                document.getElementById('mp-join-form').classList.remove('hidden');
+                document.getElementById('mp-join-form').classList.add('flex');
+            },
+            resetMPForms() {
+                document.getElementById('mp-choices').classList.remove('hidden');
+                document.getElementById('mp-join-form').classList.add('hidden');
+                document.getElementById('mp-join-form').classList.remove('flex');
+            },
+
+            showToast(msg, isError = false) {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast ${isError ? 'error' : ''}`;
+                toast.innerText = msg;
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.animation = 'fadeOut 0.3s ease forwards';
+                    setTimeout(() => toast.remove(), 300);
+                }, 4000);
+            },
+
+            copyCode() {
+                const code = document.getElementById('room-code-display').innerText;
+                navigator.clipboard.writeText(code).then(() => {
+                    const toast = document.getElementById('copy-toast');
+                    toast.style.opacity = '1';
+                    setTimeout(() => toast.style.opacity = '0', 2000);
+                }).catch(err => {
+                    const textArea = document.createElement("textarea");
+                    textArea.value = code;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand("copy");
+                    textArea.remove();
+                    const toast = document.getElementById('copy-toast');
+                    toast.style.opacity = '1';
+                    setTimeout(() => toast.style.opacity = '0', 2000);
+                });
+            },
+
+            updateLobbyUI() {
+                const list = document.getElementById('lobby-player-list');
+                list.innerHTML = '';
+                gameState.players.forEach(p => {
+                    const el = document.createElement('div');
+                    el.className = `p-4 rounded-xl border ${p.id === myPlayerId ? 'bg-indigo-600/20 border-indigo-400' : 'bg-white/5 border-white/10'} text-white font-semibold flex justify-between`;
+                    el.innerHTML = `<span>${p.name}</span> <span class="text-xs opacity-50 uppercase tracking-wider mt-1">${p.id===0 ? 'Host': ''}</span>`;
+                    list.appendChild(el);
+                });
+
+                if (Network.isHost && gameState.players.length > 1) {
+                    document.getElementById('start-mp-btn').classList.remove('hidden');
+                }
+            },
+
+            showStatus(title, subtext, duration = 2500) {
+                const el = document.getElementById('game-status');
+                document.getElementById('status-text').innerText = title;
+                document.getElementById('status-subtext').innerText = subtext;
+                el.classList.remove('scale-0');
+                el.classList.add('scale-100');
+                
+                if (this.statusTimeout) clearTimeout(this.statusTimeout);
+                if (duration > 0) {
+                    this.statusTimeout = setTimeout(() => {
+                        el.classList.remove('scale-100');
+                        el.classList.add('scale-0');
+                    }, duration);
+                }
+            },
+
+            createCardHTML(card, customClasses = '') {
+                if (!card) return `<div class="card bg-white/5 border-dashed border-white/20"></div>`;
+                const svg = getFruitSVG(card.suit, card.value);
+                return `
+                <div class="card ${customClasses}">
+                    ${svg}
+                </div>`;
+            },
+
+            renderBoard() {
+                if (gameState.phase !== 'PLAYING' && gameState.phase !== 'GAMEOVER') return;
+
+                const myPlayer = gameState.players[myPlayerId];
+                const isMyTurn = (gameState.turnIndex === myPlayerId) && !myPlayer.isOut && gameState.phase === 'PLAYING';
+
+                // --- Render Opponents (Tags only, no cards) ---
+                const oppContainer = document.getElementById('opponents-container');
+                oppContainer.innerHTML = '';
+                
+                gameState.players.forEach((p, idx) => {
+                    const isTurn = gameState.turnIndex === p.id && gameState.phase === 'PLAYING';
+                    const wrapper = document.createElement('div');
+                    wrapper.className = `px-4 py-2 rounded-full font-bold tracking-wide transition-all ${p.isOut ? 'opacity-30 bg-red-900/50 text-red-200' : (isTurn ? 'bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.6)] scale-110' : 'bg-white/10 text-slate-300 border border-white/10')}`;
+                    
+                    let statusText = p.name;
+                    if (p.isOut) statusText = `<s>${p.name}</s>`;
+                    if (idx === myPlayerId) statusText = "You";
+                    
+                    wrapper.innerHTML = statusText;
+                    oppContainer.appendChild(wrapper);
+                });
+
+                // --- Render Center Pile ---
+                const pileDiv = document.getElementById('center-pile');
+                const topCard = gameState.centerPile[gameState.centerPile.length - 1];
+                pileDiv.innerHTML = this.createCardHTML(topCard, '');
+                
+                if (myPlayer.isOut) {
+                    document.getElementById('player-container').classList.add('opacity-30', 'grayscale', 'pointer-events-none');
+                } else {
+                    document.getElementById('player-container').classList.remove('opacity-30', 'grayscale', 'pointer-events-none');
+                }
+
+                // --- Render My Hand ---
+                const handDiv = document.getElementById('my-hand');
+                handDiv.innerHTML = '';
+                myPlayer.hand.forEach((card, idx) => {
+                    const cardWrapper = document.createElement('div');
+                    cardWrapper.innerHTML = this.createCardHTML(card, 'in-hand');
+                    const cardEl = cardWrapper.firstElementChild;
+
+                    if (isMyTurn) {
+                        cardEl.draggable = true;
+                        cardEl.ondragstart = (e) => {
+                            e.dataTransfer.setData('text/plain', idx.toString());
+                        };
+                        cardEl.onclick = () => Game.attemptPlay(idx);
+                    } else {
+                        cardEl.classList.remove('in-hand'); 
+                    }
+                    handDiv.appendChild(cardEl);
+                });
+            },
+
+            handleDrop(e) {
+                const idxStr = e.dataTransfer.getData('text/plain');
+                if (idxStr !== '') {
+                    const idx = parseInt(idxStr);
+                    if (!isNaN(idx)) {
+                        Game.attemptPlay(idx);
+                    }
+                }
+            }
+        };
+
+
+        // --- NETWORK & PEERJS ---
+        const Network = {
+            peer: null,
+            connections: [],
+            isHost: false,
+            hostConnection: null,
+
+            hostGame() {
+                UI.hideModal('multiplayer-setup-modal');
+                UI.showScreen('lobby-screen');
+                
+                this.isHost = true;
+                myPlayerId = 0;
+                gameState.players = [{ id: 0, name: "Host", isAI: false, isOut: false, hand: [] }];
+                UI.updateLobbyUI();
+
+                const code = Math.random().toString(36).substring(2, 7).toUpperCase();
+                const peerId = "citrus-" + code;
+
+                this.peer = new Peer(peerId);
+                
+                this.peer.on('open', id => {
+                    document.getElementById('room-code-display').innerText = code;
+                });
+
+                this.peer.on('error', err => {
+                    console.error(err);
+                    if (err.type === 'unavailable-id') {
+                        UI.showToast("Code collision, trying again...", true);
+                        this.hostGame(); 
+                    } else {
+                        UI.showToast("Network error: " + err.message, true);
+                        this.disconnect();
+                    }
+                });
+
+                this.peer.on('connection', conn => {
+                    if (gameState.players.length >= 4 || gameState.phase !== 'MENU') {
+                        conn.on('open', () => conn.send({ type: 'ERROR', msg: 'Lobby full or game started' }));
+                        setTimeout(() => conn.close(), 1000);
+                        return;
+                    }
+
+                    this.connections.push(conn);
+                    const newPlayerId = gameState.players.length;
+                    gameState.players.push({ id: newPlayerId, name: `Player ${newPlayerId + 1}`, isAI: false, isOut: false, hand: [] });
+                    
+                    conn.on('open', () => {
+                        conn.send({ type: 'WELCOME', id: newPlayerId, state: gameState });
+                        this.broadcastState();
+                    });
+
+                    conn.on('data', data => this.handleData(data, newPlayerId));
+                    conn.on('close', () => this.handleDisconnect(newPlayerId));
+                });
+            },
+
+            joinGame() {
+                const code = document.getElementById('join-code-input').value.toUpperCase().trim();
+                if (!code) return UI.showToast("Enter a valid code", true);
+
+                UI.hideModal('multiplayer-setup-modal');
+                UI.showScreen('lobby-screen');
+                document.getElementById('room-code-container').classList.add('hidden');
+                document.getElementById('lobby-title').innerText = "Connecting...";
+
+                this.isHost = false;
+                this.peer = new Peer();
+                
+                this.peer.on('open', () => {
+                    const hostId = "citrus-" + code;
+                    this.hostConnection = this.peer.connect(hostId, { reliable: true });
+                    
+                    this.hostConnection.on('open', () => {
+                        document.getElementById('lobby-title').innerText = "Connected! Waiting for Host...";
+                    });
+                    
+                    this.hostConnection.on('data', data => this.handleData(data, 0));
+                    this.hostConnection.on('close', () => {
+                        UI.showToast("Host disconnected.", true);
+                        this.disconnect();
+                    });
+                });
+
+                this.peer.on('error', err => {
+                    UI.showToast("Connection failed: " + err.message, true);
+                    this.disconnect();
+                });
+            },
+
+            handleData(data, senderId) {
+                if (data.type === 'WELCOME') {
+                    myPlayerId = data.id;
+                    gameState = data.state;
+                    UI.updateLobbyUI();
+                } 
+                else if (data.type === 'STATE_SYNC') {
+                    gameState = data.state;
+                    if (gameState.phase === 'PLAYING' && document.getElementById('game-screen').classList.contains('hidden')) {
+                        UI.showScreen('game-screen');
+                    }
+                    if (gameState.phase === 'PLAYING') {
+                        UI.renderBoard();
+                        
+                        if (gameState.turnIndex === myPlayerId && !Game.checkPlayerHasValidMoves(gameState.players[myPlayerId])) {
+                             UI.showStatus("No moves!", "You have been eliminated.", 2500);
+                        } else if (gameState.turnIndex === myPlayerId) {
+                             UI.showStatus("Your Turn!", "Select a card to play");
+                        }
+                    }
+                }
+                else if (data.type === 'ACTION' && this.isHost) {
+                    if (data.action.type === 'PLAY' && gameState.turnIndex === senderId) {
+                        Game.applyMove(senderId, data.action.payload.handCardIndex);
+                    }
+                }
+                else if (data.type === 'ERROR') {
+                    UI.showToast(data.msg, true);
+                    this.disconnect();
+                }
+            },
+
+            broadcastState() {
+                if (!this.isHost) return;
+                UI.updateLobbyUI(); 
+                
+                // Hide opponent hands completely over the network so nobody can cheat/see data
+                this.connections.forEach(conn => {
+                    const pIndex = this.connections.indexOf(conn) + 1; 
+                    let safeState = JSON.parse(JSON.stringify(gameState));
+                    safeState.players.forEach(p => {
+                        if (p.id !== pIndex) {
+                            p.hand = []; // Scrubbed entirely
+                        }
+                    });
+                    conn.send({ type: 'STATE_SYNC', state: safeState });
+                });
+                
+                if (gameState.phase === 'PLAYING') UI.renderBoard();
+            },
+
+            sendAction(type, payload) {
+                if (this.hostConnection) {
+                    this.hostConnection.send({ type: 'ACTION', action: { type, payload } });
+                }
+            },
+
+            handleDisconnect(playerId) {
+                if (!this.isHost) return;
+                const p = gameState.players.find(x => x.id === playerId);
+                if (p) p.isOut = true;
+                this.connections = this.connections.filter((c, i) => i + 1 !== playerId);
+                if (gameState.phase === 'MENU') {
+                    gameState.players = gameState.players.filter(x => x.id !== playerId);
+                }
+                this.broadcastState();
+            },
+
+            disconnect() {
+                if (this.peer) this.peer.destroy();
+                this.peer = null;
+                this.connections = [];
+                this.hostConnection = null;
+                UI.resetMPForms();
+                document.getElementById('room-code-container').classList.remove('hidden');
+                UI.showScreen('main-menu');
+            }
+        };
+    </script>
+</body>
+</html>
