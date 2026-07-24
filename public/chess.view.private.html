@@ -35,7 +35,7 @@
     })();
 </script>
     <title>Chess</title>
-    <meta name="description" content="Experience the classic game of Chess. Whether you’re looking to play vs AI, play with others, or host a private game, checkers.page is an area for all players.">
+    <meta name="description" content="Experience the classic game of Chess. Whether you’re looking to play vs AI, play with others, or host a private game, chess.page is an area for all players.">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
     <!-- Dynamic SVG Favicon -->
@@ -301,11 +301,11 @@
         <!-- Footer Links -->
         <div class="mt-8 flex flex-wrap justify-center gap-4 text-[10px] text-slate-500 uppercase tracking-widest">
 
-            <a href="https://checkers.page/about" target="_blank" class="hover:text-teal-400 transition-colors">About</a>
+            <a href="https://chess.page/about" target="_blank" class="hover:text-teal-400 transition-colors">About</a>
             <span class="opacity-20">|</span>
-            <a href="https://checkers.page/privacy" target="_blank" class="hover:text-teal-400 transition-colors">Privacy Policy</a>
+            <a href="https://chess.page/privacy" target="_blank" class="hover:text-teal-400 transition-colors">Privacy Policy</a>
             <span class="opacity-20">|</span>
-            <a href="https://checkers.page/service" target="_blank" class="hover:text-teal-400 transition-colors">Terms of Service</a>
+            <a href="https://chess.page/service" target="_blank" class="hover:text-teal-400 transition-colors">Terms of Service</a>
             <span class="opacity-20">|</span>
             <button onclick="window.showFooterModal('contact')" class="hover:text-teal-400 transition-colors">FEATURES</button>
         </div>
@@ -1437,9 +1437,17 @@
             const shouldAnimate = lastMoveStr && lastMoveStr !== gameState.lastAnimatedMove;
             if (shouldAnimate) gameState.lastAnimatedMove = lastMoveStr;
 
+            const svgs = {
+                'P': `<svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full p-[15%] drop-shadow-md"><circle cx="12" cy="7" r="3" /><path d="M10 11h4l2 7H8l2-7z" /><rect x="7" y="19" width="10" height="2" /></svg>`,
+                'R': `<svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full p-[15%] drop-shadow-md"><path d="M7 5h2v3h2V5h2v3h2V5h2v5l-1 8H8l-1-8V5z" /><rect x="6" y="19" width="12" height="2" /></svg>`,
+                'N': `<svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full p-[15%] drop-shadow-md"><path d="M15 5c-2-1-5-1-7 2l-2 4 2 2-1 3 3-1 1 3c2 2 4 3 6 3 0-5-1-10-2-16z" /><rect x="7" y="19" width="10" height="2" /></svg>`,
+                'B': `<svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full p-[15%] drop-shadow-md"><path d="M12 4c-3 3-4 6-4 9 0 3 2 5 4 5s4-2 4-5c0-3-1-6-4-9z" /><circle cx="12" cy="3" r="1.5" /><rect x="7" y="19" width="10" height="2" /></svg>`,
+                'Q': `<svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full p-[15%] drop-shadow-md"><path d="M5 7l2.5 6h9L19 7l-4 4-3-6-3 6-4-4z" /><rect x="6" y="15" width="12" height="3" /><rect x="7" y="19" width="10" height="2" /><circle cx="5" cy="6" r="1.5" /><circle cx="12" cy="4" r="1.5" /><circle cx="19" cy="6" r="1.5" /></svg>`,
+                'K': `<svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full p-[15%] drop-shadow-md"><path d="M11 3h2v2h2v2h-2v2h-2V9H9V7h2V5h2z" /><path d="M6 13l2 4h8l2-4-2.5 2-3.5 3-3.5 3L6 13z" /><rect x="7" y="19" width="10" height="2" /></svg>`
+            };
             const pieceMap = {
-                'wP': 'P', 'wR': 'R', 'wN': 'N', 'wB': 'B', 'wQ': 'Q', 'wK': 'K',
-                'bP': 'P', 'bR': 'R', 'bN': 'N', 'bB': 'B', 'bQ': 'Q', 'bK': 'K'
+                'wP': svgs['P'], 'wR': svgs['R'], 'wN': svgs['N'], 'wB': svgs['B'], 'wQ': svgs['Q'], 'wK': svgs['K'],
+                'bP': svgs['P'], 'bR': svgs['R'], 'bN': svgs['N'], 'bB': svgs['B'], 'bQ': svgs['Q'], 'bK': svgs['K']
             };
 
             container.innerHTML = '';
@@ -1473,7 +1481,7 @@
                             pDiv.className += `bg-teal-800 border-[3px] border-teal-600 glow-p2 text-teal-200`;
                         }
                         
-                        pDiv.innerText = pieceMap[piece];
+                        pDiv.innerHTML = pieceMap[piece];
 
                         let isSelected = gameState.selectedPiece && gameState.selectedPiece.r === r && gameState.selectedPiece.c === c;
                         if (isSelected) {
@@ -1776,27 +1784,27 @@
                     
                                         <div class="bg-slate-800/50 p-4 rounded-xl border border-teal-500/20 mt-4">
                         <p class="text-teal-300 font-bold">Polls</p>
-                        <p class="text-slate-300">checkers.page/polls</p>
+                        <p class="text-slate-300">chess.page/polls</p>
                     </div>
                     
                                                             <div class="bg-slate-800/50 p-4 rounded-xl border border-teal-500/20 mt-4">
                         <p class="text-teal-300 font-bold">Total Social</p>
-                        <p class="text-slate-300">checkers.page/social</p>
+                        <p class="text-slate-300">chess.page/social</p>
                     </div>
                         
                                                                 <div class="bg-slate-800/50 p-4 rounded-xl border border-teal-500/20 mt-4">
                         <p class="text-teal-300 font-bold">Devs</p>
-                        <p class="text-slate-300">dev.checkers.page</p>
+                        <p class="text-slate-300">dev.chess.page</p>
                     </div>
 
                                                                     <div class="bg-slate-800/50 p-4 rounded-xl border border-teal-500/20 mt-4">
                         <p class="text-teal-300 font-bold">Beta</p>
-                        <p class="text-slate-300">beta.dev.checkers.page</p>
+                        <p class="text-slate-300">beta.dev.chess.page</p>
                     </div>
 
                                                                         <div class="bg-slate-800/50 p-4 rounded-xl border border-teal-500/20 mt-4">
                         <p class="text-teal-300 font-bold">Stratagies page</p>
-                        <p class="text-slate-300">checkers.page/stratagies</p>
+                        <p class="text-slate-300">chess.page/stratagies</p>
                     </div>
                 `;
             }
