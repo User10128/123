@@ -173,10 +173,6 @@
         <button id="universal-back-btn" onclick="window.handleUniversalBack()" class="glass-btn p-2 sm:px-4 rounded-lg shadow-xl border-teal-500/30 text-teal-300 hidden hover:scale-105 transition-transform active:scale-95 flex items-center justify-center" title="Back">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </button>
-        <button onclick="window.showLeaderboardView()" class="glass-btn p-2 sm:px-4 flex items-center gap-2" title="Leaderboard">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
-            <span class="hidden sm:inline">Leaderboard</span>
-        </button>
         <button onclick="window.showSocialHub()" class="glass-btn p-2 sm:px-4 flex items-center gap-2" title="Social">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             <span class="hidden sm:inline">Social</span>
@@ -395,27 +391,6 @@
 
             <div class="flex flex-col gap-3 mt-2">
                 <button onclick="window.deleteHighScores()" class="glass-btn text-red-400 hover:text-red-300 hover:bg-red-900/20 py-2 border-red-900/30">Delete High Scores</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- LEADERBOARD VIEW -->
-    <div id="view-leaderboard" class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300">
-        <div class="glass-panel w-full max-w-lg p-6 sm:p-8 rounded-2xl flex flex-col gap-4 text-center">
-            <h2 class="text-2xl text-teal-400 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4">Global Rankings</h2>
-            
-            <div class="flex flex-wrap gap-2 justify-center mb-2">
-                <button id="tab-btn-global" onclick="window.switchLeaderboardTab('global')" class="btn-primary py-1 px-3 text-xs sm:text-sm bg-teal-500/20 border-teal-400">Online</button>
-                <button id="tab-btn-points" onclick="window.switchLeaderboardTab('points')" class="glass-btn py-1 px-3 text-xs sm:text-sm">Points</button>
-                <button id="tab-btn-ai-easy" onclick="window.switchLeaderboardTab('ai-easy')" class="glass-btn py-1 px-3 text-xs sm:text-sm">AI Easy</button>
-                <button id="tab-btn-ai-medium" onclick="window.switchLeaderboardTab('ai-medium')" class="glass-btn py-1 px-3 text-xs sm:text-sm">AI Medium</button>
-                <button id="tab-btn-ai-hard" onclick="window.switchLeaderboardTab('ai-hard')" class="glass-btn py-1 px-3 text-xs sm:text-sm">AI Hard</button>
-            </div>
-
-            <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700 min-h-[250px] max-h-[400px] overflow-y-auto">
-                <div id="leaderboard-list" class="flex flex-col gap-2 text-left">
-                    <p class="text-slate-500 text-center py-4">Loading leaderboard...</p>
-                </div>
             </div>
         </div>
     </div>
@@ -3852,11 +3827,6 @@ window.quitGameFirebase = async () => {
             });
         };
 
-        window.showLeaderboardView = () => {
-            window.showView('view-leaderboard');
-            window.switchLeaderboardTab('global');
-        };
-
         window.saveNotificationSetting = async (val) => {
             if (val !== 'off') {
                 try {
@@ -3946,62 +3916,6 @@ window.quitGameFirebase = async () => {
                     }
                 }
             });
-        };
-
-        window.switchLeaderboardTab = async (type) => {
-            const tabs = ['global', 'points', 'ai-easy', 'ai-medium', 'ai-hard'];
-            tabs.forEach(t => {
-                const btn = document.getElementById(`tab-btn-${t}`);
-                if (btn) btn.className = (t === type) ? "btn-primary py-1 px-3 text-xs sm:text-sm bg-teal-500/20 border-teal-400" : "glass-btn py-1 px-3 text-xs sm:text-sm";
-            });
-
-            const listEl = document.getElementById('leaderboard-list');
-            listEl.innerHTML = "<p class='text-slate-500 text-center py-4'>Loading...</p>";
-
-            try {
-                const profilesRef = collection(db, 'artifacts', appId, 'public', 'data', 'profiles');
-                const snapshot = await getDocs(profilesRef).catch(e => handleFirestoreError(e, OperationType.LIST, `artifacts/${appId}/public/data/profiles`));
-                let profiles = [];
-                snapshot.forEach(docSnap => profiles.push({ uid: docSnap.id, ...docSnap.data() }));
-
-                let sortField = type === 'global' ? 'globalScore' :
-                                type === 'points' ? 'playerPoints' :
-                                type === 'ai-easy' ? 'aiEasyScore' :
-                                type === 'ai-medium' ? 'aiMediumScore' : 'aiHardScore';
-
-                profiles.sort((a, b) => (b[sortField] || 0) - (a[sortField] || 0));
-                
-                // Filter: 
-                // 1. Must have a score > 0 (or points > 0)
-                // 2. Must not be hidden by admin
-                // 3. If Points tab, must have more than 5 points
-                profiles = profiles.filter(p => {
-                    if (p.hiddenFromLeaderboard) return false;
-                    const val = p[sortField] || (sortField === 'playerPoints' ? 5 : 0);
-                    if (sortField === 'playerPoints' && val <= 5) return false;
-                    return val > 0;
-                });
-
-                if (profiles.length === 0) {
-                    listEl.innerHTML = "<p class='text-slate-500 text-center py-4'>No ranking data yet.</p>";
-                    return;
-                }
-
-                let html = profiles.map((p, i) => `
-                    <div onclick="window.showPlayerProfile('${p.uid || ''}')" class="flex justify-between items-center border-b border-slate-700/50 py-3 px-2 cursor-pointer hover:bg-teal-500/10 transition-colors ${fbUser && p.uid === fbUser.uid ? 'bg-teal-900/20 rounded' : ''}">
-                        <div class="flex items-center gap-3">
-                            <span class="text-teal-500 font-bold w-6">${i+1}.</span>
-                            <span class="font-medium text-slate-200">${p.displayName || 'Player'}</span>
-                        </div>
-                        <span class="text-teal-300 font-bold">${p[sortField] || (sortField === 'playerPoints' ? 5 : 0)} ${sortField === 'playerPoints' ? 'pts' : 'pts'}</span>
-                    </div>
-                `).join('');
-                
-                listEl.innerHTML = html;
-            } catch (e) {
-                console.error(e);
-                listEl.innerHTML = "<p class='text-red-400 text-center py-4'>Failed to load data.</p>";
-            }
         };
 
         // ------------------ GLOBAL MATCHMAKING ------------------
@@ -4466,51 +4380,6 @@ await setDoc(gameRef, {
         // Using 'chess_' prefix ensures this data stays completely separate from Checkers
         const CHESS_CHALLENGES = 'chess_challenges';
         const CHESS_GAMES = 'chess_games';
-        const CHESS_LEADERBOARD = 'chess_leaderboard';
-
-        // --- LEADERBOARD LOGIC ---
-        function loadLeaderboard() {
-            // Assuming 'db' is your initialized Firestore instance
-            db.collection(CHESS_LEADERBOARD)
-                .orderBy('wins', 'desc')
-                .limit(10)
-                .onSnapshot((snapshot) => {
-                    const leaderboardList = document.getElementById('leaderboard-list');
-                    if (!leaderboardList) return;
-                    
-                    leaderboardList.innerHTML = ''; // Clear loading text
-                    
-                    snapshot.forEach((doc) => {
-                        const data = doc.data();
-                        const li = document.createElement('li');
-                        li.textContent = `${data.username}: ${data.wins} wins`;
-                        leaderboardList.appendChild(li);
-                    });
-                }, (error) => {
-                    console.error("Error loading chess leaderboard:", error);
-                });
-        }
-
-        function updateLeaderboard(username, isWin) {
-            if (!username) return;
-            
-            const userRef = db.collection(CHESS_LEADERBOARD).doc(username);
-            
-            db.runTransaction(async (transaction) => {
-                const doc = await transaction.get(userRef);
-                if (!doc.exists) {
-                    transaction.set(userRef, { 
-                        username: username, 
-                        wins: isWin ? 1 : 0,
-                        gamesPlayed: 1 
-                    });
-                } else {
-                    const newWins = isWin ? (doc.data().wins || 0) + 1 : (doc.data().wins || 0);
-                    const newGames = (doc.data().gamesPlayed || 0) + 1;
-                    transaction.update(userRef, { wins: newWins, gamesPlayed: newGames });
-                }
-            }).catch(console.error);
-        }
 
         // --- CHALLENGE / LOBBY LOGIC ---
         let currentChallengeRef = null;
