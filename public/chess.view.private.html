@@ -4458,5 +4458,123 @@ await setDoc(gameRef, {
     // Run the check as soon as the page loads
     checkInstallStatus();
 </script>
+    <!-- ... existing code ... -->
+
+    <!-- FIREBASE & MULTIPLAYER SCRIPT -->
+    <script>
+        // --- FIREBASE COLLECTION CONSTANTS ---
+        // Using 'chess_' prefix ensures this data stays completely separate from Checkers
+        const CHESS_CHALLENGES = 'chess_challenges';
+        const CHESS_GAMES = 'chess_games';
+        const CHESS_LEADERBOARD = 'chess_leaderboard';
+
+        // --- LEADERBOARD LOGIC ---
+        function loadLeaderboard() {
+            // Assuming 'db' is your initialized Firestore instance
+            db.collection(CHESS_LEADERBOARD)
+                .orderBy('wins', 'desc')
+                .limit(10)
+                .onSnapshot((snapshot) => {
+                    const leaderboardList = document.getElementById('leaderboard-list');
+                    if (!leaderboardList) return;
+                    
+                    leaderboardList.innerHTML = ''; // Clear loading text
+                    
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const li = document.createElement('li');
+                        li.textContent = `${data.username}: ${data.wins} wins`;
+                        leaderboardList.appendChild(li);
+                    });
+                }, (error) => {
+                    console.error("Error loading chess leaderboard:", error);
+                });
+        }
+
+        function updateLeaderboard(username, isWin) {
+            if (!username) return;
+            
+            const userRef = db.collection(CHESS_LEADERBOARD).doc(username);
+            
+            db.runTransaction(async (transaction) => {
+                const doc = await transaction.get(userRef);
+                if (!doc.exists) {
+                    transaction.set(userRef, { 
+                        username: username, 
+                        wins: isWin ? 1 : 0,
+                        gamesPlayed: 1 
+                    });
+                } else {
+                    const newWins = isWin ? (doc.data().wins || 0) + 1 : (doc.data().wins || 0);
+                    const newGames = (doc.data().gamesPlayed || 0) + 1;
+                    transaction.update(userRef, { wins: newWins, gamesPlayed: newGames });
+                }
+            }).catch(console.error);
+        }
+
+        // --- CHALLENGE / LOBBY LOGIC ---
+        let currentChallengeRef = null;
+        let activeGameRef = null;
+
+        function createChallenge(playerName) {
+            db.collection(CHESS_CHALLENGES).add({
+                host: playerName,
+                status: 'waiting',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then((docRef) => {
+                currentChallengeRef = docRef;
+                
+                // Listen for someone joining this specific challenge
+                docRef.onSnapshot((doc) => {
+                    const data = doc.data();
+                    if (data && data.status === 'accepted') {
+                        startGame(data.gameId, 'white'); // Host plays White in chess
+                    }
+                });
+            }).catch(console.error);
+        }
+
+        function listenForChallenges() {
+            db.collection(CHESS_CHALLENGES)
+                .where('status', '==', 'waiting')
+                .onSnapshot((snapshot) => {
+                    const challengeList = document.getElementById('challenge-list');
+                    if (!challengeList) return;
+                    
+                    challengeList.innerHTML = '';
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const btn = document.createElement('button');
+                        btn.className = 'challenge-btn'; // Add your styling class
+                        btn.textContent = `Play vs ${data.host}`;
+                        btn.onclick = () => acceptChallenge(doc.id, data.host);
+                        challengeList.appendChild(btn);
+                    });
+                });
+        }
+
+        function acceptChallenge(challengeId, hostName) {
+            // 1. Create the actual game document first
+            db.collection(CHESS_GAMES).add({
+                host: hostName,
+                guest: 'Guest', // Or prompt for their username
+                turn: 'white',
+                boardState: 'start', // Or your initial FEN/JSON state
+                lastMove: null,
+                status: 'active'
+            }).then((gameDoc) => {
+                // 2. Update the challenge to point to this new game
+                db.collection(CHESS_CHALLENGES).doc(challengeId).update({
+                    status: 'accepted',
+                    gameId: gameDoc.id
+                }).then(() => {
+                    startGame(gameDoc.id, 'black'); // Guest plays Black
+                });
+            });
+        }
+    </script>
+    
+    <!-- PWA Install Prompt Script Bridge -->
+<!-- ... existing code ... -->
 </body>
 </html>
