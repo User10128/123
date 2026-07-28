@@ -1,8 +1,8 @@
 {
-  "name": "123",
+  "name": "chess",
   "compatibility_date": "2026-04-17",
   "assets": {
-    "directory": "public",
+    "directory": "public/chess",
     "not_found_handling": "404-page"
   }
 }
