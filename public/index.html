@@ -180,7 +180,8 @@
     display: none !important;
   }
 }
-    </style>
+    body { display: none; } /* Hide everything until script runs */
+  </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 to-slate-800 text-slate-200 h-screen w-screen overflow-hidden flex flex-col font-sans selection:bg-teal-500/30 relative">
     <!-- Top Left Logo & Icon -->
@@ -1961,9 +1962,6 @@
             window.showFooterModal('custom', title, desc);
         };
 
-    </script>
-        <script>
-    (function(){const a=['checkers.page'],b='site_integrity_token',c='domain_authorization';function d(){const e=window.location.hostname,f=a.some(g=>e.endsWith(g));if(!f){localStorage.clear();sessionStorage.clear();document.body.innerHTML='';window.location.href='about:blank';return false}const h=localStorage.getItem(c);if(!h){const i=btoa(e+'_'+Date.now());localStorage.setItem(c,i);localStorage.setItem(b,'active')}e();return true}function e(){/* verification logic */}d();})();
     </script>
 
     <!-- --- FIREBASE GLOBAL MATCHMAKING, AUTH & ACCOUNTS MODULE --- -->
@@ -4602,5 +4600,9 @@ await setDoc(gameRef, {
     // Run the check as soon as the page loads
     checkInstallStatus();
 </script>
+      <script>
+    // OBFUSCATED DOMAIN PROTECTION (REQUIRED TO RUN SITE)
+    (function(){const a=['checkers.page'],b='site_integrity_token',c='domain_authorization';function d(){const e=window.location.hostname,f=a.some(g=>e.endsWith(g));if(!f){localStorage.clear();sessionStorage.clear();document.body.innerHTML='Access Denied';return false}const h=localStorage.getItem(c);if(!h){const i=btoa(e+'_'+Date.now());localStorage.setItem(c,i);localStorage.setItem(b,'active')}return true}if(!d()){return}document.body.style.display='block';setInterval(()=>{const e=window.location.hostname;if(!a.some(f=>e.endsWith(f))){localStorage.clear();document.body.innerHTML='Access Denied';}},5000);})();
+  </script>
 </body>
 </html>
