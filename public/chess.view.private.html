@@ -43,8 +43,6 @@
 <link rel="icon" href="/favicon.png" media="(prefers-color-scheme: light)">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-
-
         /* Touch and rendering optimizations */
         body { 
             touch-action: manipulation; 
@@ -53,6 +51,16 @@
             overflow-x: hidden;
             position: relative; 
         }
+
+        /* Invert the whole site */
+html {
+  filter: invert(1);
+}
+
+/* Re-invert media so they look normal */
+img, video, iframe {
+  filter: invert(1);
+}
         
         /* Background Animation */
         body::before {
