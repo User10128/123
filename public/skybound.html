@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Skybound</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+            touch-action: none;
+            user-select: none;
+        }
+
+        #game-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            cursor: grab;
+        }
+
+        #game-canvas:active {
+            cursor: grabbing;
+        }
+
+        .glass-panel {
+            background: rgba(240, 244, 248, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 24px;
+            box-shadow: 0 12px 40px 0 rgba(30, 41, 59, 0.15);
+            color: #1e293b;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+            pointer-events: auto;
+            width: 380px;
+            box-sizing: border-box;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin: 0 0 5px 0;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(to right, #0284c7, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: #475569;
+            margin-bottom: 25px;
+        }
+
+        .stats-box {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .stats-box p {
+            margin: 8px 0;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            color: #334155;
+        }
+
+        .stats-box span {
+            font-weight: 600;
+            color: #d97706;
+        }
+
+        button {
+            background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+            border: none;
+            padding: 16px 0;
+            width: 100%;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #f8fafc;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.45);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .controls-hint {
+            font-size: 0.85rem;
+            margin-top: 20px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 5;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .hud-panel {
+            padding: 10px 18px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #1e293b;
+        }
+
+        .health-bar-container {
+            width: 140px;
+            height: 12px;
+            background: rgba(203, 213, 225, 0.6);
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid rgba(148, 163, 184, 0.8);
+        }
+
+        #health-fill {
+            width: 100%;
+            height: 100%;
+            background: #16a34a;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+    </style>
+    <!-- Three.js for 3D Rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <div id="game-canvas"></div>
+
+    <div id="hud">
+        <div class="glass-panel hud-panel">
+            <span>Score:</span> <span id="hud-score" style="color: #1e293b;">0</span>
+        </div>
+        <div class="glass-panel hud-panel">
+            <div class="health-bar-container">
+                <div id="health-fill"></div>
+            </div>
+        </div>
+        <div class="glass-panel hud-panel">
+            <span>🪙</span> <span id="hud-coins" style="color: #1e293b;">0</span>
+        </div>
+    </div>
+
+    <div id="ui-layer">
+        <!-- Start Screen -->
+        <div id="start-screen" class="glass-panel screen active">
+            <h1>SKYBOUND</h1>
+            <p class="subtitle">Endless Aerial Adventure</p>
+            
+            <div class="stats-box">
+                <p>High Score: <span id="stat-highscore">0</span></p>
+                <p>Total Vault: <span id="stat-totalcoins">0</span> 🪙</p>
+            </div>
+
+            <button id="start-btn">Start Flight</button>
+            <p class="controls-hint">Steer with Mouse/Touch or WASD/Arrows.<br><b>Click & Drag</b> anywhere to rotate camera view!</p>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="glass-panel screen">
+            <h1 style="background: linear-gradient(to right, #dc2626, #b91c1c); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">CRASHED</h1>
+            <p class="subtitle">Your journey has ended</p>
+            
+            <div class="stats-box">
+                <p>Distance: <span id="end-score">0</span></p>
+                <p>Coins Collected: <span id="end-coins">0</span> 🪙</p>
+            </div>
+            <p id="high-score-msg" style="color: #16a34a; font-weight: 600; margin-bottom: 15px; display: none;">New Record Set!</p>
+            <button id="restart-btn">Fly Again</button>
+        </div>
+    </div>
+
+    <script>
+        let localHighScore = localStorage.getItem('skybound_highscore') || 0;
+        let localTotalCoins = parseInt(localStorage.getItem('skybound_coins') || '0', 10);
+
+        function updateUIStats() {
+            document.getElementById('stat-highscore').innerText = Math.floor(localHighScore);
+            document.getElementById('stat-totalcoins').innerText = localTotalCoins;
+        }
+        updateUIStats();
+
+        function saveLocalStats(sessionScore, sessionCoins) {
+            const isNewHighScore = sessionScore > localHighScore;
+            if (isNewHighScore) {
+                localHighScore = Math.floor(sessionScore);
+                localStorage.setItem('skybound_highscore', localHighScore);
+                document.getElementById('high-score-msg').style.display = 'block';
+            }
+            localTotalCoins += sessionCoins;
+            localStorage.setItem('skybound_coins', localTotalCoins);
+            updateUIStats();
+        }
+
+        const Colors = {
+            red: 0xe63946,
+            white: 0xf1faee,
+            brown: 0x45070f,
+            pink: 0xffb703,
+            gold: 0xffd700,
+            darkGrey: 0x334155,
+            cloud: 0xffffff
+        };
+
+        let scene, camera, renderer;
+        let airplane, propeller;
+        let objects = []; 
+        let backgroundClouds = [];
+        let particles = [];
+        
+        let gameActive = false;
+        let score = 0;
+        let coins = 0;
+        let health = 100;
+        let gameSpeed = 1.2;
+        let baseSpeed = 1.2;
+        let distance = 0;
+
+        let targetX = 0;
+        let targetY = 10;
+        const screenBounds = { x: 40, y: 30 };
+
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let cameraOffsetAngleX = 0;
+        let cameraOffsetAngleY = 0;
+
+        function initGameEngine() {
+            const canvasContainer = document.getElementById('game-canvas');
+            
+            scene = new THREE.Scene();
+            // Rich realistic daytime blue background color and fog (#1a8cff)
+            scene.background = new THREE.Color(0x1a8cff);
+            scene.fog = new THREE.Fog(0x1a8cff, 150, 650);
+
+            const aspectRatio = window.innerWidth / window.innerHeight;
+            camera = new THREE.PerspectiveCamera(60, aspectRatio, 1, 1000);
+            updateCameraPosition();
+
+            renderer = new THREE.WebGLRenderer({ alpha: false, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            canvasContainer.appendChild(renderer.domElement);
+
+            const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x0284c7, 1.2);
+            hemisphereLight.position.set(0, 100, 0);
+            scene.add(hemisphereLight);
+
+            const shadowLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            shadowLight.position.set(50, 100, 50);
+            shadowLight.castShadow = true;
+            scene.add(shadowLight);
+
+            createAirplane();
+            createBackgroundClouds();
+
+            window.addEventListener('resize', handleWindowResize, false);
+            
+            const canvasEl = renderer.domElement;
+            canvasEl.addEventListener('mousedown', handlePointerDown);
+            window.addEventListener('mousemove', handlePointerMove);
+            window.addEventListener('mouseup', handlePointerUp);
+
+            canvasEl.addEventListener('touchstart', handleTouchStart, { passive: false });
+            window.addEventListener('touchmove', handleTouchMove, { passive: false });
+            window.addEventListener('touchend', handleTouchEnd);
+
+            window.addEventListener('keydown', handleKeyDown, false);
+
+            loop();
+        }
+
+        function updateCameraPosition() {
+            const baseCamX = 0;
+            const baseCamY = 10;
+            const baseCamZ = 100;
+
+            camera.position.x = baseCamX + Math.sin(cameraOffsetAngleX) * 40;
+            camera.position.y = baseCamY + cameraOffsetAngleY;
+            camera.position.z = baseCamZ + (Math.cos(cameraOffsetAngleX) - 1) * 40;
+            camera.lookAt(0, 5, 0);
+        }
+
+        function createAirplane() {
+            airplane = new THREE.Group();
+
+            const matRed = new THREE.MeshPhongMaterial({ color: Colors.red, flatShading: true });
+            const matWhite = new THREE.MeshPhongMaterial({ color: Colors.white, flatShading: true });
+            const matBrown = new THREE.MeshPhongMaterial({ color: Colors.brown, flatShading: true });
+
+            const geomCockpit = new THREE.BoxGeometry(8, 5, 5);
+            const cockpit = new THREE.Mesh(geomCockpit, matRed);
+            cockpit.castShadow = true;
+            cockpit.receiveShadow = true;
+            airplane.add(cockpit);
+
+            const geomEngine = new THREE.BoxGeometry(2, 5, 5);
+            const engine = new THREE.Mesh(geomEngine, matWhite);
+            engine.position.x = 5;
+            engine.castShadow = true;
+            engine.receiveShadow = true;
+            airplane.add(engine);
+
+            const geomTailPlane = new THREE.BoxGeometry(1.5, 2, 0.5);
+            const tailPlane = new THREE.Mesh(geomTailPlane, matRed);
+            tailPlane.position.set(-4, 2.5, 0);
+            tailPlane.castShadow = true;
+            tailPlane.receiveShadow = true;
+            airplane.add(tailPlane);
+
+            const geomSideWing = new THREE.BoxGeometry(4, 0.5, 18);
+            const sideWing = new THREE.Mesh(geomSideWing, matRed);
+            sideWing.position.set(0, 0, 0);
+            sideWing.castShadow = true;
+            sideWing.receiveShadow = true;
+            airplane.add(sideWing);
+
+            propeller = new THREE.Group();
+            const geomPropeller = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+            const propMesh = new THREE.Mesh(geomPropeller, matBrown);
+            propeller.add(propMesh);
+
+            const geomBlade = new THREE.BoxGeometry(0.1, 10, 1.5);
+            const blade = new THREE.Mesh(geomBlade, matBrown);
+            blade.position.set(0.8, 0, 0);
+            propeller.add(blade);
+            
+            propeller.position.set(6, 0, 0);
+            airplane.add(propeller);
+
+            airplane.scale.set(0.5, 0.5, 0.5);
+            airplane.rotation.y = -Math.PI / 2;
+            scene.add(airplane);
+        }
+
+        function spawnCoin() {
+            const geom = new THREE.TorusGeometry(1.5, 0.4, 8, 16);
+            const mat = new THREE.MeshPhongMaterial({ color: Colors.gold, shininess: 100, specular: 0xffffff });
+            const coin = new THREE.Mesh(geom, mat);
+            positionObject(coin);
+            coin.userData = { type: 'coin', radius: 2.5, size: 2 };
+            scene.add(coin);
+            objects.push(coin);
+        }
+
+        function spawnBird() {
+            const bird = new THREE.Group();
+            const mat = new THREE.MeshPhongMaterial({ color: Colors.pink, flatShading: true });
+            
+            const bodyGeom = new THREE.ConeGeometry(0.8, 3, 4);
+            const body = new THREE.Mesh(bodyGeom, mat);
+            body.rotation.x = Math.PI / 2;
+            bird.add(body);
+
+            const wingGeom = new THREE.ConeGeometry(1, 4, 4);
+            const wingR = new THREE.Mesh(wingGeom, mat);
+            wingR.position.set(1.5, 0, 0);
+            wingR.rotation.z = Math.PI / 2;
+            bird.add(wingR);
+            bird.userData.wingR = wingR;
+
+            const wingL = new THREE.Mesh(wingGeom, mat);
+            wingL.position.set(-1.5, 0, 0);
+            wingL.rotation.z = -Math.PI / 2;
+            bird.add(wingL);
+            bird.userData.wingL = wingL;
+
+            positionObject(bird);
+            bird.userData = { type: 'bird', radius: 3, timeOff: Math.random() * 10, size: 3 };
+            scene.add(bird);
+            objects.push(bird);
+        }
+
+        function spawnStormCloud() {
+            const cloud = new THREE.Group();
+            const mat = new THREE.MeshPhongMaterial({ color: Colors.darkGrey, flatShading: true });
+            
+            const nBlocks = 4 + Math.floor(Math.random() * 4);
+            for (let i = 0; i < nBlocks; i++) {
+                const geom = new THREE.DodecahedronGeometry(2 + Math.random() * 2);
+                const mesh = new THREE.Mesh(geom, mat);
+                mesh.position.set((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5);
+                mesh.castShadow = true;
+                cloud.add(mesh);
+            }
+
+            positionObject(cloud);
+            cloud.userData = { type: 'storm', radius: 5, size: 5 };
+            scene.add(cloud);
+            objects.push(cloud);
+        }
+
+        function spawnTurbulence() {
+            const geom = new THREE.TorusGeometry(3.5, 1, 8, 20);
+            const mat = new THREE.MeshPhongMaterial({ 
+                color: Colors.white, 
+                transparent: true, 
+                opacity: 0.6,
+                flatShading: true 
+            });
+            const ring = new THREE.Mesh(geom, mat);
+            positionObject(ring);
+            ring.userData = { type: 'turbulence', radius: 4.5, size: 4 };
+            scene.add(ring);
+            objects.push(ring);
+        }
+
+        function positionObject(obj) {
+            obj.position.z = -600 - Math.random() * 100;
+            obj.position.x = (Math.random() - 0.5) * screenBounds.x * 2;
+            obj.position.y = (Math.random() - 0.5) * screenBounds.y * 2 + 10;
+        }
+
+        function createBackgroundClouds() {
+            for(let i=0; i<50; i++){
+                const cloud = new THREE.Group();
+                const mat = new THREE.MeshPhongMaterial({ color: Colors.cloud, flatShading: true, transparent: true, opacity: 0.85 });
+                const nBlocks = 3 + Math.floor(Math.random() * 3);
+                for (let j = 0; j < nBlocks; j++) {
+                    const geom = new THREE.BoxGeometry(6, 6, 6);
+                    const mesh = new THREE.Mesh(geom, mat);
+                    mesh.position.set(Math.random()*6, Math.random()*6, Math.random()*6);
+                    cloud.add(mesh);
+                }
+                
+                cloud.position.x = (Math.random() - 0.5) * 400;
+                cloud.position.y = (Math.random() - 0.5) * 200 - 10;
+                cloud.position.z = -Math.random() * 600;
+                scene.add(cloud);
+                backgroundClouds.push(cloud);
+            }
+        }
+
+        function createParticles(x, y, z, color, count) {
+            const geom = new THREE.BoxGeometry(0.6, 0.6, 0.6);
+            const mat = new THREE.MeshPhongMaterial({ color: color, flatShading: true });
+            for (let i = 0; i < count; i++) {
+                const mesh = new THREE.Mesh(geom, mat);
+                mesh.position.set(x, y, z);
+                mesh.userData = {
+                    velX: (Math.random() - 0.5) * 3,
+                    velY: (Math.random() - 0.5) * 3,
+                    velZ: (Math.random() - 0.5) * 3,
+                    life: 1.0
+                };
+                scene.add(mesh);
+                particles.push(mesh);
+            }
+        }
+
+        function handlePointerDown(e) {
+            isDragging = true;
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        }
+
+        function handlePointerMove(e) {
+            const deltaX = e.clientX - previousMousePosition.x;
+            const deltaY = e.clientY - previousMousePosition.y;
+
+            if (isDragging) {
+                cameraOffsetAngleX -= deltaX * 0.005;
+                cameraOffsetAngleY += deltaY * 0.05;
+                cameraOffsetAngleY = Math.max(-20, Math.min(30, cameraOffsetAngleY));
+                updateCameraPosition();
+            } else if (gameActive) {
+                let nx = (e.clientX / window.innerWidth) * 2 - 1;
+                let ny = -(e.clientY / window.innerHeight) * 2 + 1;
+                targetX = nx * screenBounds.x;
+                targetY = ny * screenBounds.y + 10;
+            }
+
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        }
+
+        function handlePointerUp() {
+            isDragging = false;
+        }
+
+        function handleTouchStart(e) {
+            if (e.touches.length > 0) {
+                isDragging = true;
+                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+        }
+
+        function handleTouchMove(e) {
+            if (!gameActive) return;
+            e.preventDefault();
+            if (e.touches.length > 0) {
+                const clientX = e.touches[0].clientX;
+                const clientY = e.touches[0].clientY;
+                
+                const deltaX = clientX - previousMousePosition.x;
+                const deltaY = clientY - previousMousePosition.y;
+
+                if (isDragging) {
+                    cameraOffsetAngleX -= deltaX * 0.005;
+                    cameraOffsetAngleY += deltaY * 0.05;
+                    cameraOffsetAngleY = Math.max(-20, Math.min(30, cameraOffsetAngleY));
+                    updateCameraPosition();
+                }
+
+                let nx = (clientX / window.innerWidth) * 2 - 1;
+                let ny = -(clientY / window.innerHeight) * 2 + 1;
+                targetX = nx * screenBounds.x;
+                targetY = ny * screenBounds.y + 10;
+
+                previousMousePosition = { x: clientX, y: clientY };
+            }
+        }
+
+        function handleTouchEnd() {
+            isDragging = false;
+        }
+
+        function handleKeyDown(e) {
+            if (!gameActive) return;
+            const step = 6;
+            if (e.key === 'ArrowUp' || e.key === 'w') targetY += step;
+            if (e.key === 'ArrowDown' || e.key === 's') targetY -= step;
+            if (e.key === 'ArrowLeft' || e.key === 'a') targetX -= step;
+            if (e.key === 'ArrowRight' || e.key === 'd') targetX += step;
+
+            targetX = Math.max(-screenBounds.x, Math.min(screenBounds.x, targetX));
+            targetY = Math.max(-screenBounds.y + 5, Math.min(screenBounds.y + 20, targetY));
+        }
+
+        function handleWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        let spawnTimer = 0;
+
+        function loop() {
+            requestAnimationFrame(loop);
+
+            if (propeller) propeller.rotation.x += 0.45;
+
+            if (gameActive) {
+                airplane.position.y += (targetY - airplane.position.y) * 0.12;
+                airplane.position.x += (targetX - airplane.position.x) * 0.12;
+
+                airplane.rotation.z = (targetY - airplane.position.y) * 0.025;
+                airplane.rotation.x = (airplane.position.x - targetX) * 0.025;
+
+                distance += gameSpeed;
+                score = Math.floor(distance / 10);
+                gameSpeed += 0.0006;
+                
+                spawnTimer += gameSpeed;
+                if (spawnTimer > 32) {
+                    spawnTimer = 0;
+                    const rand = Math.random();
+                    if (rand < 0.35) spawnCoin();
+                    else if (rand < 0.65) spawnStormCloud();
+                    else if (rand < 0.85) spawnBird();
+                    else spawnTurbulence();
+                }
+
+                for (let i = objects.length - 1; i >= 0; i--) {
+                    const obj = objects[i];
+                    obj.position.z += gameSpeed;
+
+                    if (obj.userData.type === 'coin') {
+                        obj.rotation.y += 0.06;
+                    } else if (obj.userData.type === 'bird') {
+                        const time = Date.now() * 0.006 + obj.userData.timeOff;
+                        obj.position.x += Math.sin(time) * 0.12;
+                        if(obj.userData.wingR) {
+                            obj.userData.wingR.rotation.z = Math.PI/2 + Math.sin(time * 6) * 0.6;
+                            obj.userData.wingL.rotation.z = -Math.PI/2 - Math.sin(time * 6) * 0.6;
+                        }
+                    } else if (obj.userData.type === 'turbulence') {
+                        obj.rotation.z += 0.03;
+                    }
+
+                    const diff = airplane.position.clone().sub(obj.position);
+                    const d = diff.length();
+                    
+                    if (d < obj.userData.radius + 2) {
+                        handleCollision(obj);
+                        scene.remove(obj);
+                        objects.splice(i, 1);
+                        continue;
+                    }
+
+                    if (obj.position.z > 90) {
+                        scene.remove(obj);
+                        objects.splice(i, 1);
+                    }
+                }
+
+                document.getElementById('hud-score').innerText = score;
+                document.getElementById('hud-coins').innerText = coins;
+                
+                const healthFill = document.getElementById('health-fill');
+                healthFill.style.width = health + '%';
+                if (health > 60) healthFill.style.backgroundColor = '#16a34a';
+                else if (health > 30) healthFill.style.backgroundColor = '#d97706';
+                else healthFill.style.backgroundColor = '#dc2626';
+
+                if (health <= 0) {
+                    gameOver();
+                }
+            } else {
+                airplane.position.y = 10 + Math.sin(Date.now() * 0.002) * 2;
+                airplane.rotation.x = Math.sin(Date.now() * 0.001) * 0.1;
+                airplane.rotation.z = 0;
+            }
+
+            backgroundClouds.forEach(cloud => {
+                cloud.position.z += (gameActive ? gameSpeed : baseSpeed) * 0.6;
+                if (cloud.position.z > 90) cloud.position.z = -600;
+            });
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.position.x += p.userData.velX;
+                p.position.y += p.userData.velY;
+                p.position.z += p.userData.velZ;
+                p.scale.multiplyScalar(0.88);
+                p.userData.life -= 0.025;
+                if (p.userData.life <= 0) {
+                    scene.remove(p);
+                    particles.splice(i, 1);
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function handleCollision(obj) {
+            const type = obj.userData.type;
+            if (type === 'coin') {
+                coins++;
+                createParticles(obj.position.x, obj.position.y, obj.position.z, Colors.gold, 12);
+            } else if (type === 'storm') {
+                health -= 25;
+                createParticles(airplane.position.x, airplane.position.y, airplane.position.z, Colors.darkGrey, 18);
+                shakeCamera();
+            } else if (type === 'bird') {
+                health -= 20;
+                createParticles(obj.position.x, obj.position.y, obj.position.z, Colors.pink, 12);
+                shakeCamera();
+            } else if (type === 'turbulence') {
+                health -= 8;
+                targetX += (Math.random() - 0.5) * 25;
+                targetY += (Math.random() - 0.5) * 25;
+                shakeCamera();
+            }
+        }
+
+        function shakeCamera() {
+            const intensity = 3;
+            camera.position.x += (Math.random() - 0.5) * intensity;
+            setTimeout(() => {
+                updateCameraPosition();
+            }, 120);
+        }
+
+        function resetGame() {
+            score = 0;
+            coins = 0;
+            health = 100;
+            distance = 0;
+            gameSpeed = 1.5;
+            targetX = 0;
+            targetY = 10;
+            airplane.position.set(0, 10, 0);
+
+            cameraOffsetAngleX = 0;
+            cameraOffsetAngleY = 0;
+            updateCameraPosition();
+
+            objects.forEach(obj => scene.remove(obj));
+            objects = [];
+            
+            document.getElementById('high-score-msg').style.display = 'none';
+        }
+
+        function startGame() {
+            document.getElementById('start-screen').classList.remove('active');
+            document.getElementById('game-over-screen').classList.remove('active');
+            document.getElementById('hud').style.opacity = '1';
+    
+            resetGame();
+            gameActive = true;
+        }
+
+        function gameOver() {
+            gameActive = false;
+            document.getElementById('hud').style.opacity = '0';
+            document.getElementById('game-over-screen').classList.add('active');
+            
+            document.getElementById('end-score').innerText = score;
+            document.getElementById('end-coins').innerText = coins;
+
+            saveLocalStats(score, coins);
+            
+            createParticles(airplane.position.x, airplane.position.y, airplane.position.z, Colors.red, 35);
+            airplane.position.y = -100;
+        }
+
+        document.getElementById('start-btn').addEventListener('click', startGame);
+        document.getElementById('restart-btn').addEventListener('click', startGame);
+
+        initGameEngine();
+    </script>
+</body>
+</html>
