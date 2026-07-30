@@ -12,6 +12,12 @@
   gtag('config', 'G-TLSR2KL9X3');
 </script>
     <script>
+  if (window.top !== window.self) {
+    window.top.location.replace(window.self.location.href);
+  }
+</script>
+
+    <script>
     (function() {
         // 1. Get the current date
         const today = new Date();
