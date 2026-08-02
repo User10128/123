@@ -4025,7 +4025,7 @@ window.quitGameFirebase = async () => {
 
         window.setupNotificationTimers = () => {
             if (window.dailyNotifTimer) clearTimeout(window.dailyNotifTimer);
-            const setting = localStorage.getItem('dailyChallengeNotification') || 'weekly';
+            const setting = localStorage.getItem('dailyChallengeNotification') || 'off';
             const selectEl = document.getElementById('notification-setting');
             if (selectEl) selectEl.value = setting;
             
