@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkers - Thank You Kiribati!</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts to match the sleek UI -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:ital@0;1&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        theme: {
+                            base: '#0B121C',     /* Deepest background */
+                            surface: '#15202D',  /* Main card backgrounds */
+                            surfaceHighlight: '#1A2736', /* Slightly lighter for buttons */
+                            border: '#233447',   /* Standard borders */
+                            borderActive: '#2D455D',
+                            cyan: '#34EBC3',     /* Main brand accent */
+                            cyanDark: '#1E6B5D',
+                            textMain: '#E2E8F0',
+                            textMuted: '#64748B'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Space Mono', 'monospace'],
+                    },
+                    boxShadow: {
+                        'glow': '0 0 15px rgba(52, 235, 195, 0.15)',
+                        'glow-strong': '0 0 30px rgba(52, 235, 195, 0.4)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0B121C;
+            color: #E2E8F0;
+            overflow: hidden; /* Prevent scrolling to match app feel */
+        }
+
+        /* Recreating the smooth abstract wave background */
+        .bg-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0B121C 0%, #0F1722 100%);
+        }
+
+        .shape-1 {
+            position: absolute;
+            top: -20%;
+            left: -10%;
+            width: 70vw;
+            height: 70vw;
+            background: radial-gradient(circle, rgba(25, 40, 60, 0.8) 0%, rgba(11, 18, 28, 0) 70%);
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.7;
+        }
+
+        .shape-2 {
+            position: absolute;
+            bottom: -30%;
+            right: -10%;
+            width: 80vw;
+            height: 80vw;
+            background: radial-gradient(circle, rgba(30, 45, 65, 0.6) 0%, rgba(11, 18, 28, 0) 70%);
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.6;
+        }
+
+        .shape-3 {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            width: 100vw;
+            height: 30vh;
+            background: rgba(255,255,255,0.01);
+            transform: rotate(-15deg) translateX(-50%);
+            box-shadow: 0 0 100px 50px rgba(20, 30, 45, 0.5);
+            border-top: 1px solid rgba(255,255,255,0.02);
+            border-radius: 50%;
+        }
+
+        /* App-specific styles */
+        .glass-panel {
+            background: rgba(21, 32, 45, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .btn-hover-effect {
+            transition: all 0.2s ease;
+        }
+        
+        .btn-hover-effect:hover {
+            background: rgba(26, 39, 54, 0.9);
+            border-color: #34EBC3;
+        }
+
+        .brand-logo-text {
+            font-weight: 800;
+            font-style: italic;
+            letter-spacing: 0.05em;
+        }
+        
+        /* Heartbeat animation for the appreciation icon */
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .animate-heartbeat {
+            animation: heartbeat 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col antialiased selection:bg-theme-cyan selection:text-theme-base">
+
+    <!-- Abstract Background -->
+    <div class="bg-shapes">
+        <div class="shape-1"></div>
+        <div class="shape-2"></div>
+        <div class="shape-3"></div>
+    </div>
+
+    <!-- Header / Navbar -->
+    <header class="w-full p-6 flex justify-between items-center z-10 relative">
+        <!-- Logo -->
+        <div class="flex items-center gap-3 cursor-pointer">
+            <div class="relative w-8 h-8 flex items-center justify-center">
+                <!-- Checkers ring logo recreation -->
+            </div>
+            <span class="text-theme-cyan text-xl brand-logo-text mt-1">CHECKERS</span>
+        </div>
+
+        <!-- Right Actions -->
+        <div class="flex items-center gap-3">
+            <a href="index.html" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-theme-border bg-theme-surface/50 text-sm font-medium hover:bg-theme-surfaceHighlight transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4 text-theme-cyan"></i>
+                Back to Game
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col items-center justify-center z-10 px-4">
+        
+        <!-- The Main Interactive Card -->
+        <div class="glass-panel w-full max-w-[460px] rounded-2xl border border-theme-border p-8 shadow-2xl transition-all duration-500 ease-in-out">
+            
+            <div class="flex flex-col items-center text-center">
+                
+                <!-- Glowing Heart Icon -->
+                <div class="relative mb-6">
+                    <div class="absolute inset-0 bg-theme-cyan blur-[25px] opacity-20 rounded-full animate-heartbeat"></div>
+                    <div class="w-20 h-20 rounded-full border border-theme-borderActive bg-theme-surface flex items-center justify-center shadow-glow-strong animate-heartbeat relative z-10">
+                        <i data-lucide="heart" class="w-10 h-10 text-theme-cyan fill-theme-cyan/20"></i>
+                    </div>
+                </div>
+
+                <!-- Greeting -->
+                <h1 class="text-2xl font-bold text-theme-textMain mb-2">Mauri, Kiribati! 🇰🇮</h1>
+                
+                <!-- Message -->
+                <p class="text-theme-textMuted text-sm leading-relaxed mb-8">
+                    We noticed you're visiting from Kiribati! We are building a global community here at Checkers, and we just wanted to take a special moment to thank you for playing. It's awesome to have you on the board.
+                </p>
+
+                <!-- Action Buttons -->
+                <div class="w-full flex flex-col gap-3">
+                    <a href="index.html" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-theme-surfaceHighlight border border-theme-borderActive text-theme-cyan font-medium hover:bg-theme-cyan hover:text-theme-base hover:border-theme-cyan transition-all duration-300 shadow-glow group">
+                        <i data-lucide="play" class="w-4 h-4 group-hover:fill-current"></i>
+                        Return to Checkers
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
