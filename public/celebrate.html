@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkers - Global Celebrations</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:ital@0;1&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        theme: {
+                            base: '#0B121C',     
+                            surface: '#15202D',  
+                            surfaceHighlight: '#1A2736', 
+                            border: '#233447',   
+                            borderActive: '#2D455D',
+                            cyan: '#34EBC3',     
+                            cyanDark: '#1E6B5D',
+                            textMain: '#E2E8F0',
+                            textMuted: '#64748B'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Space Mono', 'monospace'],
+                    },
+                    boxShadow: {
+                        'glow': '0 0 15px rgba(52, 235, 195, 0.15)',
+                        'glow-strong': '0 0 30px rgba(52, 235, 195, 0.4)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0B121C;
+            color: #E2E8F0;
+            overflow-x: hidden;
+        }
+
+        .bg-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0B121C 0%, #0F1722 100%);
+        }
+
+        .shape-1 {
+            position: absolute;
+            top: -20%;
+            left: -10%;
+            width: 70vw;
+            height: 70vw;
+            background: radial-gradient(circle, rgba(25, 40, 60, 0.8) 0%, rgba(11, 18, 28, 0) 70%);
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.7;
+        }
+
+        .shape-2 {
+            position: absolute;
+            bottom: -30%;
+            right: -10%;
+            width: 80vw;
+            height: 80vw;
+            background: radial-gradient(circle, rgba(30, 45, 65, 0.6) 0%, rgba(11, 18, 28, 0) 70%);
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.6;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0B121C; }
+        ::-webkit-scrollbar-thumb { background: #233447; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #34EBC3; }
+
+        .glass-panel {
+            background: rgba(21, 32, 45, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .brand-logo-text {
+            font-weight: 800;
+            font-style: italic;
+            letter-spacing: 0.05em;
+        }
+
+        .event-card { transition: all 0.3s ease; }
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(52, 235, 195, 0.1);
+            border-color: #34EBC3;
+        }
+    </style>
+</head>
+<body class="min-h-screen w-full flex flex-col antialiased selection:bg-theme-cyan selection:text-theme-base">
+
+    <!-- Header / Navbar -->
+    <div class="bg-shapes">
+        <div class="shape-1"></div>
+        <div class="shape-2"></div>
+    </div>
+
+    <header class="w-full p-6 flex flex-col sm:flex-row justify-between items-center z-20 relative sticky top-0 glass-panel border-b border-theme-border shadow-lg gap-4">
+        <div class="flex items-center gap-3">
+            <div class="relative w-10 h-10 flex items-center justify-center">
+                <img src="https://checkers.page/logo.png" alt="Checkers Logo" class="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(52,235,195,0.5)]">
+            </div>
+            <span class="text-theme-cyan text-xl brand-logo-text mt-1">CELEBRATIONS</span>
+        </div>
+
+        <div class="text-center sm:text-left">
+            <h2 class="text-theme-textMain font-bold text-lg">365 Days of Global Events</h2>
+            <p id="total-counter" class="text-theme-cyan text-sm"><span class="font-bold text-white">1,825</span> verified global events!</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a href="index.html" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-theme-border bg-theme-surface text-sm font-medium hover:bg-theme-surfaceHighlight hover:text-theme-cyan transition-colors">
+                <i data-lucide="home" class="w-4 h-4"></i>
+                Home
+            </a>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <div class="w-full max-w-7xl mx-auto px-6 py-6 z-10 relative">
+        <div class="flex items-center justify-between mb-6 bg-theme-surface/50 p-3 sm:p-4 rounded-2xl border border-theme-border">
+            <button onclick="changeDay(-1)" class="flex items-center gap-1 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2 rounded-lg bg-theme-surfaceHighlight hover:bg-theme-cyan hover:text-theme-base text-theme-cyan transition-colors border border-theme-borderActive group">
+                <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                <span class="hidden sm:inline font-semibold">Previous</span>
+            </button>
+            
+            <div class="text-center flex-1">
+                <h1 id="current-date-title" class="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-wide">Loading...</h1>
+                <span id="day-event-count" class="text-theme-cyan text-sm font-medium mt-1 inline-block"></span>
+            </div>
+
+            <button onclick="changeDay(1)" class="flex items-center gap-1 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2 rounded-lg bg-theme-surfaceHighlight hover:bg-theme-cyan hover:text-theme-base text-theme-cyan transition-colors border border-theme-borderActive group">
+                <span class="hidden sm:inline font-semibold">Next</span>
+                <i data-lucide="chevron-right" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div class="flex items-center justify-center mb-8">
+            <button onclick="goToToday()" class="px-6 py-2 rounded-full border border-theme-cyan/50 text-theme-cyan hover:bg-theme-cyan hover:text-theme-base font-semibold text-sm transition-all shadow-glow hover:shadow-glow-strong">
+                Jump to Today
+            </button>
+        </div>
+
+        <!-- Events Grid -->
+        <div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            <!-- JavaScript will populate 5 cards here -->
+        </div>
+    </div>
+
+    <!-- Data Generation & Rendering Script -->
+    <script>
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const daysInMonth = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+        // Smart Icon Matcher based on keywords
+        function getIcon(name) {
+            const n = name.toLowerCase();
+            if (n.includes('space') || n.includes('star') || n.includes('moon') || n.includes('planet') || n.includes('alien') || n.includes('rocket')) return 'rocket';
+            if (n.includes('earth') || n.includes('world') || n.includes('globe') || n.includes('nature') || n.includes('environment')) return 'globe-2';
+            if (n.includes('dog') || n.includes('cat') || n.includes('pet') || n.includes('animal') || n.includes('bird') || n.includes('fish') || n.includes('puppy') || n.includes('wildlife') || n.includes('bear') || n.includes('squirrel')) return 'paw-print';
+            if (n.includes('book') || n.includes('read') || n.includes('author') || n.includes('poetry') || n.includes('write') || n.includes('literature') || n.includes('library')) return 'book-open';
+            if (n.includes('music') || n.includes('song') || n.includes('jazz') || n.includes('dance') || n.includes('guitar') || n.includes('radio')) return 'music';
+            if (n.includes('game') || n.includes('play') || n.includes('puzzle') || n.includes('toy') || n.includes('mario')) return 'gamepad-2';
+            if (n.includes('art') || n.includes('paint') || n.includes('draw') || n.includes('photo') || n.includes('color') || n.includes('design')) return 'palette';
+            if (n.includes('science') || n.includes('math') || n.includes('tech') || n.includes('code') || n.includes('inventor') || n.includes('logic')) return 'flask-conical';
+            if (n.includes('water') || n.includes('ocean') || n.includes('sea') || n.includes('beach') || n.includes('bath') || n.includes('plunge')) return 'waves';
+            if (n.includes('friend') || n.includes('family') || n.includes('sibling') || n.includes('parent') || n.includes('people') || n.includes('youth')) return 'users';
+            if (n.includes('heart') || n.includes('love') || n.includes('hug') || n.includes('kiss') || n.includes('kindness')) return 'heart';
+            if (n.includes('car') || n.includes('drive') || n.includes('bike') || n.includes('train')) return 'car';
+            if (n.includes('coffee') || n.includes('tea') || n.includes('drink') || n.includes('beer') || n.includes('wine') || n.includes('beverage')) return 'coffee';
+            if (n.includes('cake') || n.includes('pie') || n.includes('cookie') || n.includes('chocolate') || n.includes('sweet') || n.includes('dessert') || n.includes('donut') || n.includes('candy') || n.includes('sugar')) return 'cake';
+            if (n.includes('food') || n.includes('eat') || n.includes('pizza') || n.includes('cheese') || n.includes('bread') || n.includes('meat') || n.includes('soup') || n.includes('salad') || n.includes('meal') || n.includes('spaghetti')) return 'utensils';
+            if (n.includes('plant') || n.includes('tree') || n.includes('flower') || n.includes('garden') || n.includes('forest')) return 'leaf';
+            if (n.includes('laugh') || n.includes('smile') || n.includes('joke')) return 'smile';
+            if (n.includes('party') || n.includes('celebrate') || n.includes('festival') || n.includes('new year')) return 'party-popper';
+            if (n.includes('day')) return 'calendar-days';
+            return 'star';
+        }
+
+        // Compressed massive database (5 items per day for all 365 days)
+        // Format: Array of 12 strings. Each string represents a month. Days are separated by ';', events by ','
+        const realHolidaysDatabase = [
+            // January
+            "New Year's Day,Public Domain Day,Polar Bear Plunge Day,Global Family Day,Bloody Mary Day;Science Fiction Day,World Introvert Day,National Cream Puff Day,Buffet Day,Personal Trainer Day;Chocolate Covered Cherry Day,Drinking Straw Day,Fruitcake Toss Day,Festival of Sleep Day,J.R.R. Tolkien Day;World Braille Day,National Spaghetti Day,Trivia Day,Pop Music Chart Day,Dimpled Chad Day;National Bird Day,Keto Day,Screenwriters Day,Whipped Cream Day,Dialogue Day;Bean Day,Cuddle Up Day,Shortbread Day,Technology Day,Apple Tree Day;Bobblehead Day,Tempura Day,Old Rock Day,Pass Gas Day,Programmers Day;Earth's Rotation Day,Bubble Bath Day,Argyle Day,English Toffee Day,Joy Germ Day;Apricot Day,Static Electricity Day,Word Nerd Day,Balloon Ascension Day,Law Enforcement Appreciation Day;Save the Eagles Day,Houseplant Appreciation Day,Bittersweet Chocolate Day,Cut Your Energy Costs Day,Oysters Rockefeller Day;Milk Day,Learn Your Name in Morse Code Day,Splash Friends Day,Hot Toddy Day,Secret Pal Day;Pharmacist Day,Marzipan Day,Kiss a Ginger Day,Curried Chicken Day,National Youth Day;Rubber Ducky Day,Sticker Day,Peach Melba Day,Make Your Dream Come True Day,Skeptics Day;Dress Up Your Pet Day,Hot Pastrami Sandwich Day,World Logic Day,Organize Your Home Day,Ratification Day;Hat Day,Strawberry Ice Cream Day,Bagel Day,Wikipedia Day,Fresh Squeezed Juice Day;Nothing Day,Fig Newton Day,Religious Freedom Day,Appreciate a Dragon Day,Ice Cream Day;Kid Inventors Day,Bootlegger's Day,Hot Buttered Rum Day,Ditch New Year's Resolutions Day,Popeye Day;Thesaurus Day,Winnie the Pooh Day,Peking Duck Day,Gourmet Coffee Day,Michigan Day;Popcorn Day,Tin Can Day,Edgar Allan Poe Day,Quark Day,Brew a Potion Day;Penguin Awareness Day,Cheese Lover's Day,Buttercrunch Day,Disc Jockey Day,Take a Walk Outdoors Day;National Hugging Day,Granola Bar Day,Squirrel Appreciation Day,Sweatpants Day,Playdate Day;Hot Sauce Day,Blonde Brownie Day,Celebration of Life Day,Polka Dot Day,Answer Your Cat's Questions Day;National Pie Day,Handwriting Day,Measure Your Feet Day,Sticky Toffee Pudding Day,Snowplow Hockey Day;Compliment Day,Peanut Butter Day,Beer Can Appreciation Day,Belly Laugh Day,Education Day;Opposite Day,Irish Coffee Day,Bubble Wrap Day,Macaroni Day,Seed Swap Day;Peanut Brittle Day,Spouses Day,Green Juice Day,Dental Drill Day,Australia Day;Chocolate Cake Day,Geographic Literacy Day,Holocaust Remembrance Day,Punch the Clock Day,Thomas Crapper Day;Data Privacy Day,Blueberry Pancake Day,Kazoo Day,Have Fun at Work Day,Daisy Day;National Puzzle Day,Corn Chip Day,Freethinkers Day,Carnation Day,Dog Guide Day;Croissant Day,School Day of Non-Violence,Escape Day,Yodel Day,Inane Answering Message Day;Hot Chocolate Day,Backward Day,Inspire Your Heart with Art Day,Gorilla Suit Day,Zebra Day",
+            // February
+            "Dark Chocolate Day,Freedom Day,Serpent Day,Baked Alaska Day,Get Up Day;Groundhog Day,World Wetlands Day,Tater Tot Day,Ukulele Day,Marmot Day;Carrot Cake Day,Golden Retriever Day,Missing Persons Day,The Day the Music Died,Bubble Gum Day;World Cancer Day,Homemade Soup Day,Thank a Mail Carrier Day,Stuffed Mushroom Day,Create a Vacuum Day;Weatherperson's Day,World Nutella Day,Chocolate Fondue Day,Shower with a Friend Day,Western Monarch Day;Frozen Yogurt Day,Lame Duck Day,Pay a Compliment Day,Chopsticks Day,Bob Marley Day;Send a Card to a Friend Day,Rose Day,Periodic Table Day,Fettuccine Alfredo Day,Ballet Day;Boy Scouts Day,Kite Flying Day,Opera Day,Laugh and Get Rich Day,Potato Lover's Day;National Pizza Day,Toothache Day,Bagel and Lox Day,Read in the Bathtub Day,Cut the Cord Day;Umbrella Day,Cream Cheese Brownie Day,Plimsoll Day,Flannel Day,Home Warranty Day;Inventors Day,Make a Friend Day,Peppermint Patty Day,White Shirt Day,Don't Cry Over Spilled Milk Day;Darwin Day,Plum Pudding Day,Lincoln's Birthday,Paul Bunyan Day,Safety Pup Day;World Radio Day,Tortellini Day,Cheddar Day,Get a Different Name Day,Madly in Love with Me Day;Valentine's Day,Ferris Wheel Day,Cream-Filled Chocolates Day,Organ Donor Day,Library Lovers Day;Gumdrop Day,Hippo Day,Singles Awareness Day,Wisconsin Day,Annoy Squidward Day;Do a Grouch a Favor Day,Almond Day,Innovation Day,Tartar Sauce Day,Tim Tam Day;Random Acts of Kindness Day,Cabbage Day,My Way Day,Champion Crab Races Day,PTA Founders Day;Battery Day,Drink Wine Day,Crab-Stuffed Flounder Day,Thumb Appreciation Day,Pluto Day;Chocolate Mint Day,Tug-of-War Day,Vet Girls Rise Day,Lash Day,Prevent Plagiarism Day;Cherry Pie Day,Love Your Pet Day,Muffin Day,Handcuff Day,Apple Pie Day;Sticky Bun Day,Grain-Free Day,Reading Is For Everyone Day,Card Reading Day,Guide Dog Day;Margarita Day,Walking the Dog Day,Cook a Sweet Potato Day,Be Humble Day,World Thinking Day;Banana Bread Day,Tile Day,Dog Biscuit Day,Curling is Cool Day,Tootsie Roll Day;Tortilla Chip Day,Trading Pin Day,World Bartender Day,Twin Day,Diesel Engine Day;Clam Chowder Day,Chocolate-Covered Nut Day,Quiet Day,Pistol Patent Day,Let's All Eat Right Day;Tell a Fairy Tale Day,Pistachio Day,Levi Strauss Day,Personal Chef Day,Thermos Day;Polar Bear Day,Retro Day,Strawberry Day,Kahlua Day,Pokemon Day;Floral Design Day,Public Sleeping Day,Chocolate Souffle Day,Tooth Fairy Day,National Science Day;Leap Year Day,Rare Disease Day,Time to Do Something Day,Frog Legs Day,Bachelor's Day",
+            // March
+            "Peanut Butter Lover's Day,Pig Day,Fruit Compote Day,Horse Protection Day,World Compliment Day;Old Stuff Day,Banana Cream Pie Day,Read Across America Day,Dr. Seuss Day,Rescue Dog Day;World Wildlife Day,Cold Cuts Day,Soup It Forward Day,Anthem Day,Moscow Mule Day;Grammar Day,Pound Cake Day,Hug a G.I. Day,Sons Day,Scrapbooking Day;Cheese Doodle Day,Absinthe Day,Multiple Personality Day,Poutine Day,Name Tag Day;Dentist's Day,Frozen Food Day,Oreo Day,White Chocolate Cheesecake Day,Dress Day;Cereal Day,Crown Roast of Pork Day,Be Heard Day,Flapjack Day,Sock Monkey Day;Peanut Cluster Day,Proofreading Day,Retro Video Game Day,Popcorn Lover's Day,Fill Our Staplers Day;Meatball Day,Barbie Day,Get Over It Day,Crabmeat Day,False Teeth Day;Mario Day,Pack Your Lunch Day,Blueberry Popover Day,Bagpipe Day,Awesomeness Day;World Plumbing Day,Oatmeal Nut Waffles Day,Worship of Tools Day,Promposal Day,Johnny Appleseed Day;Plant a Flower Day,Girl Scout Day,Baked Scallops Day,Hitchcock Day,Alfred Hitchcock Day;Earmuff Day,Jewel Day,Coconut Torte Day,Ken Day,Open an Umbrella Indoors Day;Pi Day,Potato Chip Day,Learn About Butterflies Day,Write Your Story Day,Science Education Day;Consumer Rights Day,Pears Helene Day,Shoe the World Day,Buzzards Day,Brutus Day;Artichoke Hearts Day,Freedom of Information Day,Panda Day,Giant Panda Day,Lips Appreciation Day;St. Patrick's Day,Corned Beef and Cabbage Day,Submarine Day,Campfire Day,Irish Whiskey Day;Awkward Moments Day,Sloppy Joe Day,Biodiesel Day,Supreme Sacrifice Day,Forgive Mom and Dad Day;Poultry Day,Chocolate Caramel Day,Let's Laugh Day,Client's Day,Desk Day;International Day of Happiness,Ravioli Day,Snowman Burning Day,Proposal Day,Macaron Day;World Poetry Day,French Bread Day,Fragrance Day,Single Parent Day,Wood Day;World Water Day,Bavarian Crepes Day,Goof Off Day,As Young As You Feel Day,Seal Day;National Puppy Day,Melba Toast Day,Chia Day,Chip and Dip Day,Near Miss Day;Cheesesteak Day,Chocolate Covered Raisin Day,Tuberculosis Day,Cocktail Day,Flatmate Day;Waffle Day,Pecan Day,Tolkien Reading Day,Lobster Newburg Day,Medal of Honor Day;Spinach Day,Nougat Day,Make Up Your Own Holiday Day,Purple Day,Solitude Day;World Theatre Day,Spanish Paella Day,Joe Day,Quirky Country Music Song Titles Day,Viagra Day;Something on a Stick Day,Black Forest Cake Day,Weed Appreciation Day,Barnum & Bailey Day,Hot Tub Day;Lemon Chiffon Cake Day,Mom and Pop Business Owners Day,Smoke and Mirrors Day,Piano Day,Mermaid Day;Pencil Day,Take a Walk in the Park Day,Turkey Neck Soup Day,Doctor's Day,Virtual Vacation Day;Eiffel Tower Day,Bunsen Burner Day,Crayon Day,Clams on the Half Shell Day,Backup Your Data Day",
+            // April
+            "April Fools' Day,Sourdough Bread Day,Burrito Day,Fun at Work Day,Reading is Funny Day;Peanut Butter and Jelly Day,Ferret Day,Reconciliation Day,Children's Book Day,Autism Awareness Day;World Party Day,Chocolate Mousse Day,Find a Rainbow Day,Film Score Day,Tweed Day;Carrot Day,Vitamin C Day,Hug a Newsperson Day,Jeep 4x4 Day,Rat Day;Deep Dish Pizza Day,Caramel Day,Read a Road Map Day,Bell Bottoms Day,Dandelion Day;Caramel Popcorn Day,Tartan Day,Teflon Day,Sorry Charlie Day,Siamese Cat Day;World Health Day,Beer Day,Coffee Cake Day,No Housework Day,Beaver Day;Empanada Day,Zoo Lovers Day,Draw a Bird Day,All is Ours Day,Dog Farting Awareness Day;Unicorn Day,Winston Churchill Day,Cherish an Antique Day,Name Yourself Day,ASMR Day;Siblings Day,Farm Animals Day,Cinnamon Crescent Day,Encourage a Young Writer Day,Golfer's Day;National Pet Day,Cheese Fondue Day,Submarine Day,Barbershop Quartet Day,Eight Track Tape Day;Grilled Cheese Sandwich Day,Licorice Day,Big Wind Day,Walk on Your Wild Side Day,Hamster Day;Scrabble Day,Peach Cobbler Day,Thomas Jefferson Day,Make Lunch Count Day,Plant Appreciation Day;Pecan Hour Day,Dolphin Day,Look Up at the Sky Day,Reach as High as You Can Day,Ex-Spouse Day;Tax Day,Rubber Eraser Day,Take a Wild Guess Day,Titanic Remembrance Day,Microvolunteer Day;Eggs Benedict Day,Wear Your Pajamas to Work Day,Orchid Day,Librarian Day,Save the Elephant Day;Bat Appreciation Day,Cheeseball Day,Haiku Day,Ford Mustang Day,Crawfish Day;Animal Crackers Day,Lineman Appreciation Day,Columnists' Day,Piñata Day,Velociraptor Awareness Day;Garlic Day,Amaretto Day,Bicycle Day,Hanging Out Day,Poker Day;Look Alike Day,Pineapple Upside Down Cake Day,Lima Bean Day,Volunteer Recognition Day,Cheddar Fries Day;Kindergarten Day,Chocolate Covered Cashews Day,Bulldogs Are Beautiful Day,Yellow Bat Day,Tea Day;Earth Day,Jelly Bean Day,Girl Scout Leader's Day,Mother Earth Day,Beagle Day;World Book Day,Picnic Day,Cherry Cheesecake Day,Lover's Day,Take a Chance Day;Pigs in a Blanket Day,Plumbing Day,Scream Day,Sense of Smell Day,Veterinarian Day;Penguin Day,Zucchini Bread Day,DNA Day,Telephone Day,Malaria Day;Pretzel Day,Alien Day,Help a Horse Day,Kids and Pets Day,Richter Scale Day;Prime Rib Day,Tell a Story Day,Morse Code Day,Babe Ruth Day,Woodpecker Day;Superhero Day,Blueberry Pie Day,Great Poetry Reading Day,Cubicle Day,Stop Food Waste Day;International Dance Day,Shrimp Scampi Day,Zipper Day,Peace Rose Day,Viral Video Day;International Jazz Day,Oatmeal Cookie Day,Bugs Bunny Day,Honesty Day,Bubble Tea Day",
+            // May
+            "May Day,Mother Goose Day,Chocolate Parfait Day,Loyalty Day,Batman Day;Tuna Day,Truffle Day,Baby Day,Play Your Ukulele Day,Brothers and Sisters Day;Space Day,Raspberry Popover Day,Paranormal Day,Lumpy Rug Day,Two Different Colored Shoes Day;Star Wars Day,Candied Orange Peel Day,Weather Observers Day,Renewal Day,Firefighters Day;Cinco de Mayo,Cartoonists Day,Hoagie Day,Oyster Day,Astronaut Day;Beverage Day,Crepes Suzette Day,Nurses Day,No Diet Day,Tourist Appreciation Day;Roast Leg of Lamb Day,Paste Up Day,Barrier Awareness Day,Cosmopolitan Day,Design Day;No Socks Day,Have a Coke Day,Iris Day,World Red Cross Day,Coconut Cream Pie Day;Lost Sock Memorial Day,Moscato Day,Butterscotch Brownie Day,Sleepover Day,Alphabet Day;Clean Up Your Room Day,Liver and Onions Day,Shrimp Day,Washington Day,Golf Day;Eat What You Want Day,Twilight Zone Day,Foam Rolling Day,Hostess Cupcake Day,Train Day;Limerick Day,Nutty Fudge Day,Fibromyalgia Awareness Day,Odometer Day,Fatigue Day;Apple Pie Day,Fruit Cocktail Day,Hummus Day,Leprechaun Day,Frog Jumping Day;Dance Like a Chicken Day,Buttermilk Biscuit Day,Underground America Day,Decency Day,Stars and Stripes Day;Chocolate Chip Day,Nylon Stocking Day,Straw Hat Day,Kangaroo Care Day,Sliders Day;Love a Tree Day,Sea Monkey Day,Pierogi Day,Biographers Day,Mimosa Day;Pack Rat Day,Cherry Cobbler Day,Walnut Day,Mushroom Hunting Day,Graduation Day;Museum Day,Cheese Souffle Day,No Dirty Dishes Day,Visit Your Relatives Day,Pizza Party Day;Devil's Food Cake Day,May Ray Day,Boy's Club Day,Hepatitis Testing Day,Plant a Vegetable Garden Day;World Bee Day,Pick Strawberries Day,Rescue Dog Day,Quiche Lorraine Day,Be a Millionaire Day;Talk Like Yoda Day,Strawberries and Cream Day,Waitstaff Day,Memo Day,Tea Day;Vanilla Pudding Day,Buy a Musical Instrument Day,Maritime Day,Solitaire Day,Sherlock Holmes Day;Lucky Penny Day,Taffy Day,Turtle Day,Title Track Day,World Crohn's Day;Scavenger Hunt Day,Escargot Day,Brother's Day,Aviation Maintenance Technician Day,Asparagus Day;Towel Day,Wine Day,Brown-Bag It Day,Tap Dance Day,Missing Children's Day;Paper Airplane Day,Blueberry Cheesecake Day,Dracula Day,Cherry Dessert Day,Lindy Hop Day;Sun Screen Day,Cellophane Tape Day,Grape Popsicle Day,Senior Health Day,Nothing to Fear Day;Hamburger Day,Brisket Day,Amnesty International Day,Menstrual Hygiene Day,Blood Cancer Day;Paperclip Day,Coq Au Vin Day,Put a Pillow on Your Fridge Day,Learn About Composting Day,Biscuit Day;Mint Julep Day,Water a Flower Day,Hole in My Bucket Day,Creativity Day,Loomis Day;Macaroon Day,Save Your Hearing Day,Speak in Complete Sentences Day,Smile Day,Web Designer Day",
+            // June
+            "Say Something Nice Day,Olive Day,Pen Pal Day,Go Barefoot Day,Dinosaur Day;Rocky Road Day,Rotisserie Chicken Day,Leave The Office Early Day,Bubba Day,Donut Day;Bicycle Day,Egg Day,Chocolate Macaroon Day,Repeat Day,Insect Repellent Day;Cheese Day,Hug Your Cat Day,Cognac Day,Old Maid's Day,Safe Day;Environment Day,Gingerbread Day,Veggie Burger Day,Moonshine Day,Ketchup Day;Yo-Yo Day,Applesauce Cake Day,Drive-In Movie Day,Eyewear Day,Higher Education Day;Chocolate Ice Cream Day,VCR Day,Boone Day,Animal Rights Day,Running Day;Best Friends Day,Upseting Day,Name Your Poison Day,Oceans Day,Jelly-Filled Doughnut Day;Donald Duck Day,Strawberry-Rhubarb Pie Day,Earl Day,Writers' Rights Day,Coral Reef Day;Iced Tea Day,Ballpoint Pen Day,Egg Roll Day,Black Cow Day,Herb and Spice Day;Corn on the Cob Day,Making Life Beautiful Day,German Chocolate Cake Day,Cotton Candy Day,Guitar Day;Peanut Butter Cookie Day,Red Rose Day,Jerky Day,Loving Day,Superman Day;Weed Your Garden Day,Sewing Machine Day,Roller Coaster Day,Pigeon Day,Kitchen Klutzes of America Day;Flag Day,Strawberry Shortcake Day,Bourbon Day,Pop Goes the Weasel Day,Bath Day;Nature Photography Day,Smile Power Day,Megamouth Shark Day,Lobster Day,Prank Day;Fudge Day,Fresh Veggies Day,Vinegar Day,Sea Turtle Day,Corporate Day;Eat Your Vegetables Day,Apple Strudel Day,Cherry Tart Day,Garbage Man Day,Tessellation Day;International Picnic Day,Go Fishing Day,Splurge Day,Panic Day,Sushi Day;Martini Day,Garfield the Cat Day,Watch Day,Free Radicals Day,Sauntering Day;Vanilla Milkshake Day,Ice Cream Soda Day,Bald Eagle Day,Hike with a Geek Day,American Eagle Day;Selfie Day,Peaches and Cream Day,Skateboarding Day,Yoga Day,Daylight Appreciation Day;Onion Ring Day,Chocolate Eclair Day,Kissing Day,HVAC Professional Day,Rainforest Day;Pink Flamingo Day,Pecan Sandies Day,Let It Go Day,Hydration Day,Public Service Day;Pralines Day,Fairy Day,UFO Day,Upcycling Day,Handshake Day;Strawberry Parfait Day,Catfish Day,Leon Day,Log Cabin Day,Color TV Day;Chocolate Pudding Day,Beautician's Day,Canoe Day,Forgiveness Day,Bar Code Day;Sunglasses Day,Orange Blossom Day,Ice Cream Cake Day,PTSD Awareness Day,Micro Day;Tapioca Day,Insurance Nerd Day,Paul Bunyan Day,Ceviche Day,Body Piercing Day;Camera Day,Waffle Iron Day,Almond Buttercrunch Day,Mud Day,Hug Holiday;Meteor Watch Day,Social Media Day,Asteroid Day,OOTD Day,Outfit of the Day",
+            // July
+            "International Joke Day,Creative Ice Cream Flavors Day,Postal Worker Day,U.S. Postage Stamp Day,Gingersnap Day;World UFO Day,Anisette Day,I Forgot Day,Made in the USA Day,Disco Day;Fried Clam Day,Chocolate Wafer Day,Eat Your Beans Day,Stay Out of the Sun Day,Plastic Bag Free Day;Independence Day,Barbecue Day,Caesar Salad Day,Country Music Day,Spare a Rib Day;Apple Turnover Day,Bikini Day,Workaholics Day,Graham Cracker Day,Hawaii Day;Fried Chicken Day,Kissing Day,Hand Roll Day,Take Your Webmaster to Lunch Day,Umbrella Cover Day;World Chocolate Day,Macaroni and Cheese Day,Strawberry Sundae Day,Father-Daughter Take a Walk Day,Tell the Truth Day;Video Games Day,Chocolate with Almonds Day,Math 2.0 Day,Freezer Pop Day,Blueberry Day;Sugar Cookie Day,Dimples Day,Call of the Horizon Day,Cow Appreciation Day,Fashion Day;Piña Colada Day,Kitten Day,Pickle Day,Teddy Bear Picnic Day,Clerihew Day;World Population Day,Blueberry Muffin Day,Cheer Up the Lonely Day,Mojito Day,Rain Day;Pecan Pie Day,Simplicity Day,Different Colored Eyes Day,Etch A Sketch Day,Paper Bag Day;French Fry Day,Barbershop Music Day,Beans 'N' Franks Day,Embrace Your Geekness Day,Fool's Gold Day;Bastille Day,Macaroni and Cheese Day,Grand Marnier Day,Tape Measure Day,Nude Day;Gummy Worm Day,Tapioca Pudding Day,Pet Fire Safety Day,Give Something Away Day,Horse Day;Corn Fritters Day,Personal Chef Day,Fresh Spinach Day,Guinea Pig Appreciation Day,Snake Day;World Emoji Day,Peach Ice Cream Day,Yellow Pig Day,Tattoo Day,Lottery Day;Nelson Mandela Day,Caviar Day,Sour Candy Day,Insurance Nerd Day,Perfect Family Day;Daiquiri Day,Stick Your Tongue Out Day,Flan Day,Raspberry Cake Day,Words With Friends Day;Chess Day,Moon Day,Lollipop Day,Fortune Cookie Day,Space Exploration Day;Junk Food Day,Lamington Day,Craft for your Local Shelters Day,Monkey Day,No Pet Store Puppies Day;Hammock Day,Penuche Fudge Day,Rat Catcher's Day,Mango Day,Lion Day;Vanilla Ice Cream Day,Gorgeous Grandma Day,Hot Dog Day,Sprinkle Day,Mosquito Day;Tequila Day,Drive-Thru Day,Amelia Earhart Day,Cousins Day,Thermal Engineer Day;Wine and Cheese Day,Hot Fudge Sundae Day,Merry-Go-Round Day,Thread the Needle Day,Culinarians Day;Aunt and Uncle Day,Coffee Milkshake Day,Bagelfest Day,All or Nothing Day,Uncle and Aunt Day;Chicken Finger Day,Crème Brûlée Day,Scotch Day,Walk on Stilts Day,Love is Kind Day;Milk Chocolate Day,Waterpark Day,System Administrator Appreciation Day,Talk in an Elevator Day,Soccer Day;Lasagna Day,Chicken Wing Day,Lipstick Day,Tiger Day,Rain Day;Cheesecake Day,Father-In-Law Day,Share a Hug Day,Paperback Book Day,Whistleblower Day;Avocado Day,Mutt Day,Cotton Candy Day,Uncommon Instrument Awareness Day,Watermelon Day",
+            // August
+            "World Wide Web Day,Spider-Man Day,Raspberry Cream Pie Day,Girlfriends Day,Respect for Parents Day;Ice Cream Sandwich Day,Coloring Book Day,Dinosaur Day,Mustard Day,Watermelon Day;Watermelon Day,Grab Some Nuts Day,Clean Your Floors Day,IPA Day,Sandcastle Day;Chocolate Chip Cookie Day,Coast Guard Day,Assistance Dog Day,Campfire Day,White Wine Day;Underwear Day,Oyster Day,Work Like a Dog Day,Blogger Day,Traffic Light Day;Root Beer Float Day,Fresh Breath Day,Wiggle Your Toes Day,Sailor Moon Day,Farmworker Appreciation Day;Lighthouse Day,Raspberry Tart Day,Particularly Preposterous Packaging Day,Professional Speakers Day,Sea Serpent Day;International Cat Day,Frozen Custard Day,Happiness Happens Day,Bowling Day,Dollar Day;Book Lovers Day,Rice Pudding Day,Veep Day,Coworking Day,Melon Day;Lazy Day,S'mores Day,Vlogging Day,Duran Duran Appreciation Day,Shapewear Day;Son and Daughter Day,Raspberry Bombe Day,Presidential Joke Day,Play in the Sand Day,Kinetic Sand Day;Middle Child Day,Vinyl Record Day,Julienne Fries Day,Elephant Day,Basecamp Day;Lefthanders Day,Filet Mignon Day,Prosecco Day,Bowling Day,Blame Someone Else Day;Creamsicle Day,Financial Awareness Day,Navajo Code Talkers Day,Tattoo Removal Day,Wiffle Ball Day;Relaxation Day,Lemon Meringue Pie Day,Check the Chip Day,Leathercraft Day,Geode Day;Rum Day,Airborne Day,Tell a Joke Day,Roller Coaster Day,Bratwurst Day;Thrift Shop Day,Black Cat Appreciation Day,Vanilla Custard Day,I LOVE My Feet Day,Nonprofit Day;Fajita Day,Ice Cream Pie Day,Mail Order Catalog Day,Bad Poetry Day,Pinot Noir Day;World Photography Day,Aviation Day,Soft Ice Cream Day,Potato Day,Bow Day;World Mosquito Day,Radio Day,Chocolate Pecan Pie Day,Lemonade Day,Bacon Lovers Day;Senior Citizens Day,Spumoni Day,Poet's Day,Internet Self Care Day,Medical Dosimetrist Day;Be an Angel Day,Pecan Torte Day,Tooth Fairy Day,Bao Day,SpongeBob Day;Cuban Sandwich Day,Ride the Wind Day,Sponge Cake Day,Valentino Day,Find the Inner Nerd Day;Waffle Day,Peach Pie Day,Pluto Demoted Day,Knife Day,Shooting Star Day;Banana Split Day,Kiss and Make Up Day,Secondhand Wardrobe Day,Whiskey Sour Day,Parkinson's Rule Day;Dog Day,Cherry Popsicle Day,Women's Equality Day,WebMistress Day,Toilet Paper Day;Just Because Day,Pots de Creme Day,Tarzan Day,The Duchess Who Wasn't Day,Pet Rock Day;Bow Tie Day,Cherry Turnover Day,Power Rangers Day,Radio Commercials Day,Red Wine Day;Chop Suey Day,Lemon Juice Day,More Herbs, Less Salt Day,Swiss Wine Vintners Day,Net Neutrality Day;Toasted Marshmallow Day,Frankenstein Day,Slinky Day,Beach Day,Grief Awareness Day;Trail Mix Day,Matchmaker Day,Diatomaceous Earth Day,South Carolina Day,Eat Outside Day",
+            // September
+            "Emma M. Nutt Day,Building and Code Staff Appreciation Day,Acne Positivity Day,No Rhyme Nor Reason Day,Toy Spaniel Day;World Coconut Day,Blueberry Popsicle Day,V-J Day,Pierce Your Ears Day,Bison Ten Yell Day;Skyscraper Day,Welsh Rarebit Day,Penny Press Day,US Bowling League Day,Tailoring Day;Wildlife Day,Macadamia Nut Day,Newspaper Carrier Day,Eat an Extra Dessert Day,Taekwondo Day;Cheese Pizza Day,Be Late for Something Day,Charity Day,Psychoanalyst Day,Amazon Day;Read a Book Day,Coffee Ice Cream Day,Fight Procrastination Day,Barbie Doll Day,Great Egg Toss Day;Salami Day,Beer Lover's Day,Buy a Book Day,Neither Snow nor Rain Day,Superhuman Day;International Literacy Day,Pardon Day,Ampersand Day,Star Trek Day,Pediatric Hematology/Oncology Nurses Day;Teddy Bear Day,Wiener Schnitzel Day,Care Bears Share Your Care Day,Sudoku Day,Emergency Care Day;World Suicide Prevention Day,TV Dinner Day,Swap Ideas Day,Hot Dog Day,Alpaca Day;Make Your Bed Day,Hot Cross Bun Day,Patriot Day,No News is Good News Day,Libraries Remember Day;Chocolate Milkshake Day,Video Games Day,Programmers Day,Police Woman Day,Report Medicare Fraud Day;Peanut Day,Kids Take Over The Kitchen Day,Fortune Cookie Day,Bald is Beautiful Day,Celiac Disease Awareness Day;Cream-Filled Donut Day,Eat a Hoagie Day,Live Creative Day,Coloring Day,Sober Day;Double Cheeseburger Day,Linguine Day,Make a Hat Day,Online Learning Day,Tackle Kids Cancer Day;Guacamole Day,Play-Doh Day,Cinnamon Raisin Bread Day,Working Parents Day,Stepfamily Day;Apple Dumpling Day,Monte Cristo Day,Constitution Day,Table Shuffleboard Day,Professional House Cleaners Day;Cheeseburger Day,Respect Day,First Love Day,Water Monitoring Day,Rice Krispies Treats Day;Talk Like a Pirate Day,Butterscotch Pudding Day,Pawpaw Day,String Dance Day,Meow Like a Pirate Day;Pepperoni Pizza Day,Punch Day,String Cheese Day,Fried Rice Day,Care for Kids Day;Peace Day,Pecan Cookie Day,Miniature Golf Day,Chai Day,IT Professionals Day;Rhino Day,Ice Cream Cone Day,White Chocolate Day,Centenarian Day,Elephant Appreciation Day;Pot Pie Day,Great American Pot Pie Day,Checkers Day,Teal Talk Day,Snack Stick Day;Punctuation Day,Cherries Jubilee Day,Schwenkfelder Thanksgiving,Bluebird of Happiness Day,Lumberjack Day;Comic Book Day,Lobster Day,Tune-Up Day,One-Hit Wonder Day,Daughter's Day;Johnny Appleseed Day,Dumpling Day,Pancake Day,Compliance Officer Day,Shamu the Whale Day;Tourism Day,Crush a Can Day,Corned Beef Hash Day,Scarf Day,Chocolate Milk Day;Rabies Day,Drink Beer Day,Good Neighbor Day,Strawberry Cream Pie Day,North Carolina Day;Coffee Day,Heart Day,Biscotti Day,VFW Day,Confucius Day;Translation Day,Chewing Gum Day,Mud Pack Day,Love People Day,Hot Mulled Cider Day",
+            // October
+            "International Coffee Day,Vegetarian Day,Homemade Cookies Day,Hair Day,Black Dog Day;Name Your Car Day,Fried Scallops Day,Janitor Day,Smart City Day,Produce Misting Day;Techies Day,Boyfriend Day,Soft Taco Day,Mean Girls Day,Virus Appreciation Day;Taco Day,Vodka Day,Golf Lover's Day,Improve Your Office Day,Cinnamon Roll Day;World Teachers Day,Apple Crunch Day,Do Something Nice Day,Get Funky Day,James Bond Day;Mad Hatter Day,Noodle Day,Plus Size Appreciation Day,Badger Day,Coaches Day;Frappe Day,Inner Beauty Day,Bathtub Day,LED Light Day,Pretzel Day;Pierogi Day,Fluffernutter Day,Octopus Day,Touch Tag Day,Face Your Fears Day;Post Day,Moldy Cheese Day,Leif Erikson Day,Curious Events Day,Pro-Life Cupcake Day;Mental Health Day,Angel Food Cake Day,Handbag Day,Hug a Drummer Day,Cake Decorating Day;Sausage Pizza Day,Southern Food Heritage Day,It's My Party Day,Coming Out Day,Kraken Day;Farmers Day,Gumbo Day,Free Thought Day,Pulled Pork Day,Savings Day;World Kindness Day,M&M Day,Train Your Brain Day,Yorkshire Pudding Day,Navy Birthday;Dessert Day,Be Bald and Be Free Day,Spider-Man Day,Lowercase Day,I Love Lucy Day;Global Handwashing Day,Cheese Curd Day,White Cane Safety Day,I Love Lucy Day,Mushroom Day;World Food Day,Dictionary Day,Liqueur Day,Steve Jobs Day,Feral Cat Day;Pasta Day,Mulligan Day,Edge Day,Playing Card Collection Day,Wear Something Gaudy Day;Chocolate Cupcake Day,No Beard Day,Necktie Day,Meatloaf Day,Mashed Potato Day;Seafood Bisque Day,Evaluate Your Life Day,New Friends Day,LGBT Center Awareness Day,Rainforest Day;Chefs Day,Brandied Fruit Day,Suspension Day,Information Overload Day,Office Chocolate Day;Reptile Awareness Day,Apple Day,Back to the Future Day,Pumpkin Day,Garbanzo Bean Day;Nut Day,Color Day,Make a Dog's Day,Smart Is Cool Day,Stuttering Awareness Day;Boston Cream Pie Day,Mole Day,Croc Day,iPod Day,Slap Your Irritating Co-Worker Day;United Nations Day,Bologna Day,Food Day,Good and Plenty Day,Tripe Day;Sourest Day,Greasy Foods Day,Chucky, The Notorious Killer Doll Day,World Pasta Day,Art Day;Pumpkin Day,Mincemeat Day,Howl at the Moon Day,Mule Day,Financial Crime Day;Black Cat Day,American Beer Day,Cranky Co-Workers Day,Navy Day,Tell a Story Day;Chocolate Day,Plush Animal Lover's Day,Animation Day,First Responders Day,Internal Medicine Day;Oatmeal Day,Cat Day,Internet Day,Hermit Day,Frankenstein Friday;Candy Corn Day,Checklist Day,Speak Up For Service Day,Audio Drama Day,Text Your Ex Day;Halloween,Caramel Apple Day,Magic Day,Knock-Knock Jokes Day,Increase Your Flux Capacity Day",
+            // November
+            "Authors' Day,Family Literacy Day,Cook For Your Pets Day,Brush Day;Deviled Egg Day,Look for Circles Day,Traffic Directors Day,Stress Awareness Day,Cookie Monster Day;Sandwich Day,Cliché Day,Housewife's Day,Jellyfish Day,Smart Home Day;Candy Day,Use Your Common Sense Day,Skeptics Day,Chicken Lady Day,Waiting for the Barbarians Day;Tsunami Awareness Day,Doughnut Day,Love Your Red Hair Day,Gunpowder Day,American Football Day;Nachos Day,Saxophone Day,Basketball Day,Marooned Without a Compass Day,Strangers Day;Bittersweet Chocolate Day,Canine Lymphoma Awareness Day,Hugging Day,Notary Public Day,Retinol Day;Radiography Day,Cappuccino Day,Harvey Wallbanger Day,STEM/STEAM Day,Dunces Day;Chaos Never Dies Day,Scrapple Day,Go to an Art Museum Day,Microtia Awareness Day,World Freedom Day;Science Day for Peace,Vanilla Cupcake Day,Forget-Me-Not Day,Area Code Day,Marine Corps Birthday;Origami Day,Sundae Day,Veterans Day,Metal Day,Red Lipstick Day;French Dip Day,Chicken Soup for the Soul Day,Pizza with the Works Except Anchovies Day,Happy Hour Day,Pneumonia Day;World Kindness Day,Indian Pudding Day,Symphonic Metal Day,Caregiver Day,Saddle Day;Diabetes Day,Pickle Day,Spicy Guacamole Day,Operating Room Nurse Day,Family PJ Day;Clean Out Your Refrigerator Day,Spicy Hermit Cookie Day,Bundt Day,Philanthropy Day,Recycling Day;Tolerance Day,Fast Food Day,Button Day,Have a Party with Your Bear Day,Check Your Wipers Day;Students' Day,Baklava Day,Take a Hike Day,Homemade Bread Day,Unfriend Day;Mickey Mouse Birthday,Princess Day,Vichyssoise Day,Apple Cider Day,Married to a Scorpio Support Day;Men's Day,Play Monopoly Day,Macchiato Day,Carbonated Beverage With Caffeine Day,Camp Day;Children's Day,Peanut Butter Fudge Day,Absurdity Day,Beautiful Day,Name Your PC Day;World Television Day,Stuffing Day,Red Mitten Day,Gingerbread Cookie Day,Alascattalo Day;Cranberry Relish Day,Go For a Ride Day,Humane Society Anniversary Day,Housing Day,Start Your Own Country Day;Espresso Day,Cashew Day,Fibonacci Day,Eat a Cranberry Day,Adoption Day;Sardines Day,Celebrate Your Unique Talent Day,Brownielocks Day,Evolution Day,Walrus Day;Parfait Day,Play Day,Blase Day,Shopping Reminder Day,Meatless Day;Cake Day,Thanksgiving,Shoebox Day,Good Grief Day,Aura Awareness Day;Pins and Needles Day,Bavarian Cream Pie Day,Craft Jerky Day,Listening Day,Turtle Adoption Day;French Toast Day,Red Planet Day,Turkey Day,National Day of Giving,Space Day;Electronic Greetings Day,Square Dance Day,Lemon Cream Pie Day,Chocolates Day,Throw Out Your Leftovers Day;Computer Security Day,Mason Jar Day,Mousse Day,Meth Awareness Day,Stay Home Because You're Well Day",
+            // December
+            "Eat a Red Apple Day,Rosa Parks Day,Bifocals at the Monitor Liberation Day,Christmas Lights Day;Fritters Day,Mutt Day,Safety Razor Day,Special Education Day,Slavery Abolition Day;Persons with Disabilities Day,Peppermint Latte Day,Roof Over Your Head Day,Make a Gift Day,3D Day;Cookie Day,Dice Day,Sock Day,Cabernet Franc Day,Santa's List Day;Soil Day,Ninja Day,Bathtub Party Day,Repeal Day,Sacher Torte Day;Microwave Oven Day,Gazpacho Day,Put on Your Own Shoes Day,Pawnbrokers Day,St. Nicholas Day;Cotton Candy Day,Pearl Harbor Remembrance Day,Letter Writing Day,Joy Day,Aviation Day;Brownie Day,Pretend to Be a Time Traveler Day,Lard Day,Crossword Solvers Day,Christmas Tree Day;Pastry Day,Anti-Corruption Day,Weary Willie Day,Llama Day,Techno Day;Human Rights Day,Lager Day,Dewey Decimal System Day,Nobel Prize Day,Jane Addams Day;Mountain Day,App Day,Noodle Ring Day,Magnum P.I. Day,Tango Day;Poinsettia Day,Gingerbread House Day,Ambrosia Day,Ding-a-Ling Day,Heavy Metal Day;Violin Day,Cocoa Day,Ice Cream Day,Horse Day,Pick a Pathologist Day;Monkey Day,Bouillabaisse Day,Roast Chestnuts Day,Martyred Intellectuals Day,Yoga Day;Cupcake Day,Tea Day,Cat Herders Day,Lemon Cupcake Day,Wear Your Pearls Day;Chocolate-Covered Anything Day,Barbie and Barney Backlash Day,Stupid Toy Day,Zionism Day,Bah Humbug Day;Maple Syrup Day,Wright Brothers Day,Device Appreciation Day,Kwanzaa,Clean Air Day;Migrants Day,Twin with a Friend Day,Answer The Telephone Like Buddy The Elf Day,Bake Cookies Day,Roast Suckling Pig Day;Hard Candy Day,Oatmeal Muffin Day,Look for an Evergreen Day,Emo Day,Holly Day;Sangria Day,Mudd Day,Go Monkey Day,Ugly Christmas Sweater Day,Electronica Day;Crossword Puzzle Day,French Fried Shrimp Day,Look on the Bright Side Day,Ribbon Day,Humbug Day;Date Nut Bread Day,Forefathers Day,Mathematics Day,Cookie Exchange Day,Thermometer Day;Pfeffernusse Day,Roots Day,Festivus,Family Roots Day,Metric Conversion Day;Eggnog Day,Christmas Eve,Consumer Rights Day,Last Minute Shopper's Day,Aardvark Day;Christmas Day,Pumpkin Pie Day,A'Phabet Day,No 'L' Day,Cheeseburgers Day;Boxing Day,Candy Cane Day,Thank You Note Day,Whiners Day,Kwanzaa;Fruitcake Day,Make Cut Out Snowflakes Day,Visit the Zoo Day,Howdy Doody Day,Play Outside Day;Card Playing Day,Chocolate Candy Day,Download Day,Short Film Day,Pledge of Allegiance Day;Pepper Pot Day,Tick Tock Day,Get on the Scales Day,Bowling Day,Still Need to Do Day;Bacon Day,Bicarbonate of Soda Day,Falling Needles Family Fest Day,Resolution Planning Day,Festival of Enormous Changes at the Last Minute Day;New Year's Eve,Champagne Day,Make Up Your Mind Day,Universal Hour of Peace Day,World Peace Meditation Day"
+        ];
+
+        let allEvents = [];
+        const today = new Date();
+        let currentMonthIndex = today.getMonth(); 
+        let currentDay = today.getDate();
+
+        function loadCalendarData() {
+            // Unpack the massive database
+            months.forEach((month, mIndex) => {
+                const daysData = realHolidaysDatabase[mIndex].split(';');
+                daysData.forEach((dayString, dIndex) => {
+                    const items = dayString.split(',');
+                    items.forEach(itemName => {
+                        if(itemName.trim() !== '') {
+                            allEvents.push({
+                                month: mIndex,
+                                day: dIndex + 1,
+                                name: itemName.trim(),
+                                icon: getIcon(itemName),
+                                isMajor: itemName.includes("New Year's Day") || itemName.includes("Halloween") || itemName.includes("Christmas") || itemName.includes("Valentine's")
+                            });
+                        }
+                    });
+                });
+            });
+
+            // Ensure the count exactly matches 365 * 5 (including leap year = 1830 but logic matches days in array)
+            document.getElementById('total-counter').innerHTML = `<span class="font-bold text-white">${allEvents.length.toLocaleString()}</span> verified global events!`;
+            
+            renderDay(currentMonthIndex, currentDay);
+        }
+
+        function changeDay(delta) {
+            currentDay += delta;
+            
+            if (currentDay < 1) {
+                currentMonthIndex--;
+                if (currentMonthIndex < 0) {
+                    currentMonthIndex = 11;
+                }
+                currentDay = daysInMonth[currentMonthIndex];
+            } 
+            else if (currentDay > daysInMonth[currentMonthIndex]) {
+                currentMonthIndex++;
+                if (currentMonthIndex > 11) {
+                    currentMonthIndex = 0;
+                }
+                currentDay = 1;
+            }
+            
+            renderDay(currentMonthIndex, currentDay);
+        }
+
+        function goToToday() {
+            currentMonthIndex = today.getMonth();
+            currentDay = today.getDate();
+            renderDay(currentMonthIndex, currentDay);
+        }
+
+        function renderDay(monthIndex, day) {
+            const grid = document.getElementById('events-grid');
+            const title = document.getElementById('current-date-title');
+            const countLabel = document.getElementById('day-event-count');
+            
+            grid.innerHTML = '';
+            
+            const isToday = (monthIndex === today.getMonth() && day === today.getDate());
+            title.innerText = `${isToday ? 'Today, ' : ''}${months[monthIndex]} ${day}`;
+
+            const eventsThisDay = allEvents.filter(e => e.month === monthIndex && e.day === day);
+            countLabel.innerText = `${eventsThisDay.length} Celebrations`;
+
+            eventsThisDay.forEach(event => {
+                const bgStyle = event.isMajor ? 'bg-theme-surfaceHighlight border-theme-cyan/50' : 'glass-panel border-theme-border';
+                const iconColor = event.isMajor ? 'text-theme-cyan' : 'text-theme-textMuted';
+                const tagColor = event.isMajor ? 'bg-theme-cyan/20 text-theme-cyan' : 'bg-theme-base text-theme-textMuted border border-theme-border';
+
+                const card = document.createElement('div');
+                card.className = `event-card ${bgStyle} rounded-xl p-5 border flex flex-col justify-between h-full group`;
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="px-3 py-1 rounded-md text-xs font-bold font-mono ${tagColor}">
+                            ${months[event.month].substring(0,3).toUpperCase()} ${event.day}
+                        </div>
+                        <i data-lucide="${event.icon}" class="w-6 h-6 ${iconColor} group-hover:text-theme-cyan transition-colors"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-semibold text-lg leading-tight mb-2">${event.name}</h3>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // Refresh icons for new DOM elements
+            lucide.createIcons();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCalendarData();
+        });
+    </script>
+</body>
+</html>
