@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkers Live Theater</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0f172a; /* slate-900 */
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Abstract Teal & Slate Vector Theater Background */
+        .theater-room {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="1920" height="1080" fill="%230f172a"/><path d="M0 800 L1920 800 L1920 1080 L0 1080 Z" fill="%23020617"/><polygon points="960,0 200,800 1720,800" fill="%2314b8a6" opacity="0.03"/><path d="M 200 850 Q 960 920 1720 850" fill="none" stroke="%231e293b" stroke-width="20"/><path d="M 100 920 Q 960 1000 1820 920" fill="none" stroke="%231e293b" stroke-width="25"/><path d="M 0 1000 Q 960 1090 1920 1000" fill="none" stroke="%231e293b" stroke-width="30"/><path d="M 200 840 Q 960 910 1720 840" fill="none" stroke="%232dd4bf" stroke-width="2" opacity="0.2"/><path d="M 100 905 Q 960 985 1820 905" fill="none" stroke="%232dd4bf" stroke-width="2" opacity="0.15"/><path d="M0 0 L150 0 L50 1080 L0 1080 Z" fill="%23020617"/><path d="M1920 0 L1770 0 L1870 1080 L1920 1080 Z" fill="%23020617"/></svg>');
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* The Giant Cinema Screen Frame */
+        .cinema-screen {
+            position: relative;
+            z-index: 10;
+            background: rgba(15, 23, 42, 0.85); /* slate-900 with opacity */
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 2px solid rgba(45, 212, 191, 0.15); /* teal-400 */
+            box-shadow: 
+                0 20px 60px -10px rgba(0, 0, 0, 0.8), 
+                0 0 40px -10px rgba(20, 184, 166, 0.2),
+                inset 0 0 30px rgba(15, 118, 110, 0.3);
+            border-radius: 12px;
+        }
+
+        .screen-glow {
+            position: absolute;
+            inset: -30px;
+            background: radial-gradient(circle at 50% 50%, rgba(45,212,191,0.1) 0%, transparent 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Identical Checkers Assets to index.html */
+        .glow-p1 {
+            box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.4), 0 0 15px rgba(45, 212, 191, 0.5);
+        }
+        
+        .glow-p2 {
+            box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.6), 0 0 15px rgba(15, 118, 110, 0.7);
+        }
+
+        .fade-in {
+            animation: fadeIn 1s ease-in-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center relative">
+    
+    <!-- Background Vector Theater Art -->
+    <div class="theater-room"></div>
+
+    <!-- Main Projection Screen Area -->
+    <div class="flex flex-col items-center justify-center h-full w-full relative z-10 px-4 sm:px-12 pb-10 sm:pb-20 fade-in">
+        
+        <div class="cinema-screen w-full max-w-6xl aspect-video flex flex-col p-6 sm:p-10">
+            <div class="screen-glow animate-pulse" style="animation-duration: 4s;"></div>
+            
+            <!-- Header -->
+            <div class="text-center mb-4 sm:mb-8 flex-shrink-0">
+                <h1 class="text-3xl sm:text-5xl font-black italic tracking-[0.2em] uppercase text-teal-300 drop-shadow-[0_0_15px_rgba(94,234,212,0.4)] mb-2">Live Theater</h1>
+                <p id="theater-status" class="text-teal-500/80 text-xs sm:text-sm font-bold tracking-[0.3em] uppercase">Initializing Connection...</p>
+            </div>
+
+            <!-- Dynamic Content Area -->
+            <div id="screen-content" class="flex-1 flex items-center justify-center w-full relative h-full">
+                
+                <!-- STATE: Waiting / No Games -->
+                <div id="state-waiting" class="text-center flex flex-col items-center gap-6 p-8">
+                    <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+                        <div class="absolute inset-0 rounded-full border-t-2 border-b-2 border-teal-400 animate-spin"></div>
+                        <div class="absolute inset-3 rounded-full border-l-2 border-r-2 border-teal-600 animate-spin" style="animation-direction: reverse; animation-duration: 2s"></div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400 opacity-80 animate-pulse"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    </div>
+                    <p class="text-xl sm:text-3xl font-light tracking-wide text-slate-300">
+                        The game will start once everyone is seated and ready
+                    </p>
+                    <p class="text-slate-500 text-sm tracking-widest uppercase">Waiting for an active match to begin...</p>
+                </div>
+
+                <!-- STATE: Live Game (Widescreen Layout) -->
+                <div id="state-live" class="hidden w-full h-full flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-12 px-2 sm:px-10">
+                    
+                    <!-- Player 1 Panel -->
+                    <div class="flex flex-col items-center gap-4 flex-1 order-2 sm:order-1">
+                        <div class="w-12 h-12 sm:w-20 sm:h-20 rounded-full bg-teal-400 border-[4px] border-teal-200 glow-p1"></div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] sm:text-xs text-teal-500 font-bold uppercase tracking-widest mb-1">Player 1</span>
+                            <span id="player1-name" class="text-lg sm:text-3xl font-bold text-teal-100 tracking-widest uppercase text-center drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">---</span>
+                        </div>
+                    </div>
+
+                    <!-- The Board -->
+                    <div class="flex-shrink-0 w-full max-w-[280px] sm:max-w-[450px] aspect-square order-1 sm:order-2">
+                        <div id="spectator-board" class="grid grid-cols-8 grid-rows-8 w-full h-full rounded-xl sm:rounded-2xl overflow-hidden border-2 border-teal-500/30 shadow-[0_0_40px_rgba(20,184,166,0.15)] bg-slate-900/50">
+                            <!-- Generated via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Player 2 Panel -->
+                    <div class="flex flex-col items-center gap-4 flex-1 order-3 sm:order-3">
+                        <div class="w-12 h-12 sm:w-20 sm:h-20 rounded-full bg-teal-800 border-[4px] border-teal-600 glow-p2"></div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] sm:text-xs text-teal-700 font-bold uppercase tracking-widest mb-1">Player 2</span>
+                            <span id="player2-name" class="text-lg sm:text-3xl font-bold text-teal-500 tracking-widest uppercase text-center drop-shadow-[0_0_10px_rgba(20,184,166,0.2)]">---</span>
+                        </div>
+                    </div>
+                    
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
+            authDomain: "auth.checkers.page",
+            projectId: "checkers-matchmaking-5ac55",
+            storageBucket: "checkers-matchmaking-5ac55.firebasestorage.app",
+            messagingSenderId: "778086491027",
+            appId: "1:778086491027:web:c315fd9d97aebae6087e66",
+            firestoreDatabaseId: "(default)",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+        const appId = "checkers-app";
+
+        let currentUnsubscribe = null;
+        let searchInterval = null;
+        let staleCheckInterval = null;
+        let lastSeenGameTimestamp = 0;
+
+        // Constants matching the main game
+        const P1 = 1;
+        const P2 = 2;
+        const P1_KING = 3;
+        const P2_KING = 4;
+        const EMPTY = 0;
+
+        // UI Elements
+        const stateWaiting = document.getElementById('state-waiting');
+        const stateLive = document.getElementById('state-live');
+        const boardContainer = document.getElementById('spectator-board');
+        const theaterStatus = document.getElementById('theater-status');
+        const p1NameEl = document.getElementById('player1-name');
+        const p2NameEl = document.getElementById('player2-name');
+
+        async function initSpectator() {
+            try {
+                theaterStatus.innerText = "Connecting to Server...";
+                await signInAnonymously(auth);
+                searchForActiveGame();
+            } catch (err) {
+                console.error("Auth failed:", err);
+                theaterStatus.innerText = "Connection Failed. Retrying...";
+                setTimeout(initSpectator, 5000);
+            }
+        }
+
+        async function searchForActiveGame() {
+            if (currentUnsubscribe) {
+                currentUnsubscribe();
+                currentUnsubscribe = null;
+            }
+
+            theaterStatus.innerText = "Searching for Live Match...";
+            
+            try {
+                // Rule 2 compliant: Fetch all matchmaking data
+                const matchRef = collection(db, "artifacts", appId, "public", "data", "matchmaking");
+                const snapshot = await getDocs(matchRef);
+                
+                let candidateGames = [];
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data.status === "playing" && data.gameId) {
+                        candidateGames.push(data.gameId);
+                    }
+                });
+
+                // Shuffle array to pick a random game
+                candidateGames.sort(() => 0.5 - Math.random());
+                
+                let foundValidGame = false;
+
+                // We must verify the game ACTUALLY has a move played. (NO MOCK DATA / WAITING LOBBIES)
+                for (let gameId of candidateGames) {
+                    const gameRef = doc(db, "artifacts", appId, "games", gameId);
+                    const gameSnap = await getDoc(gameRef);
+                    
+                    if (gameSnap.exists()) {
+                        const gameData = gameSnap.data();
+                        const now = Date.now();
+                        const lastUpdated = gameData.timestamp || 0;
+                        
+                        // A game is considered "stale" or finished if it hasn't been updated in 5 minutes (300,000ms)
+                        const isStale = (now - lastUpdated) > 300000;
+                        
+                        // Strict check: Actively playing, has had at least one move, AND players are still actively moving
+                        if (gameData.status === "playing" && gameData.lastMove !== null && gameData.lastMove !== undefined && !isStale) {
+                            watchGame(gameId);
+                            foundValidGame = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!foundValidGame) {
+                    // No games met the strict criteria, show the default waiting screen
+                    showWaitingState();
+                    clearTimeout(searchInterval);
+                    searchInterval = setTimeout(searchForActiveGame, 5000); // Check again in 5 seconds
+                }
+
+            } catch (err) {
+                console.error("Error fetching games:", err);
+                showWaitingState();
+                clearTimeout(searchInterval);
+                searchInterval = setTimeout(searchForActiveGame, 5000);
+            }
+        }
+
+        function watchGame(gameId) {
+            if (staleCheckInterval) clearInterval(staleCheckInterval);
+            
+            const gameRef = doc(db, "artifacts", appId, "games", gameId);
+            
+            theaterStatus.innerText = "Live Broadcast - " + gameId;
+            
+            // Periodically check if the game we are watching went stale (players abandoned tab)
+            staleCheckInterval = setInterval(() => {
+                if (lastSeenGameTimestamp && (Date.now() - lastSeenGameTimestamp > 300000)) {
+                    showWaitingState();
+                    searchForActiveGame();
+                }
+            }, 10000);
+
+            currentUnsubscribe = onSnapshot(gameRef, (docSnap) => {
+                if (!docSnap.exists()) {
+                    // Game was deleted/ended
+                    showWaitingState();
+                    searchForActiveGame();
+                    return;
+                }
+
+                const data = docSnap.data();
+                
+                // If game ends or resets
+                if (data.status && data.status !== "playing") {
+                     showWaitingState();
+                     searchForActiveGame();
+                     return;
+                }
+
+                // Track timestamp to ensure it doesn't go stale while watching
+                lastSeenGameTimestamp = data.timestamp || Date.now();
+
+                // Show live state
+                stateWaiting.classList.add('hidden');
+                stateLive.classList.remove('hidden');
+                stateLive.classList.add('flex');
+
+                // Update names strictly
+                p1NameEl.innerText = (data.p1 && data.p1.displayName) ? data.p1.displayName : "Player 1";
+                p2NameEl.innerText = (data.p2 && data.p2.displayName) ? data.p2.displayName : "Player 2";
+
+                // Parse and render board
+                let boardData = [];
+                try {
+                    boardData = typeof data.board === 'string' ? JSON.parse(data.board) : data.board;
+                    renderBoard(boardData);
+                } catch(e) {
+                    console.error("Failed to parse board data", e);
+                }
+
+            }, (error) => {
+                console.error("Snapshot error:", error);
+                showWaitingState();
+                searchForActiveGame();
+            });
+        }
+
+        function showWaitingState() {
+            if (staleCheckInterval) clearInterval(staleCheckInterval);
+            stateLive.classList.add('hidden');
+            stateLive.classList.remove('flex');
+            stateWaiting.classList.remove('hidden');
+            theaterStatus.innerText = "Theater Empty. Awaiting Players...";
+        }
+
+        function renderBoard(board) {
+            boardContainer.innerHTML = "";
+            
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    let isPlayable = (r + c) % 2 === 1;
+                    let square = document.createElement("div");
+                    
+                    // Identical classes to index.html playable squares
+                    square.className = `w-full h-full flex items-center justify-center relative ${
+                        isPlayable ? "bg-slate-800/80 shadow-[inset_0_0_10px_rgba(0,0,0,0.4)]" : "bg-slate-900/30"
+                    }`;
+
+                    let piece = board[r][c];
+                    if (piece !== EMPTY) {
+                        let pDiv = document.createElement("div");
+                        let isP1 = (piece === P1 || piece === P1_KING);
+                        let isKing = (piece === P1_KING || piece === P2_KING);
+
+                        // Identical sizing and transition logic
+                        pDiv.className = `w-[80%] h-[80%] rounded-full absolute flex items-center justify-center transition-transform duration-300 `;
+                        
+                        if (isP1) {
+                            pDiv.className += `bg-teal-400 border-[3px] border-teal-200 glow-p1`;
+                        } else {
+                            pDiv.className += `bg-teal-800 border-[3px] border-teal-600 glow-p2`;
+                        }
+
+                        if (isKing) {
+                            pDiv.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3/5 h-3/5 ${
+                                isP1 ? "text-teal-800/70" : "text-teal-200/70"
+                            }" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>`;
+                        }
+
+                        square.appendChild(pDiv);
+                    }
+                    boardContainer.appendChild(square);
+                }
+            }
+        }
+
+        // Initialize immediately
+        initSpectator();
+
+    </script>
+</body>
+</html>
