@@ -22,6 +22,11 @@
         window.top.location.replace(window.self.location.href);
       }
     </script>
+    <script>
+  if (/pixel/i.test(navigator.userAgent)) {
+    window.location.href = '/pixel';
+  }
+</script>
 
     <script>
       (function () {
@@ -7396,11 +7401,5 @@
           });
       });
     </script>
-    <script>
-  // Redirect users on Google Pixel devices
-  if (navigator.userAgent.toLowerCase().includes('pixel')) {
-    window.location.href = window.location.origin + '/pixel';
-  }
-</script>
   </body>
 </html>
