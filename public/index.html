@@ -23,9 +23,22 @@
       }
     </script>
 <script>
-  if (/android/i.test(navigator.userAgent)) {
-    window.location.href = '/pixel';
-  }
+  (function() {
+    // 1. Detect if the device is Android
+    const isAndroid = /android/i.test(navigator.userAgent);
+
+    // 2. Detect if the app is running as an installed PWA
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                  window.matchMedia('(display-mode: fullscreen)').matches ||
+                  window.matchMedia('(display-mode: minimal-ui)').matches;
+
+    // 3. Redirect to /pixel if conditions match and we aren't already there
+    if (isAndroid && isPWA) {
+      if (window.location.pathname !== '/pixel') {
+        window.location.replace('/pixel');
+      }
+    }
+  })();
 </script>
 
     <script>
