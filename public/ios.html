@@ -1,0 +1,4657 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="manifest" href="/manifest.json" />
+    <meta charset="UTF-8" />
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-TLSR2KL9X3"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-TLSR2KL9X3");
+    </script>
+    <script>
+      if (window.top !== window.self) {
+        window.top.location.replace(window.self.location.href);
+      }
+    </script>
+
+    <script>
+      (function () {
+        // 1. Get the current date
+        const today = new Date();
+        const currentMonth = today.getMonth(); // 0 is January, 3 is April
+        const currentDate = today.getDate();
+
+        // 2. Check if today is April 1st
+        const isAprilFools = currentMonth === 3 && currentDate === 1;
+
+        // 3. Check if they've already been pranked this session
+        const hasBeenPranked = sessionStorage.getItem("2027-fun");
+
+        if (isAprilFools && !hasBeenPranked) {
+          // Mark that they are being pranked so they don't get stuck in a loop
+          sessionStorage.setItem("2027-fun", "true");
+
+          // Redirect to the prank page
+          window.location.href = "/april-fools.exe.html";
+        }
+      })();
+    </script>
+    <title>Checkers — Liquid Glass Edition</title>
+    <meta
+      name="description"
+      content="Experience the classic game of Checkers in stunning liquid glass design. Whether you’re looking to play vs AI, play with others, or host a private game."
+    />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=2.0"
+    />
+    <link rel="icon" href="/logo.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        background: radial-gradient(circle at 50% 30%, #0d1b2a, #090d16);
+        overflow-x: hidden;
+        position: relative;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      }
+
+      /* Background Liquid Orbs & Animation */
+      body::before {
+        content: "";
+        position: fixed;
+        top: -30%;
+        left: -30%;
+        width: 160%;
+        height: 160%;
+        background: radial-gradient(circle at 20% 30%, rgba(20, 184, 166, 0.15), transparent 40%),
+                    radial-gradient(circle at 80% 70%, rgba(56, 189, 248, 0.12), transparent 40%),
+                    radial-gradient(circle at 50% 50%, rgba(13, 148, 136, 0.08), transparent 50%),
+                    url("background.png");
+        background-size: cover;
+        background-position: center;
+        z-index: -1;
+        opacity: 0.6;
+        pointer-events: none;
+        will-change: transform;
+        animation: liquidPulse 12s ease-in-out infinite alternate;
+      }
+
+      @keyframes liquidPulse {
+        0% { transform: scale(1) translate(0, 0); }
+        50% { transform: scale(1.05) translate(-1%, 2%); }
+        100% { transform: scale(1) translate(1%, -1%); }
+      }
+
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.3);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(45, 212, 191, 0.3);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(45, 212, 191, 0.5);
+      }
+
+      .glass-panel {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.55), rgba(15, 23, 42, 0.65));
+        backdrop-filter: blur(24px) saturate(180%);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+                    0 0 30px -10px rgba(45, 212, 191, 0.25);
+        border-radius: 1.5rem;
+      }
+
+      .glass-input {
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(45, 212, 191, 0.25);
+        color: #5eead4;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        outline: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        letter-spacing: 0.05em;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+      .glass-input:focus {
+        border-color: rgba(45, 212, 191, 0.9);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3),
+                    0 0 20px rgba(45, 212, 191, 0.35);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, rgba(20, 184, 166, 0.25), rgba(13, 148, 136, 0.15));
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: #5eead4;
+        border: 1px solid rgba(45, 212, 191, 0.4);
+        border-radius: 0.875rem;
+        padding: 0.875rem 1.75rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+      .btn-primary:hover {
+        background: linear-gradient(135deg, rgba(20, 184, 166, 0.4), rgba(13, 148, 136, 0.25));
+        box-shadow: 0 15px 30px -5px rgba(20, 184, 166, 0.35),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        border-color: rgba(45, 212, 191, 0.8);
+      }
+      .btn-primary:active {
+        transform: translateY(1px) scale(0.98);
+      }
+
+      .glass-btn {
+        background: linear-gradient(135deg, rgba(51, 65, 85, 0.35), rgba(30, 41, 59, 0.45));
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: #cbd5e1;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.875rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      }
+      .glass-btn:hover {
+        background: linear-gradient(135deg, rgba(71, 85, 105, 0.5), rgba(51, 65, 85, 0.6));
+        color: #f8fafc;
+        border-color: rgba(255, 255, 255, 0.25);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        transform: translateY(-1px);
+      }
+      .glass-btn:active {
+        transform: scale(0.98);
+      }
+
+      /* This targets the app when it is running installed */
+      @media (display-mode: standalone) {
+        #install-button {
+          display: none !important;
+        }
+      }
+      body {
+        display: none;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-transparent text-slate-200 h-screen w-screen overflow-hidden flex flex-col font-sans selection:bg-teal-500/30 relative"
+  >
+    <div
+      class="fixed top-4 left-4 sm:top-6 sm:left-6 z-50 flex items-center gap-3 pointer-events-none"
+    >
+      <img src="/logo.png" alt="Logo" class="w-8 h-8 sm:w-10 sm:h-10 drop-shadow-lg" />
+      <h1
+        id="global-logo"
+        class="hidden sm:block text-2xl sm:text-3xl font-bold italic text-teal-300 tracking-wider uppercase drop-shadow-[0_2px_10px_rgba(45,212,191,0.5)] pointer-events-auto"
+      >
+        CHECKERS
+      </h1>
+    </div>
+
+    <div class="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex gap-3">
+      <button
+        id="universal-back-btn"
+        onclick="window.handleUniversalBack()"
+        class="glass-btn p-2 sm:px-4 rounded-xl shadow-xl border-teal-500/30 text-teal-300 hidden hover:scale-105 transition-transform active:scale-95 flex items-center justify-center"
+        title="Back"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </button>
+      <button
+        onclick="window.showLeaderboardView()"
+        class="glass-btn p-2 sm:px-4 flex items-center gap-2 rounded-xl"
+        title="Leaderboard"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="text-teal-400 drop-shadow"
+        >
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+          <path d="M4 22h16"></path>
+          <path
+            d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"
+          ></path>
+          <path
+            d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"
+          ></path>
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+        </svg>
+        <span class="hidden sm:inline">Leaderboard</span>
+      </button>
+      <button
+        onclick="window.showSocialHub()"
+        class="glass-btn p-2 sm:px-4 flex items-center gap-2 rounded-xl"
+        title="Social"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="text-teal-400 drop-shadow"
+        >
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <span class="hidden sm:inline">Social</span>
+      </button>
+      <button
+        id="top-account-btn"
+        onclick="window.handleAccountClick()"
+        class="glass-btn flex items-center justify-center rounded-full overflow-hidden w-9 h-9 sm:w-10 sm:h-10 border-teal-500/30 shrink-0 relative shadow-lg"
+        title="Account"
+        style="padding: 0"
+      >
+        <svg
+          id="top-account-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="text-teal-400"
+        >
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <img id="top-account-img" class="hidden w-full h-full object-cover" />
+      </button>
+
+      <div
+        id="account-dropdown-panel"
+        class="hidden absolute top-full right-0 mt-3 glass-panel border border-teal-500/30 rounded-2xl shadow-2xl p-4 flex flex-col gap-3 min-w-[200px] text-left transform transition-all origin-top-right z-[100]"
+      >
+        <p
+          class="text-xs text-slate-400 font-bold mb-1 border-b border-teal-500/20 pb-2"
+        >
+          Signed in as<br /><span
+            id="dropdown-uid"
+            class="text-[10px] text-teal-300 select-all font-mono tracking-wider font-normal mt-1 block"
+          ></span>
+        </p>
+        <button
+          onclick="window.loadPersonalStats(); window.showView('view-stats'); window.closeAccountDropdown();"
+          class="text-sm text-slate-200 hover:text-teal-300 text-left transition-colors flex items-center gap-2 p-1.5 rounded-lg hover:bg-teal-500/10"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 20v-6M6 20V10M18 20V4" />
+          </svg>
+          Personal Stats
+        </button>
+        <button
+          onclick="window.showView('view-account'); window.closeAccountDropdown();"
+          class="text-sm text-slate-200 hover:text-teal-300 text-left transition-colors flex items-center gap-2 p-1.5 rounded-lg hover:bg-teal-500/10"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+            ></path>
+          </svg>
+          Settings
+        </button>
+        <button
+          onclick="window.signOutGoogle(); window.closeAccountDropdown();"
+          class="text-sm text-red-400 hover:text-red-300 text-left transition-colors flex items-center gap-2 mt-1 border-t border-teal-500/20 pt-3 p-1.5 rounded-lg hover:bg-red-500/10"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Sign Out
+        </button>
+      </div>
+    </div>
+
+    <div class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex gap-3">
+      <button
+        onclick="window.showLanguagePicker()"
+        class="flex glass-btn p-2 sm:px-4 items-center gap-2 rounded-xl"
+        title="Change Language"
+        data-lang-btn="true"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="text-teal-400 drop-shadow"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path
+            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+          ></path>
+        </svg>
+        <span class="hidden sm:inline" data-orig-text="Language">Language</span>
+      </button>
+    </div>
+
+    <div
+      id="notification-toast"
+      class="fixed top-20 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-2xl text-teal-300 px-6 py-3 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.5)] border border-teal-500/40 z-[999] transform transition-all duration-300 translate-y-[-150%] opacity-0 flex items-center gap-2 font-medium tracking-wide"
+    >
+      <span id="notification-msg"></span>
+    </div>
+
+    <!-- LANDING VIEW -->
+    <div
+      id="view-landing"
+      class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300 z-40"
+    >
+      <div
+        class="glass-panel w-full max-w-md p-8 rounded-3xl flex flex-col gap-8 text-center relative overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.7)]"
+      >
+        <div
+          class="absolute -top-12 -right-12 w-48 h-48 bg-teal-400/20 rounded-full blur-3xl pointer-events-none"
+        ></div>
+        <div
+          class="absolute -bottom-12 -left-12 w-48 h-48 bg-sky-500/20 rounded-full blur-3xl pointer-events-none"
+        ></div>
+
+        <div class="flex flex-col gap-2 relative z-10">
+          <h2
+            class="text-3xl font-bold text-teal-300 tracking-tighter italic uppercase drop-shadow-[0_2px_10px_rgba(45,212,191,0.5)]"
+          >
+            Welcome to Checkers
+          </h2>
+          <p class="text-slate-300 text-sm italic">
+            The ultimate online checkers playing experience in the internet.
+            Please do one of the following and help us make our site more
+            helpful for all our users. Thanks.
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-4 relative z-10">
+          <button
+            onclick="showView('view-account')"
+            class="btn-primary flex items-center justify-center gap-3"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            Sign In / Create Account
+          </button>
+          <button
+            onclick="showView('view-main-menu')"
+            class="glass-btn flex items-center justify-center gap-3 py-4 border-teal-500/30 text-teal-300 hover:bg-teal-500/10"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            Continue
+          </button>
+        </div>
+
+        <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-4">
+          Sign in to track stats and compete on leaderboards
+        </p>
+      </div>
+    </div>
+
+    <div
+      id="view-main-menu"
+      class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300"
+    >
+      <div
+        id="pc-greeting"
+        class="absolute top-8 left-1/2 -translate-x-1/2 hidden md:block text-teal-300/90 italic font-light tracking-[0.2em] text-sm pointer-events-none drop-shadow"
+      ></div>
+      <div
+        class="glass-panel w-full max-w-md p-8 rounded-3xl flex flex-col gap-8 text-center relative overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.7)]"
+      >
+        <div
+          class="absolute -top-12 -right-12 w-48 h-48 bg-teal-400/20 rounded-full blur-3xl pointer-events-none"
+        ></div>
+        <div
+          class="absolute -bottom-12 -left-12 w-48 h-48 bg-sky-500/20 rounded-full blur-3xl pointer-events-none"
+        ></div>
+
+        <!-- Daily Challenge Banner -->
+        <div
+          id="daily-challenge-banner"
+          class="hidden relative z-10 bg-teal-500/15 backdrop-blur-md border border-teal-500/30 rounded-2xl p-4 text-left shadow-lg"
+        >
+          <div class="flex items-center justify-between mb-1">
+            <span
+              class="text-[10px] text-teal-300 uppercase tracking-[0.2em] font-bold"
+              >Daily Challenge</span
+            >
+            <div id="challenge-status-icon" class="text-teal-300">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+            </div>
+          </div>
+          <p
+            id="daily-challenge-text"
+            class="text-xs text-slate-200 font-medium"
+          >
+            Daily challenge feature currently unavailable. Check back later!
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-4 relative z-10">
+          <button
+            onclick="startGame('local')"
+            class="btn-primary flex items-center justify-center gap-3"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            Local Multiplayer
+          </button>
+          <button
+            onclick="showView('view-ai-setup')"
+            class="btn-primary flex items-center justify-center gap-3"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            Play vs AI
+          </button>
+          <button
+            onclick="showView('view-global-matchmaking-choice')"
+            class="btn-primary flex items-center justify-center gap-3 shadow-[0_0_25px_rgba(45,212,191,0.2)] border-teal-400/50"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path
+                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+              ></path>
+            </svg>
+            Global Matchmaking
+          </button>
+        </div>
+
+        <div class="flex justify-center items-center gap-4 mt-4">
+          <button
+            onclick="openModal('modal-rules')"
+            class="glass-btn w-max px-5 py-2.5 text-sm flex items-center gap-2"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+            </svg>
+            How to play
+          </button>
+
+          <div id="install-button" class="w-max">
+            <button
+              class="glass-btn w-max px-5 py-2.5 text-sm flex items-center gap-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Install as app</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Links -->
+      <div
+        class="mt-8 flex flex-wrap justify-center gap-4 text-[10px] text-slate-400 uppercase tracking-widest"
+      >
+        <a
+          href="https://checkers.page/about"
+          target="_blank"
+          class="hover:text-teal-300 transition-colors"
+          >About</a
+        >
+        <span class="opacity-30">|</span>
+        <a
+          href="https://checkers.page/privacy"
+          target="_blank"
+          class="hover:text-teal-300 transition-colors"
+          >Privacy Policy</a
+        >
+        <span class="opacity-30">|</span>
+        <a
+          href="https://checkers.page/service"
+          target="_blank"
+          class="hover:text-teal-300 transition-colors"
+          >Terms of Service</a
+        >
+        <span class="opacity-30">|</span>
+        <button
+          onclick="window.showFooterModal('contact')"
+          class="hover:text-teal-300 transition-colors"
+        >
+          FEATURES
+        </button>
+      </div>
+    </div>
+
+    <!-- ACCOUNT & FRIENDS VIEW -->
+    <div
+      id="view-account"
+      class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300"
+    >
+      <div
+        class="glass-panel w-full max-w-md p-8 rounded-3xl flex flex-col gap-6 text-center shadow-[0_25px_60px_rgba(0,0,0,0.7)]"
+      >
+        <h2
+          class="text-2xl text-teal-300 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4"
+        >
+          Settings
+        </h2>
+
+        <!-- Logged out state -->
+        <div id="account-logged-out" class="flex flex-col gap-4">
+          <p class="text-slate-300 text-sm">
+            Sign in to save your stats, view leaderboards, and add friends!
+          </p>
+
+          <div id="auth-email-form" class="flex flex-col gap-3">
+            <input
+              type="email"
+              id="auth-email"
+              class="glass-input text-sm py-2"
+              placeholder="Email"
+            />
+            <input
+              type="password"
+              id="auth-password"
+              class="glass-input text-sm py-2"
+              placeholder="Password"
+            />
+            <div id="auth-signup-name-container" class="hidden">
+              <input
+                type="text"
+                id="auth-signup-name"
+                class="glass-input text-sm py-2 w-full"
+                placeholder="Username"
+              />
+            </div>
+            <div class="flex gap-2">
+              <button
+                id="auth-main-btn"
+                onclick="window.handleEmailAuth()"
+                class="btn-primary flex-1 py-2 text-sm"
+              >
+                Sign In
+              </button>
+              <button
+                id="auth-toggle-btn"
+                onclick="window.toggleAuthMode()"
+                class="glass-btn px-4 py-2 text-xs"
+              >
+                Switch to Sign Up
+              </button>
+            </div>
+          </div>
+
+          <div class="relative py-2">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-slate-700/50"></div>
+            </div>
+            <div class="relative flex justify-center">
+              <span
+                class="bg-slate-900/80 px-4 text-xs text-slate-400 uppercase tracking-widest rounded-full"
+                >OR</span
+              >
+            </div>
+          </div>
+
+          <button
+            onclick="window.signInGoogle()"
+            class="btn-primary bg-teal-500/10 border-teal-500/30 text-teal-300 flex items-center justify-center gap-3 hover:bg-teal-500/20"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              />
+              <path
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              />
+              <path
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+              />
+              <path
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              />
+            </svg>
+            Sign in with Google
+          </button>
+        </div>
+
+        <!-- Logged in state -->
+        <div id="account-logged-in" class="hidden flex-col gap-6">
+          <div class="bg-slate-900/40 backdrop-blur-md p-4 rounded-2xl border border-teal-500/20 shadow-inner">
+            <div class="flex items-center justify-between mb-1">
+              <p class="text-white font-bold text-lg" id="account-display-name">
+                Loading...
+              </p>
+              <button
+                onclick="window.showEditUsername()"
+                class="text-teal-400 hover:text-teal-300 text-xs font-semibold"
+              >
+                Edit
+              </button>
+            </div>
+            <div
+              id="edit-username-container"
+              class="hidden flex gap-2 mt-2 mb-2"
+            >
+              <input
+                type="text"
+                id="edit-username-input"
+                class="glass-input flex-1 text-sm py-1"
+                placeholder="New Username"
+                onkeydown="if(event.key==='Enter') window.saveUsername(); if(event.key==='Escape') window.cancelEditUsername()"
+              />
+              <button
+                onclick="window.saveUsername()"
+                class="glass-btn px-3 text-xs hover:text-teal-300"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+          <code id="account-uid" class="hidden"></code>
+
+          <div class="flex flex-col gap-2 border-teal-500/20 text-left">
+            <label
+              class="text-sm text-teal-300 font-light tracking-[0.1em] uppercase"
+              >Daily Challenge Notifications</label
+            >
+            <p class="text-[10px] text-slate-400 mb-1">
+              Receive device notifications at 24:00 UTC.
+            </p>
+            <select
+              id="notification-setting"
+              onchange="window.saveNotificationSetting(this.value)"
+              class="glass-input text-sm py-2 bg-slate-900/80 border-teal-500/40 text-slate-200"
+            >
+              <option value="off">Off</option>
+              <option value="weekly">Once a Week</option>
+              <option value="daily">Daily</option>
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-2 border-t border-teal-500/20 pt-4">
+            <button
+              onclick="window.deleteAccount()"
+              class="text-[10px] text-red-400/80 hover:text-red-300 uppercase tracking-widest font-bold mt-2 transition-colors"
+            >
+              Delete Account
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS VIEW -->
+    <div
+      id="view-stats"
+      class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300"
+    >
+      <div
+        class="glass-panel w-full max-w-md p-8 rounded-3xl flex flex-col gap-6 text-center shadow-[0_25px_60px_rgba(0,0,0,0.7)]"
+      >
+        <h2
+          class="text-2xl text-teal-300 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4"
+        >
+          Personal Stats
+        </h2>
+
+        <div
+          id="stats-container"
+          class="flex flex-col gap-4 text-left bg-slate-900/40 backdrop-blur-md p-4 rounded-2xl border border-teal-500/20 shadow-inner"
+        >
+          <p class="text-slate-400 text-center py-4">Loading stats...</p>
+        </div>
+
+        <div class="text-left flex flex-col gap-3 mt-2">
+          <h3
+            class="text-sm text-teal-300 uppercase tracking-widest border-b border-teal-500/20 pb-1"
+          >
+            Awards & Badges
+          </h3>
+          <div
+            id="awards-container"
+            class="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto p-1 custom-scrollbar"
+          >
+            <p
+              class="text-slate-400 text-xs italic col-span-3 text-center py-2"
+            >
+              Win games to earn awards!
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-3 mt-2">
+          <button
+            onclick="window.deleteHighScores()"
+            class="glass-btn text-red-400 hover:text-red-300 hover:bg-red-900/20 py-2.5 border-red-900/30 font-medium"
+          >
+            Delete High Scores
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD VIEW -->
+    <div
+      id="view-leaderboard"
+      class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300"
+    >
+      <div
+        class="glass-panel w-full max-w-lg p-6 sm:p-8 rounded-3xl flex flex-col gap-4 text-center shadow-[0_25px_60px_rgba(0,0,0,0.7)]"
+      >
+        <h2
+          class="text-2xl text-teal-300 tracking-[0.2em] uppercase font-light border-b border-teal-500/20 pb-4"
+        >
+          Global Rankings
+        </h2>
+
+        <div class="flex flex-wrap gap-2 justify-center mb-2">
+          <button
+            id="tab-btn-global"
+            onclick="window.switchLeaderboardTab('global')"
+            class="btn-primary py-1.5 px-3 text-xs sm:text-sm bg-teal-500/20 border-teal-400"
+          >
+            Online
+          </button>
+          <button
+            id="tab-btn-points"
+            onclick="window.switchLeaderboardTab('points')"
+            class="glass-btn py-1.5 px-3 text-xs sm:text-sm"
+          >
+            Points
+          </button>
+          <button
+            id="tab-btn-ai-easy"
+            onclick="window.switchLeaderboardTab('ai-easy')"
+            class="glass-btn py-1.5 px-3 text-xs sm:text-sm"
+          >
+            AI Easy
+          </button>
+          <button
+            id="tab-btn-ai-medium"
+            onclick="window.switchLeaderboardTab('ai-medium')"
+            class="glass-btn py-1.5 px-3 text-xs sm:text-sm"
+          >
+            AI Medium
+          </button>
+          <button
+            id="tab-btn-ai-hard"
+            onclick="window.switchLeaderboardTab('ai-hard')"
+            class="glass-btn py-1.5 px-3 text-xs sm:text-sm"
+          >
+            AI Hard
+          </button>
+        </div>
+
+        <div
+          class="bg-slate-900/50 backdrop-blur-md rounded-2xl p-4 border border-slate-700/60 min-h-[250px] max-h-[400px] overflow-y-auto custom-scrollbar shadow-inner"
+        >
+          <div id="leaderboard-list" class="flex flex-col gap-2 text-left">
+            <p class="text-slate-400 text-center py-4">
+              Loading leaderboard...
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI SETUP VIEW -->
+    <div
+      id="view-ai-setup"
+      class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300"
+    >
+      <div
+        class="glass-panel w-full max-w-md p-8 rounded-3xl flex flex-col gap-6 shadow-[0_25px_60px_rgba(0,0,0,0.7)]"
+      >
+        <h2
+          class="text-2xl text-teal-300 text-center tracking-widest uppercase font-light border-b border-teal-500/20 pb-4"
+        >
+          Select Difficulty
+        </h2>
+        <div class="flex flex-col gap-3">
+          <button
+            onclick="gameState.aiDifficulty='easy'; startGame('ai')"
+            class="btn-primary flex justify-between items-center"
+          >
+            <span>Easy</span> <span class="text-teal-200/70 text-xs font-normal">Random Moves</span>
+          </button>
+          <button
+            onclick="gameState.aiDifficulty='medium'; startGame('ai')"
+            class="btn-primary flex justify-between items-center"
+          >
+            <span>Medium</span> <span class="text-teal-200/70 text-xs font-normal">Basic Tactics</span>
+          </button>
+          <button
+            onclick="gameState.aiDifficulty='hard'; startGame('ai')"
+            class="btn-primary flex justify-between items-center"
+          >
+            <span>Hard</span> <span class="text-teal-200/70 text-xs font-normal">Minimax Logic</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GLOBAL MATCHMAKING CHOICE VIEW -->
+    <div
+      id="view-global-matchmaking-choice"
+      class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300"
+    >
+      <div
+        class="glass-panel w-full max-w-md p-8 rounded-3xl flex flex-col gap-6 text-center shadow-[0_25px_60px_rgba(0,0,0,0.7)]"
+      >
+        <h2
+          class="text-2xl text-teal-300 tracking-[0.2em] uppercase font-light"
+        >
+          Global Matchmaking
+        </h2>
+        <p class="text-slate-300 text-sm italic">Choose your game mode</p>
+        <div class="flex flex-col gap-4">
+          <button
+            onclick="window.startGlobalMatch('standard')"
+            class="btn-primary py-4 flex flex-col items-center gap-1"
+          >
+            <span class="text-lg font-bold">Standard</span>
+            <span class="text-[10px] opacity-70 uppercase tracking-widest"
+              >Classic Checkers Rules</span
+            >
+          </button>
+          <div class="relative py-2">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-slate-700/50"></div>
+            </div>
+            <div class="relative flex justify-center">
+              <span
+                class="bg-slate-900/80 px-4 text-[10px] text-slate-400 uppercase tracking-widest rounded-full"
+                >Wild Section</span
+              >
+            </div>
+          </div>
+          <button
+            onclick="window.startGlobalMatch('wild')"
+            class="btn-primary py-4 flex flex-col items-center gap-1 border-teal-500/50 text-teal-300 shadow-[0_0_20px_rgba(20,184,166,0.15)]"
+          >
+            <span class="text-lg font-bold">Wild Mode</span>
+            <span class="text-[10px] opacity-70 uppercase tracking-widest"
+              >Randomized Rules & Chaos</span
+            >
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GLOBAL MATCHMAKING VIEW -->
+    <div
+      id="view-searching"
+      class="view-container fixed inset-0 hidden flex flex-col items-center justify-center p-4 sm:p-6 transition-opacity duration-300"
+    >
+      <div
+        class="glass-panel w-full max-w-md p-8 rounded-3xl flex flex-col gap-6 text-center shadow-[0_25px_60px_rgba(0,0,0,0.7)]"
+      >
+        <h2
+          id="searching-title"
+          class="text-2xl text-teal-300 tracking-[0.2em] uppercase font-light"
+        >
+          Matchmaking
+        </h2>
+        <div
+          class="relative w-24 h-24 mx-auto flex items-center justify-center"
+        >
+          <div
+            class="absolute inset-0 rounded-full border-t-2 border-teal-400 animate-spin shadow-[0_0_15px_rgba(45,212,191,0.5)]"
+          ></div>
+          <div
+            class="absolute inset-2 rounded-full border-r-2 border-sky-300 animate-spin"
+            style="animation-direction: reverse; animation-duration: 1.5s"
+          ></div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="text-teal-400 drop-shadow"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+            <path d="M2 12h20"></path>
+          </svg>
+        </div>
+
+        <div
+          id="searching-lobby-info"
+          class="hidden flex flex-col gap-2 p-4 bg-teal-500/10 backdrop-blur-md rounded-2xl border border-teal-500/20"
+        >
+          <span
+            class="text-[10px] text-teal-300 uppercase tracking-widest font-bold"
+            >Lobby Code</span
+          >
+          <div class="flex items-center justify-center gap-3">
+            <span
+              id="searching-lobby-code"
+              class="text-2xl font-bold text-white tracking-widest font-mono"
+              >------</span
+            >
+            <button
+              onclick="copySearchingLobbyLink()"
+              class="text-teal-400 hover:text-teal-300"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+                ></path>
+                <path
+                  d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div
+          id="active-games-count"
+          class="text-[10px] text-teal-400/80 uppercase tracking-widest font-bold"
+        >
+          Active Games: ...
+        </div>
+        <p
+          class="text-slate-200 font-medium tracking-wide animate-pulse"
+          id="matchmaking-status-text"
+        >
+          Searching for an opponent...
+        </p>
+
+        <div id="reconnect-container" class="hidden flex flex-col gap-2">
+          <p class="text-xs text-slate-400 italic">
+            Connection taking longer than expected...
+          </p>
+          <button
+            onclick="window.startGlobalMatch()"
+            class="btn-primary py-2 text-sm"
+          >
+            Attempt Reconnection
+          </button>
+        </div>
+
+        <button
+          onclick="cancelMatchmaking()"
+          class="glass-btn w-full py-3 mt-2 text-xs uppercase tracking-widest font-bold border-red-500/20 text-red-400 hover:bg-red-500/10"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- GAME VIEW -->
+    <div
+      id="view-game"
+      class="view-container fixed inset-0 hidden flex items-center justify-center p-4 sm:p-6 transition-opacity duration-300"
+    >
+      <div
+        class="relative flex flex-col items-center justify-center w-full max-w-2xl"
+      >
+        <div
+          class="absolute -top-20 sm:-top-24 w-full flex flex-row justify-between items-end gap-2 px-2 z-30"
+        >
+          <div class="flex flex-col items-start">
+            <div
+              id="turn-status"
+              class="text-slate-200 font-medium tracking-wide text-xs sm:text-sm bg-slate-900/60 backdrop-blur-xl px-3 py-1.5 rounded-xl border border-slate-700/60 shadow-lg"
+            ></div>
+            <div
+              id="opponent-info"
+              class="hidden sm:flex items-center gap-2 mt-1 bg-slate-900/60 backdrop-blur-xl px-3 py-1.5 rounded-xl border border-slate-700/60 shadow-lg w-max"
+            >
+              <span class="text-[10px] text-slate-400 uppercase tracking-widest"
+                >Opponent:</span
+              >
+              <span id="opponent-name" class="text-xs font-bold text-teal-300"
+                >...</span
+              >
+              <button
+                id="btn-add-friend-opponent"
+                class="hidden text-[10px] bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded-lg hover:bg-teal-500/40 transition-colors border border-teal-500/30"
+              >
+                Add Friend
+              </button>
+            </div>
+            <div
+              id="live-score-container"
+              class="mt-1 text-[10px] sm:text-xs font-bold text-teal-300 uppercase tracking-widest flex items-center gap-2 px-1 drop-shadow"
+            >
+              <span class="opacity-60">Live Score:</span>
+              <span id="live-score-val" class="text-teal-200">0</span>
+            </div>
+          </div>
+          <div class="flex gap-1.5 sm:gap-2">
+            <div class="relative inline-block">
+              <button
+                id="btn-chat-desktop"
+                onclick="window.toggleChatMenu()"
+                class="hidden glass-btn p-2 sm:px-4 text-xs sm:text-sm flex items-center gap-2 border-teal-500/30 text-teal-300 rounded-xl"
+                title="Chat"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                  ></path>
+                </svg>
+                <span class="hidden sm:inline">Chat</span>
+              </button>
+              <div
+                id="chat-menu-desktop"
+                class="hidden absolute top-full left-0 mt-2 flex-col gap-1 glass-panel p-2 rounded-2xl text-xs shadow-2xl border-teal-500/50 w-40 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+              >
+                <button
+                  onclick="window.sendChatMsg('Still there?')"
+                  class="text-left px-3 py-2 hover:bg-slate-700/60 rounded-xl transition-colors text-slate-200"
+                >
+                  Still there?
+                </button>
+                <button
+                  onclick="window.sendChatMsg('Play again?')"
+                  class="text-left px-3 py-2 hover:bg-slate-700/60 rounded-xl transition-colors text-slate-200"
+                >
+                  Play again?
+                </button>
+                <button
+                  onclick="window.sendChatMsg('Yes!')"
+                  class="text-left px-3 py-2 hover:bg-slate-700/60 rounded-xl transition-colors text-slate-200"
+                >
+                  Yes!
+                </button>
+                <button
+                  onclick="window.sendChatMsg('No.')"
+                  class="text-left px-3 py-2 hover:bg-slate-700/60 rounded-xl transition-colors text-slate-200"
+                >
+                  No.
+                </button>
+                <button
+                  onclick="window.sendChatMsg('Good move!')"
+                  class="text-left px-3 py-2 hover:bg-slate-700/60 rounded-xl transition-colors text-slate-200"
+                >
+                  Good move!
+                </button>
+                <button
+                  onclick="window.sendChatMsg('Oops!')"
+                  class="text-left px-3 py-2 hover:bg-slate-700/60 rounded-xl transition-colors text-slate-200"
+                >
+                  Oops!
+                </button>
+              </div>
+            </div>
+            <button
+              onclick="openModal('modal-rules')"
+              class="glass-btn p-2 sm:px-4 text-xs sm:text-sm flex items-center gap-2 rounded-xl"
+              title="Rules"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+              </svg>
+              <span class="hidden sm:inline">Rules</span>
+            </button>
+            <button
+              onclick="quitGame()"
+              class="glass-btn p-2 sm:px-4 text-xs sm:text-sm flex items-center gap-2 text-red-400 border-red-900/40 hover:bg-red-900/20 rounded-xl"
+              title="Quit"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              <span class="hidden sm:inline">Quit</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- The Board: Rounded outer edges, flat themed squares, no square rounding/shadows -->
+        <div
+          id="board-container"
+          class="grid grid-cols-8 grid-rows-8 w-full max-w-[95vw] sm:max-w-[550px] aspect-square overflow-hidden rounded-3xl border-2 border-slate-700/80 z-10 p-0 shadow-2xl"
+        >
+          <!-- Squares injected dynamically -->
+        </div>
+
+        <div
+          id="wild-rules-indicator"
+          class="hidden absolute top-2 left-1/2 -translate-x-1/2 bg-teal-500/20 backdrop-blur-md border border-teal-500/40 px-4 py-1.5 rounded-full text-[10px] text-teal-300 uppercase tracking-widest z-30 flex gap-4 shadow-[0_0_20px_rgba(20,184,166,0.2)]"
+        >
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Modal -->
+    <div
+      id="modal-footer"
+      class="fixed inset-0 bg-slate-950/70 backdrop-blur-xl z-[100] hidden flex items-center justify-center p-4 opacity-100 transition-opacity"
+    >
+      <div
+        class="glass-panel p-6 sm:p-8 rounded-3xl max-w-lg w-full max-h-[80vh] overflow-y-auto shadow-[0_30px_70px_rgba(0,0,0,0.8)]"
+      >
+        <div
+          class="flex justify-between items-center mb-4 border-b border-teal-500/20 pb-4"
+        >
+          <h2
+            id="footer-modal-title"
+            class="text-xl text-teal-300 font-light tracking-widest uppercase"
+          >
+            Title
+          </h2>
+          <button
+            onclick="closeModal('modal-footer')"
+            class="text-slate-400 hover:text-teal-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div
+          id="footer-modal-content"
+          class="text-slate-300 text-sm leading-relaxed space-y-4 custom-scrollbar"
+        >
+        </div>
+      </div>
+    </div>
+
+    <!-- Rules Modal -->
+    <div
+      id="modal-rules"
+      class="fixed inset-0 bg-slate-950/70 backdrop-blur-xl z-[100] hidden flex items-center justify-center p-4 opacity-100 transition-opacity"
+    >
+      <div
+        class="glass-panel p-6 sm:p-8 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-[0_30px_70px_rgba(0,0,0,0.8)]"
+      >
+        <div
+          class="flex justify-between items-center mb-4 border-b border-teal-500/20 pb-4"
+        >
+          <h2
+            class="text-2xl text-teal-300 font-light tracking-widest uppercase"
+          >
+            How to Play
+          </h2>
+          <button
+            onclick="closeModal('modal-rules')"
+            class="text-slate-400 hover:text-teal-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div
+          class="text-slate-300 text-sm sm:text-base leading-relaxed space-y-4"
+        >
+          <p>
+            Welcome to Checkers. Your objective is to capture all opponent
+            pieces or block them so they cannot move.
+          </p>
+          <ul class="list-disc pl-5 space-y-2">
+            <li>
+              <strong class="text-teal-300">Movement:</strong> Regular pieces
+              move diagonally forward exactly one square.
+            </li>
+            <li>
+              <strong class="text-teal-300">Capturing:</strong> Jump over an
+              opponent's piece diagonally to capture it.
+            </li>
+            <li>
+              <strong class="text-teal-300">Forced Jumps:</strong> If any jump
+              is possible on the board, you must take it. If multiple jumps are
+              available in a chain for a piece, you must continue jumping until
+              no more jumps are possible for that piece.
+            </li>
+            <li>
+              <strong class="text-teal-300">Kings:</strong> When a piece reaches
+              the opposite far end of the board, it becomes a King (marked with
+              a crown). Kings can move and capture diagonally both forward and
+              backward.
+            </li>
+          </ul>
+          <div
+            class="mt-6 pt-4 border-t border-slate-700/50 flex gap-4 items-center justify-center"
+          >
+            <div class="flex items-center gap-2">
+              <div class="w-4 h-4 rounded-full bg-teal-400"></div>
+              Light Teal (Player 1)
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-4 h-4 rounded-full bg-teal-800"></div>
+              Dark Teal (Player 2)
+            </div>
+          </div>
+        </div>
+        <button
+          onclick="closeModal('modal-rules')"
+          class="btn-primary w-full mt-6"
+        >
+          Got it
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="modal-waiting-opponent"
+      class="fixed inset-0 bg-slate-950/70 backdrop-blur-xl z-[110] hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="glass-panel p-6 sm:p-8 rounded-3xl max-w-sm w-full text-center flex flex-col gap-6 shadow-[0_30px_70px_rgba(0,0,0,0.8)]"
+      >
+        <h2 class="text-2xl text-teal-300 font-light tracking-widest uppercase">
+          Waiting
+        </h2>
+
+        <div
+          class="relative w-16 h-16 mx-auto flex items-center justify-center"
+        >
+          <div
+            class="absolute inset-0 rounded-full border-t-2 border-teal-400 animate-spin"
+          ></div>
+        </div>
+
+        <p class="text-slate-300 text-sm animate-pulse">
+          Waiting for an opponent to join...
+        </p>
+
+        <button
+          onclick="cancelMatchmaking()"
+          class="glass-btn w-full py-3 mt-2 text-xs uppercase tracking-widest font-bold border-red-500/20 text-red-400 hover:bg-red-500/10"
+        >
+          Cancel Game
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="modal-player-profile"
+      class="fixed inset-0 bg-slate-950/70 backdrop-blur-xl z-[110] hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="glass-panel p-6 sm:p-8 rounded-3xl max-w-sm w-full text-center flex flex-col gap-6 shadow-[0_30px_70px_rgba(0,0,0,0.8)]"
+      >
+        <div
+          class="flex justify-between items-center border-b border-teal-500/20 pb-4"
+        >
+          <h2
+            id="profile-modal-name"
+            class="text-xl text-teal-300 font-light tracking-widest uppercase"
+          >
+            Player Profile
+          </h2>
+          <button
+            onclick="closeModal('modal-player-profile')"
+            class="text-slate-400 hover:text-teal-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="flex flex-col gap-2">
+          <div
+            id="profile-modal-points"
+            class="text-2xl text-teal-200 font-bold"
+          >
+            0 Points
+          </div>
+          <div
+            id="profile-modal-stats"
+            class="text-xs text-slate-400 uppercase tracking-widest"
+          >
+            <span data-orig-text="Wins:">Wins:</span> 0
+            <span data-orig-text="| Losses:">| Losses:</span> 0
+          </div>
+        </div>
+        <div class="flex flex-col gap-3">
+          <h3
+            class="text-[10px] text-slate-400 uppercase tracking-widest font-bold text-left"
+          >
+            Badges & Awards
+          </h3>
+          <div
+            id="profile-modal-badges"
+            class="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar"
+          >
+          </div>
+        </div>
+        <button
+          id="btn-add-friend-from-profile"
+          class="btn-primary w-full hidden"
+        >
+          Add Friend
+        </button>
+        <button
+          id="btn-delete-friend-from-profile"
+          class="glass-btn w-full hidden text-red-400 border-red-900/40 hover:bg-red-900/20"
+        >
+          Delete Friend
+        </button>
+      </div>
+    </div>
+
+    <!-- Sign-In Fallback Modal -->
+    <div
+      id="modal-signin-fallback"
+      class="fixed inset-0 bg-slate-950/70 backdrop-blur-xl z-[110] hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="glass-panel p-6 sm:p-8 rounded-3xl max-w-md w-full text-center flex flex-col gap-6 shadow-[0_30px_70px_rgba(0,0,0,0.8)]"
+      >
+        <h2 class="text-xl text-teal-300 font-light tracking-widest uppercase">
+          Sign In Blocked
+        </h2>
+        <p class="text-slate-300 text-sm">
+          Your browser or tracking protection settings prevented the standard
+          sign-in from opening.
+        </p>
+        <p class="text-slate-400 text-xs text-left p-4 bg-slate-900/60 rounded-2xl border border-teal-500/20">
+          <strong class="text-teal-300"
+            >Workaround for PWAs / Strict Settings:</strong
+          ><br /><br />
+          1. Click the button below to open a direct Web Browser tab.<br />
+          2. Complete the Google Sign-in in that new tab.<br />
+          3. The new tab will say "Successfully Signed In!".<br />
+          4. Come back to this window — you will automatically be logged in.
+        </p>
+        <div class="flex flex-col gap-3 mt-2">
+          <a
+            href="?login=true"
+            target="_blank"
+            rel="noopener external"
+            onclick="closeModal('modal-signin-fallback')"
+            class="btn-primary flex items-center justify-center gap-2 py-3 bg-teal-500/20 border-teal-500/50 hover:bg-teal-500/30"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              />
+              <path
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              />
+              <path
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+              />
+              <path
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              />
+            </svg>
+            Open Browser Sign-In
+          </a>
+          <button
+            onclick="closeModal('modal-signin-fallback')"
+            class="glass-btn py-2 text-sm text-slate-400 hover:text-slate-300"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Social Hub Modal -->
+    <div
+      id="modal-social"
+      class="fixed inset-0 bg-slate-950/70 backdrop-blur-xl z-[100] hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="glass-panel p-6 sm:p-8 rounded-3xl max-w-lg w-full flex flex-col gap-6 max-h-[90vh] shadow-[0_30px_70px_rgba(0,0,0,0.8)]"
+      >
+        <div
+          class="flex justify-between items-center border-b border-teal-500/20 pb-4"
+        >
+          <h2
+            class="text-xl text-teal-300 font-light tracking-widest uppercase"
+          >
+            Social Hub
+          </h2>
+          <button
+            onclick="closeModal('modal-social')"
+            class="text-slate-400 hover:text-teal-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="flex gap-2 border-b border-slate-700/50 pb-2">
+          <button
+            onclick="window.switchSocialTab('friends')"
+            id="social-tab-friends"
+            class="flex-1 py-2 text-xs uppercase tracking-widest font-bold text-teal-300 border-b-2 border-teal-400"
+          >
+            Friends
+          </button>
+          <button
+            onclick="window.switchSocialTab('requests')"
+            id="social-tab-requests"
+            class="flex-1 py-2 text-xs uppercase tracking-widest font-bold text-slate-400"
+          >
+            Requests
+          </button>
+          <button
+            onclick="window.switchSocialTab('search')"
+            id="social-tab-search"
+            class="flex-1 py-2 text-xs uppercase tracking-widest font-bold text-slate-400"
+          >
+            Search
+          </button>
+        </div>
+
+        <div
+          id="social-content"
+          class="overflow-y-auto pr-2 custom-scrollbar flex-1"
+        >
+        </div>
+
+        <div
+          id="social-friends-add-container"
+          class="hidden flex flex-col gap-3 border-t border-slate-700/50 pt-4"
+        >
+          <h3
+            class="text-[10px] text-slate-400 uppercase tracking-widest font-bold"
+          >
+            Add Friend
+          </h3>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              id="add-friend-input"
+              class="glass-input flex-1 text-sm py-2 text-center tracking-widest font-mono"
+              placeholder="USER ID"
+              maxlength="8"
+            />
+            <button
+              onclick="window.addFriend()"
+              class="glass-btn px-4 text-sm hover:text-teal-300"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div
+      id="modal-confirm"
+      class="fixed inset-0 bg-slate-950/70 backdrop-blur-xl z-[9999] hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="glass-panel p-6 sm:p-8 rounded-3xl max-w-sm w-full text-center shadow-[0_30px_70px_rgba(0,0,0,0.8)]"
+      >
+        <h3 class="text-xl text-teal-300 mb-6 font-medium" id="confirm-text">
+          Are you sure?
+        </h3>
+        <div class="flex gap-4 justify-center">
+          <button
+            onclick="closeConfirmModal()"
+            class="glass-btn px-6 py-2.5 flex-1"
+          >
+            Cancel
+          </button>
+          <button
+            id="btn-confirm-yes"
+            class="btn-primary px-6 py-2.5 flex-1 border-red-500/50 text-red-300 hover:bg-red-500/20"
+          >
+            Yes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div
+      id="modal-gameover"
+      class="fixed inset-0 bg-slate-950/70 backdrop-blur-xl z-[100] hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="glass-panel p-8 rounded-3xl max-w-sm w-full text-center flex flex-col gap-6 relative overflow-hidden shadow-[0_30px_70px_rgba(0,0,0,0.8)]"
+      >
+        <div class="absolute inset-0 bg-teal-500/10 z-0 pointer-events-none"></div>
+        <h2
+          class="text-3xl text-teal-300 font-light tracking-widest uppercase relative z-10"
+        >
+          Game Over
+        </h2>
+        <div
+          id="winner-text"
+          class="text-xl text-white font-medium relative z-10"
+        >
+          Player 1 Wins!
+        </div>
+        <div
+          id="score-text"
+          class="text-2xl text-teal-200 font-bold relative z-10 hidden mt-2"
+        >
+          Score: 0
+        </div>
+        <div
+          class="flex flex-col sm:flex-row gap-3 justify-center mt-4 relative z-10"
+        >
+          <button onclick="restartGame()" class="btn-primary px-6 py-3 flex-1">
+            Play Again
+          </button>
+          <button
+            onclick="quitGameFromEnd()"
+            class="glass-btn px-6 py-3 flex-1"
+          >
+            Main Menu
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // --- CONSTANTS & STATE ---
+      const P1 = 1;
+      const P2 = 2;
+      const P1_KING = 3;
+      const P2_KING = 4;
+      const EMPTY = 0;
+
+      const gameState = {
+        mode: "local",
+        aiDifficulty: "medium",
+        turn: P1,
+        myPlayer: P1,
+        board: [],
+        selectedPiece: null,
+        validMoves: [],
+        mustJumpPiece: null,
+        winner: null,
+        startTime: 0,
+        lastMove: null,
+        opponentInfo: null,
+      };
+      window.gameState = gameState;
+
+      window.recordWin = window.recordWin || function () {};
+
+      let navigationStack = ["view-landing"];
+
+      let bgPos = 0;
+      let bgDir = 1;
+      let bgSpeed = 0.001;
+      let targetBgSpeed = 0.001;
+
+      function updateBackground() {
+        bgPos += bgDir * bgSpeed;
+        if (bgPos > 1) {
+          bgPos = 1;
+          bgDir = -1;
+        }
+        if (bgPos < 0) {
+          bgPos = 0;
+          bgDir = 1;
+        }
+
+        bgSpeed += (targetBgSpeed - bgSpeed) * 0.05;
+
+        const scale = 1.1 + bgPos * 0.1;
+        const move = bgPos * 5;
+
+        const bgEl = document.querySelector("body");
+        if (bgEl) {
+          bgEl.style.setProperty(
+            "--bg-transform",
+            `translate(-${move}%, -${move}%) scale(${scale})`
+          );
+        }
+        requestAnimationFrame(updateBackground);
+      }
+
+      const style = document.createElement("style");
+      style.textContent = `body::before { transform: var(--bg-transform, translate(-2%, -2%) scale(1.1)); }`;
+      document.head.appendChild(style);
+      updateBackground();
+
+      document.addEventListener("mousedown", (e) => {
+        const isInteractive =
+          e.target.closest("button") ||
+          e.target.closest(".piece") ||
+          e.target.closest(".glass-btn") ||
+          e.target.closest(".square");
+        if (isInteractive) {
+          bgSpeed = 0.01;
+          targetBgSpeed = 0.002;
+        }
+      });
+
+      function openModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+          modal.classList.remove("hidden");
+        }
+      }
+
+      function closeModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+          modal.classList.add("hidden");
+        }
+      }
+
+      function showView(id, pushToStack = true) {
+        document
+          .querySelectorAll(".view-container")
+          .forEach((v) => v.classList.add("hidden"));
+        document
+          .querySelectorAll(".fixed.inset-0")
+          .forEach((m) => m.classList.add("hidden"));
+        const view = document.getElementById(id);
+        if (view) {
+          view.classList.remove("hidden");
+          if (pushToStack) {
+            if (navigationStack[navigationStack.length - 1] !== id) {
+              navigationStack.push(id);
+            }
+          }
+          updateUniversalBackButton(id);
+        }
+      }
+
+      window.closeAccountDropdown = () => {
+        const dp = document.getElementById("account-dropdown-panel");
+        if (dp) dp.classList.add("hidden");
+      };
+
+      window.handleAccountClick = () => {
+        if (window.isRegisteredUser && window.isRegisteredUser()) {
+          const dp = document.getElementById("account-dropdown-panel");
+          if (dp) {
+            if (dp.classList.contains("hidden")) {
+              dp.classList.remove("hidden");
+              const dpUid = document.getElementById("dropdown-uid");
+              const fbFriendCode = document.getElementById("account-uid")
+                ? document.getElementById("account-uid").innerText
+                : null;
+
+              if (dpUid && fbFriendCode && fbFriendCode.length <= 10) {
+                dpUid.innerText = fbFriendCode;
+              } else if (dpUid) {
+                dpUid.innerText = "Loading...";
+              }
+            } else {
+              dp.classList.add("hidden");
+            }
+          }
+        } else {
+          showView("view-account");
+        }
+      };
+
+      document.addEventListener("click", (e) => {
+        const dp = document.getElementById("account-dropdown-panel");
+        const btn = document.getElementById("top-account-btn");
+        if (dp && !dp.classList.contains("hidden") && btn) {
+          if (!dp.contains(e.target) && !btn.contains(e.target)) {
+            dp.classList.add("hidden");
+          }
+        }
+      });
+
+      function updateUniversalBackButton(viewId) {
+        const backBtn = document.getElementById("universal-back-btn");
+        if (viewId === "view-main-menu" || viewId === "view-landing") {
+          backBtn.classList.add("hidden");
+        } else {
+          backBtn.classList.remove("hidden");
+        }
+      }
+
+      window.handleUniversalBack = () => {
+        const openModalEl = document.querySelector(
+          ".fixed.inset-0:not(.hidden)"
+        );
+        if (
+          openModalEl &&
+          openModalEl.id !== "view-landing" &&
+          openModalEl.id !== "view-main-menu" &&
+          !openModalEl.id.startsWith("view-")
+        ) {
+          closeModal(openModalEl.id);
+          return;
+        }
+
+        const gameView = document.getElementById("view-game");
+        if (gameView && !gameView.classList.contains("hidden")) {
+          quitGame();
+          return;
+        }
+
+        const searchingView = document.getElementById("view-searching");
+        if (searchingView && !searchingView.classList.contains("hidden")) {
+          cancelMatchmaking();
+          return;
+        }
+
+        const onlineSetupView = document.getElementById("view-online-setup");
+        const globalChoiceView = document.getElementById(
+          "view-global-matchmaking-choice"
+        );
+        if (
+          (onlineSetupView && !onlineSetupView.classList.contains("hidden")) ||
+          (globalChoiceView && !globalChoiceView.classList.contains("hidden"))
+        ) {
+          showView("view-main-menu");
+          return;
+        }
+
+        if (navigationStack.length > 1) {
+          navigationStack.pop();
+          const prevView = navigationStack[navigationStack.length - 1];
+          showView(prevView, false);
+        } else {
+          showView("view-main-menu");
+        }
+      };
+
+      window.onpopstate = null;
+
+      const hasSeenLanding = localStorage.getItem("checkers_landing_seen_v6");
+      if (!hasSeenLanding) {
+        showView("view-landing", false);
+        localStorage.setItem("checkers_landing_seen_v6", "true");
+      } else {
+        navigationStack = ["view-main-menu"];
+        showView("view-main-menu", false);
+      }
+
+      function showNotification(msg, isHTML = false, durationMs = 3000) {
+        const notif = document.getElementById("notification-toast");
+        const msgEl = document.getElementById("notification-msg");
+        if (isHTML) {
+          msgEl.innerHTML = msg;
+        } else {
+          msgEl.innerText = msg;
+        }
+        notif.classList.remove("translate-y-[-150%]", "opacity-0");
+
+        if (window.notifTimeout) clearTimeout(window.notifTimeout);
+        if (window.notifClearTimeout) clearTimeout(window.notifClearTimeout);
+
+        if (durationMs > 0) {
+          window.notifTimeout = setTimeout(() => {
+            notif.classList.add("translate-y-[-150%]", "opacity-0");
+            window.notifClearTimeout = setTimeout(() => {
+              msgEl.innerText = "";
+            }, 400);
+          }, durationMs);
+        }
+      }
+
+      let confirmCallback = null;
+      function showConfirm(msg, callback) {
+        document.getElementById("confirm-text").innerText = msg;
+        confirmCallback = callback;
+        openModal("modal-confirm");
+      }
+      window.showConfirm = showConfirm;
+
+      function closeConfirmModal() {
+        closeModal("modal-confirm");
+        confirmCallback = null;
+      }
+      window.closeConfirmModal = closeConfirmModal;
+      document.getElementById("btn-confirm-yes").onclick = () => {
+        if (confirmCallback) confirmCallback();
+        closeConfirmModal();
+      };
+
+      // --- CHAT SYSTEM ---
+      window.toggleChatMenu = () => {
+        const menus = document.querySelectorAll('[id^="chat-menu"]');
+        menus.forEach((m) => {
+          m.classList.toggle("hidden");
+          m.classList.toggle("flex");
+        });
+      };
+
+      window.sendChatMsg = (text) => {
+        if (gameState.mode === "online") {
+          if (window.sendChatMsgFirebase) {
+            window.sendChatMsgFirebase(text);
+          }
+        }
+        window.toggleChatMenu();
+      };
+
+      // --- GAME LOGIC ---
+      function getDailyWildRules() {
+        const today = new Date().toISOString().split("T")[0];
+        let seed = 0;
+        for (let i = 0; i < today.length; i++) {
+          seed = (seed << 5) - seed + today.charCodeAt(i);
+          seed |= 0;
+        }
+        seed = Math.abs(seed);
+
+        const nextRand = () => {
+          seed = (seed * 48271) % 2147483647;
+          return seed / 2147483647;
+        };
+
+        nextRand();
+        nextRand();
+        nextRand();
+
+        const layouts = [
+          "random",
+          "checkerboard_swap",
+          "center_clump",
+          "edge_huggers",
+        ];
+        const layoutIdx = Math.floor(nextRand() * layouts.length);
+
+        let rules = {
+          layout: layouts[layoutIdx],
+          allKings: nextRand() > 0.7,
+          noKings: nextRand() > 0.8,
+          timedMoves:
+            nextRand() > 0.5 ? Math.floor(nextRand() * 20) + 10 : null,
+        };
+
+        if (rules.allKings && rules.noKings) {
+          rules.noKings = false;
+        }
+
+        return rules;
+      }
+
+      function initBoard() {
+        let b = [];
+        const isWild = gameState.wildRules;
+        const layout = isWild ? gameState.wildRules.layout : "standard";
+        const allKings = isWild && gameState.wildRules.allKings;
+
+        for (let r = 0; r < 8; r++) {
+          let row = [];
+          for (let c = 0; c < 8; c++) row.push(EMPTY);
+          b.push(row);
+        }
+
+        if (layout === "random") {
+          const darkSquares = [];
+          for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+              if ((r + c) % 2 === 1) darkSquares.push({ r, c });
+            }
+          }
+          const today = new Date().toISOString().split("T")[0];
+          let baseSeed = 0;
+          for (let i = 0; i < today.length; i++) {
+            baseSeed = (baseSeed << 5) - baseSeed + today.charCodeAt(i);
+            baseSeed |= 0;
+          }
+          baseSeed = Math.abs(baseSeed);
+          const getSeededRandom = (s) => {
+            let x = Math.sin(s) * 10000;
+            return x - Math.floor(x);
+          };
+          for (let i = darkSquares.length - 1; i > 0; i--) {
+            const j = Math.floor(getSeededRandom(baseSeed + i + 100) * (i + 1));
+            [darkSquares[i], darkSquares[j]] = [darkSquares[j], darkSquares[i]];
+          }
+          for (let i = 0; i < 12; i++) {
+            const pos1 = darkSquares.pop();
+            b[pos1.r][pos1.c] = allKings ? P1_KING : P1;
+            const pos2 = darkSquares.pop();
+            b[pos2.r][pos2.c] = allKings ? P2_KING : P2;
+          }
+        } else if (layout === "checkerboard_swap") {
+          for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+              if ((r + c) % 2 === 1) {
+                if (r < 3)
+                  b[r][c] =
+                    c % 2 === 0
+                      ? allKings
+                        ? P1_KING
+                        : P1
+                      : allKings
+                      ? P2_KING
+                      : P2;
+                else if (r > 4)
+                  b[r][c] =
+                    c % 2 === 0
+                      ? allKings
+                        ? P2_KING
+                        : P2
+                      : allKings
+                      ? P1_KING
+                      : P1;
+              }
+            }
+          }
+        } else if (layout === "center_clump") {
+          const spots = [];
+          for (let r = 2; r < 6; r++) {
+            for (let c = 0; c < 8; c++) {
+              if ((r + c) % 2 === 1) spots.push({ r, c });
+            }
+          }
+          for (let i = 0; i < 12 && spots.length >= 2; i++) {
+            const p1 = spots.shift();
+            b[p1.r][p1.c] = allKings ? P1_KING : P1;
+            const p2 = spots.pop();
+            b[p2.r][p2.c] = allKings ? P2_KING : P2;
+          }
+        } else if (layout === "edge_huggers") {
+          const spots = [];
+          for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+              if ((r + c) % 2 === 1 && (c < 2 || c > 5)) spots.push({ r, c });
+            }
+          }
+          for (let i = 0; i < 12 && spots.length >= 2; i++) {
+            const p1 = spots.shift();
+            b[p1.r][p1.c] = allKings ? P1_KING : P1;
+            const p2 = spots.pop();
+            b[p2.r][p2.c] = allKings ? P2_KING : P2;
+          }
+        } else {
+          for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+              if ((r + c) % 2 === 1) {
+                if (r < 3) b[r][c] = allKings ? P2_KING : P2;
+                else if (r > 4) b[r][c] = allKings ? P1_KING : P1;
+              }
+            }
+          }
+        }
+        return b;
+      }
+
+      window.initBoard = initBoard;
+      window.getDailyWildRules = getDailyWildRules;
+
+      function startGame(
+        mode,
+        myPlayer = P1,
+        wildRules = null,
+        delayShowView = false
+      ) {
+        gameState.wildRules = wildRules;
+        gameState.mode = mode;
+        gameState.wasOnlineGame = false;
+        gameState.myPlayer = myPlayer;
+        gameState.turn = P1;
+        gameState.board = initBoard();
+        gameState.selectedPiece = null;
+        gameState.validMoves = [];
+        gameState.mustJumpPiece = null;
+        gameState.winner = null;
+        gameState.startTime = Date.now();
+        gameState.lastMove = null;
+        gameState.currentLiveScore = 0;
+        gameState.lastSyncTime = 0;
+        gameState.lastRestartRequest = 0;
+        gameState.lastChatTime = 0;
+        window.opponentPoints = 5;
+
+        updateWildIndicator();
+
+        if (mode === "online") {
+          const chatBtns = document.querySelectorAll('[id^="btn-chat"]');
+          chatBtns.forEach((b) => {
+            b.classList.remove("hidden");
+            b.classList.add("flex");
+          });
+          document.getElementById("opponent-info").classList.remove("hidden");
+          document.getElementById("opponent-info").classList.add("flex");
+
+          document.getElementById("opponent-name").innerText = "...";
+          document
+            .getElementById("btn-add-friend-opponent")
+            .classList.add("hidden");
+        } else {
+          const chatBtns = document.querySelectorAll('[id^="btn-chat"]');
+          chatBtns.forEach((b) => {
+            b.classList.add("hidden");
+            b.classList.remove("flex");
+          });
+          const chatMenus = document.querySelectorAll('[id^="chat-menu"]');
+          chatMenus.forEach((m) => {
+            m.classList.add("hidden");
+            m.classList.remove("flex");
+          });
+          document.getElementById("opponent-info").classList.add("hidden");
+          document.getElementById("opponent-info").classList.remove("flex");
+        }
+
+        if (!delayShowView) {
+          showView("view-game");
+        }
+        updateLiveScore();
+        renderBoard();
+        updateStatusText();
+
+        if (mode === "ai" && gameState.turn === P2) {
+          setTimeout(makeAIMove, 600);
+        }
+      }
+
+      function updateWildIndicator() {
+        const wildIndicator = document.getElementById("wild-rules-indicator");
+        if (wildIndicator) {
+          if (gameState.wildRules) {
+            wildIndicator.classList.remove("hidden");
+            wildIndicator.classList.add("flex");
+            let rules = [];
+            if (
+              gameState.wildRules.layout &&
+              gameState.wildRules.layout !== "standard"
+            ) {
+              rules.push(
+                `${gameState.wildRules.layout.replace("_", " ").toUpperCase()}`
+              );
+            }
+            if (gameState.wildRules.allKings) rules.push("All Kings");
+            if (gameState.wildRules.noKings) rules.push("No Kings");
+            if (gameState.wildRules.timedMoves)
+              rules.push(`${gameState.wildRules.timedMoves}s Moves`);
+            wildIndicator.innerHTML = rules
+              .map((r) => `<span>${r}</span>`)
+              .join('<span class="opacity-30">|</span>');
+          } else {
+            wildIndicator.classList.add("hidden");
+            wildIndicator.classList.remove("flex");
+          }
+        }
+      }
+
+      function isPlayerPiece(piece, player) {
+        if (player === P1) return piece === P1 || piece === P1_KING;
+        if (player === P2) return piece === P2 || piece === P2_KING;
+        return false;
+      }
+
+      function isOpponentPiece(piece, player) {
+        let opp = player === P1 ? P2 : P1;
+        return isPlayerPiece(piece, opp);
+      }
+
+      function inBounds(r, c) {
+        return r >= 0 && r < 8 && c >= 0 && c < 8;
+      }
+
+      function getPieceMoves(board, r, c) {
+        let piece = board[r][c];
+        let isKing = piece === P1_KING || piece === P2_KING;
+        let player = isPlayerPiece(piece, P1) ? P1 : P2;
+        let moves = [];
+        let dirs = [];
+
+        if (player === P1 || isKing)
+          dirs.push({ dr: -1, dc: -1 }, { dr: -1, dc: 1 });
+        if (player === P2 || isKing)
+          dirs.push({ dr: 1, dc: -1 }, { dr: 1, dc: 1 });
+
+        for (let d of dirs) {
+          let tr = r + d.dr,
+            tc = c + d.dc;
+          if (inBounds(tr, tc)) {
+            if (board[tr][tc] === EMPTY) {
+              moves.push({
+                fromR: r,
+                fromC: c,
+                toR: tr,
+                toC: tc,
+                isJump: false,
+              });
+            } else if (isOpponentPiece(board[tr][tc], player)) {
+              let jr = tr + d.dr,
+                jc = tc + d.dc;
+              if (inBounds(jr, jc) && board[jr][jc] === EMPTY) {
+                moves.push({
+                  fromR: r,
+                  fromC: c,
+                  toR: jr,
+                  toC: jc,
+                  isJump: true,
+                  capturedR: tr,
+                  capturedC: tc,
+                });
+              }
+            }
+          }
+        }
+        return moves;
+      }
+
+      function getAllValidMoves(board, player, mustJumpPiece) {
+        let moves = [];
+        let hasJumps = false;
+
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            let piece = board[r][c];
+            if (!isPlayerPiece(piece, player)) continue;
+            if (
+              mustJumpPiece &&
+              (r !== mustJumpPiece.r || c !== mustJumpPiece.c)
+            )
+              continue;
+
+            let pieceMoves = getPieceMoves(board, r, c);
+            for (let m of pieceMoves) {
+              if (m.isJump) {
+                if (!hasJumps) {
+                  moves = [];
+                  hasJumps = true;
+                }
+                moves.push(m);
+              } else if (!hasJumps) {
+                moves.push(m);
+              }
+            }
+          }
+        }
+        return moves;
+      }
+
+      function applyMove(board, move) {
+        let newBoard = board.map((row) => [...row]);
+        let piece = newBoard[move.fromR][move.fromC];
+        newBoard[move.toR][move.toC] = piece;
+        newBoard[move.fromR][move.fromC] = EMPTY;
+
+        let turnEnds = true;
+        let nextMustJump = null;
+        let player = isPlayerPiece(piece, P1) ? P1 : P2;
+        let promoted = false;
+        const noKings = gameState.wildRules && gameState.wildRules.noKings;
+
+        if (move.isJump) {
+          newBoard[move.capturedR][move.capturedC] = EMPTY;
+
+          if (!noKings) {
+            if (player === P1 && piece === P1 && move.toR === 0) {
+              newBoard[move.toR][move.toC] = P1_KING;
+              promoted = true;
+            } else if (player === P2 && piece === P2 && move.toR === 7) {
+              newBoard[move.toR][move.toC] = P2_KING;
+              promoted = true;
+            }
+          }
+
+          if (!promoted) {
+            let furtherMoves = getPieceMoves(newBoard, move.toR, move.toC);
+            if (furtherMoves.some((m) => m.isJump)) {
+              turnEnds = false;
+              nextMustJump = { r: move.toR, c: move.toC };
+            }
+          }
+        } else {
+          if (!noKings) {
+            if (player === P1 && piece === P1 && move.toR === 0) {
+              newBoard[move.toR][move.toC] = P1_KING;
+            } else if (player === P2 && piece === P2 && move.toR === 7) {
+              newBoard[move.toR][move.toC] = P2_KING;
+            }
+          }
+        }
+
+        return { board: newBoard, turnEnds, mustJumpPiece: nextMustJump };
+      }
+
+      function checkWinCondition() {
+        let p1HasPieces = false;
+        let p2HasPieces = false;
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            if (isPlayerPiece(gameState.board[r][c], P1)) p1HasPieces = true;
+            if (isPlayerPiece(gameState.board[r][c], P2)) p2HasPieces = true;
+          }
+        }
+
+        if (!p1HasPieces) gameState.winner = P2;
+        if (!p2HasPieces) gameState.winner = P1;
+
+        if (!gameState.winner) {
+          let moves = getAllValidMoves(
+            gameState.board,
+            gameState.turn,
+            gameState.mustJumpPiece
+          );
+          if (moves.length === 0) {
+            gameState.winner = gameState.turn === P1 ? P2 : P1;
+          }
+        }
+
+        if (gameState.winner) {
+          let msg = "";
+          let iWon = false;
+          const tp = window.translatePhrase || ((s) => s);
+
+          if (gameState.mode === "local") {
+            msg = tp(`Player ${gameState.winner} Wins!`);
+          } else if (gameState.mode === "ai") {
+            if (gameState.winner === P1) {
+              msg = tp("You Win!");
+              iWon = true;
+            } else {
+              msg = tp("AI Wins!");
+            }
+          } else {
+            if (gameState.winner === gameState.myPlayer) {
+              msg = tp("You Win!");
+              iWon = true;
+            } else {
+              msg = tp("Opponent Wins!");
+            }
+          }
+          document.getElementById("winner-text").innerText = msg;
+          openModal("modal-gameover");
+
+          if (gameState.mode === "online" && window.currentMatchDoc) {
+            deleteDoc(window.currentMatchDoc).catch(() => {});
+            window.currentMatchDoc = null;
+          }
+
+          let score = 0;
+          if (
+            iWon &&
+            (gameState.mode === "online" || gameState.mode === "ai")
+          ) {
+            let myNormals = 0,
+              myKings = 0,
+              oppTotal = 0;
+            let myP = gameState.myPlayer;
+            let oppP = myP === P1 ? P2 : P1;
+            let myKingType = myP === P1 ? P1_KING : P2_KING;
+
+            for (let r = 0; r < 8; r++) {
+              for (let c = 0; c < 8; c++) {
+                let p = gameState.board[r][c];
+                if (p === myP) myNormals++;
+                if (p === myKingType) myKings++;
+                if (isPlayerPiece(p, oppP)) oppTotal++;
+              }
+            }
+
+            let oppCaptured = 12 - oppTotal;
+            let durationSeconds = Math.floor(
+              (Date.now() - (gameState.startTime || Date.now())) / 1000
+            );
+
+            let baseScore = 1000;
+            let pieceBonus = myNormals * 100 + myKings * 250;
+            let timeBonus = Math.max(0, 600 - durationSeconds) * 2;
+            let efficiencyBonus =
+              Math.max(0, 100 - (gameState.moveCount || 0)) * 10;
+            let perfectBonus = myNormals + myKings === 12 ? 2000 : 0;
+
+            let multiplier = 1.0;
+            const effectiveMode = gameState.wasOnlineGame
+              ? "online"
+              : gameState.mode;
+
+            if (effectiveMode === "ai") {
+              if (gameState.aiDifficulty === "medium") multiplier = 1.5;
+              if (gameState.aiDifficulty === "hard") multiplier = 2.5;
+            } else if (effectiveMode === "online") {
+              multiplier = 2.0;
+            }
+
+            score = Math.floor(
+              (baseScore +
+                pieceBonus +
+                timeBonus +
+                efficiencyBonus +
+                perfectBonus) *
+                multiplier
+            );
+
+            const ds = window.translatePhrase
+              ? window.translatePhrase("Score: ")
+              : "Score: ";
+            document.getElementById(
+              "score-text"
+            ).innerText = `${ds.trim()} ${score}`;
+            document.getElementById("score-text").classList.remove("hidden");
+
+            const isPerfect = myNormals + myKings === 12;
+            window.recordWin(
+              effectiveMode,
+              score,
+              gameState.aiDifficulty,
+              isPerfect
+            );
+          } else {
+            document.getElementById("score-text").classList.add("hidden");
+            const effectiveMode = gameState.wasOnlineGame
+              ? "online"
+              : gameState.mode;
+            if (
+              effectiveMode === "online" &&
+              gameState.winner !== gameState.myPlayer
+            ) {
+              window.recordLoss();
+            }
+          }
+        }
+      }
+
+      function playErrorSound() {
+        try {
+          const audioCtx = new (window.AudioContext ||
+            window.webkitAudioContext)();
+          const oscillator = audioCtx.createOscillator();
+          const gainNode = audioCtx.createGain();
+          oscillator.type = "sine";
+          oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+          oscillator.frequency.exponentialRampToValueAtTime(
+            40,
+            audioCtx.currentTime + 0.1
+          );
+          gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(
+            0.01,
+            audioCtx.currentTime + 0.1
+          );
+          oscillator.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+          oscillator.start();
+          oscillator.stop(audioCtx.currentTime + 0.1);
+        } catch (e) {}
+      }
+
+      function handleSquareClick(r, c) {
+        if (gameState.winner) return;
+        if (
+          gameState.mode === "online" &&
+          gameState.myPlayer !== gameState.turn
+        ) {
+          showNotification("It's not your turn!");
+          playErrorSound();
+          return;
+        }
+        if (gameState.mode === "ai" && gameState.turn === P2) return;
+
+        let piece = gameState.board[r][c];
+
+        if (isPlayerPiece(piece, gameState.turn)) {
+          if (
+            gameState.mustJumpPiece &&
+            (gameState.mustJumpPiece.r !== r || gameState.mustJumpPiece.c !== c)
+          ) {
+            showNotification("You must jump with the highlighted piece!");
+            playErrorSound();
+            return;
+          }
+
+          let allValidMoves = getAllValidMoves(
+            gameState.board,
+            gameState.turn,
+            gameState.mustJumpPiece
+          );
+          let pieceMoves = allValidMoves.filter(
+            (m) => m.fromR === r && m.fromC === c
+          );
+
+          if (pieceMoves.length > 0) {
+            gameState.selectedPiece = { r, c };
+            gameState.validMoves = pieceMoves;
+            document.body.style.setProperty("--bg-speed", "10s");
+            renderBoard();
+          } else {
+            showNotification("This piece has no valid moves!");
+            playErrorSound();
+            gameState.selectedPiece = null;
+            gameState.validMoves = [];
+            renderBoard();
+          }
+          return;
+        }
+
+        if (gameState.selectedPiece) {
+          let validMove = gameState.validMoves.find(
+            (m) => m.toR === r && m.toC === c
+          );
+          if (validMove) {
+            executeMoveLocally(validMove);
+            document.body.style.setProperty("--bg-speed", "5s");
+            setTimeout(
+              () => document.body.style.setProperty("--bg-speed", "20s"),
+              1000
+            );
+            return;
+          } else {
+            if (isPlayableSquare(r, c)) {
+              showNotification("Illegal Move!");
+              playErrorSound();
+              const square = document.querySelector(
+                `#board-container > div:nth-child(${r * 8 + c + 1})`
+              );
+              if (square) {
+                square.classList.add("bg-red-500/20");
+                setTimeout(() => square.classList.remove("bg-red-500/20"), 300);
+              }
+            }
+          }
+        }
+
+        gameState.selectedPiece = null;
+        gameState.validMoves = [];
+        document.body.style.setProperty("--bg-speed", "20s");
+        renderBoard();
+      }
+
+      function isPlayableSquare(r, c) {
+        return (r + c) % 2 === 1;
+      }
+
+      function executeMoveLocally(move) {
+        gameState.moveCount = (gameState.moveCount || 0) + 1;
+        gameState.lastMove = move;
+        let result = applyMove(gameState.board, move);
+        gameState.board = result.board;
+        gameState.selectedPiece = null;
+        gameState.validMoves = [];
+
+        if (gameState.mode === "online" && window.syncMoveToFirebase) {
+          window.syncMoveToFirebase(
+            gameState.board,
+            result.turnEnds,
+            result.mustJumpPiece,
+            move
+          );
+        }
+
+        if (result.turnEnds) {
+          gameState.turn = gameState.turn === P1 ? P2 : P1;
+          gameState.mustJumpPiece = null;
+        } else {
+          gameState.mustJumpPiece = result.mustJumpPiece;
+        }
+
+        checkWinCondition();
+        updateLiveScore();
+        renderBoard();
+        updateStatusText();
+
+        if (
+          !gameState.winner &&
+          gameState.mode === "ai" &&
+          gameState.turn === P2
+        ) {
+          setTimeout(makeAIMove, 400);
+        }
+      }
+
+      function updateStatusText() {
+        const statusEl = document.getElementById("turn-status");
+        if (gameState.winner) {
+          const tp = window.translatePhrase || ((s) => s);
+          statusEl.innerText = tp("Game Over");
+          return;
+        }
+
+        let turnStr = "";
+        const tp = window.translatePhrase || ((s) => s);
+        if (gameState.mode === "local") {
+          turnStr =
+            gameState.turn === P1
+              ? tp("Player 1 (Light Teal)")
+              : tp("Player 2 (Dark Teal)");
+        } else if (gameState.mode === "ai") {
+          turnStr =
+            gameState.turn === P1 ? tp("Your Turn") : tp("AI is thinking...");
+        } else if (gameState.mode === "online") {
+          turnStr =
+            gameState.turn === gameState.myPlayer
+              ? tp("Your Turn")
+              : tp("Opponent's Turn");
+        }
+
+        if (gameState.mustJumpPiece) {
+          turnStr += tp(" — Jump Forced!");
+          statusEl.classList.add(
+            "text-teal-300",
+            "border-teal-500/50",
+            "bg-teal-950/40"
+          );
+          statusEl.classList.remove(
+            "text-slate-200",
+            "border-slate-700",
+            "bg-slate-900/60"
+          );
+        } else {
+          statusEl.classList.remove(
+            "text-teal-300",
+            "border-teal-500/50",
+            "bg-teal-950/40"
+          );
+          statusEl.classList.add(
+            "text-slate-200",
+            "border-slate-700",
+            "bg-slate-900/60"
+          );
+        }
+
+        statusEl.innerText = turnStr;
+      }
+
+      // --- RENDERING ---
+      function renderBoard() {
+        const container = document.getElementById("board-container");
+
+        const lastMove = gameState.lastMove;
+        const lastMoveStr = lastMove
+          ? `${lastMove.fromR},${lastMove.fromC}->${lastMove.toR},${lastMove.toC}`
+          : null;
+        const shouldAnimate =
+          lastMoveStr && lastMoveStr !== gameState.lastAnimatedMove;
+        if (shouldAnimate) gameState.lastAnimatedMove = lastMoveStr;
+
+        container.innerHTML = "";
+
+        let flip = gameState.mode === "online" && gameState.myPlayer === P2;
+
+        const scoreValEl = document.getElementById("live-score-val");
+        if (scoreValEl) scoreValEl.innerText = gameState.currentLiveScore || 0;
+
+        for (let rObj = 0; rObj < 8; rObj++) {
+          let r = flip ? 7 - rObj : rObj;
+          for (let cObj = 0; cObj < 8; cObj++) {
+            let c = flip ? 7 - cObj : cObj;
+
+            let isPlayable = (r + c) % 2 === 1;
+            let square = document.createElement("div");
+            // Themed flat squares matching website palette instead of gray/white
+            square.className = `w-full h-full flex items-center justify-center relative transition-all duration-200 ${
+              isPlayable
+                ? "bg-slate-900/90 border border-teal-500/10"
+                : "bg-slate-950/90 border border-slate-800/20"
+            }`;
+
+            if (isPlayable) {
+              square.onclick = () => handleSquareClick(r, c);
+            }
+
+            let piece = gameState.board[r][c];
+            if (piece !== EMPTY) {
+              let pDiv = document.createElement("div");
+              let isP1 = isPlayerPiece(piece, P1);
+              let isKing = piece === P1_KING || piece === P2_KING;
+
+              pDiv.className = `w-[82%] h-[82%] rounded-full absolute transition-transform duration-300 flex items-center justify-center `;
+
+              if (isP1) {
+                pDiv.className += `bg-teal-400`;
+              } else {
+                pDiv.className += `bg-teal-800`;
+              }
+
+              if (isKing) {
+                pDiv.innerHTML = `
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="${isP1 ? 'text-slate-950' : 'text-teal-200'}">
+                    <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
+                  </svg>
+                `;
+              }
+
+              let isSelected =
+                gameState.selectedPiece &&
+                gameState.selectedPiece.r === r &&
+                gameState.selectedPiece.c === c;
+              if (isSelected) {
+                pDiv.classList.add("ring-2", "ring-white");
+              }
+
+              if (
+                !gameState.winner &&
+                !isSelected &&
+                isPlayerPiece(piece, gameState.turn)
+              ) {
+                if (
+                  gameState.mode === "local" ||
+                  (gameState.mode === "ai" && gameState.turn === P1) ||
+                  (gameState.mode === "online" &&
+                    gameState.turn === gameState.myPlayer)
+                ) {
+                  if (gameState.mustJumpPiece) {
+                    if (
+                      r === gameState.mustJumpPiece.r &&
+                      c === gameState.mustJumpPiece.c
+                    ) {
+                      pDiv.classList.add(
+                        "animate-pulse",
+                        "cursor-pointer",
+                        "ring-4",
+                        "ring-teal-400/80",
+                        "ring-offset-2",
+                        "ring-offset-slate-900"
+                      );
+                    }
+                  } else {
+                    let allMoves = getAllValidMoves(
+                      gameState.board,
+                      gameState.turn,
+                      null
+                    );
+                    let pieceMoves = allMoves.filter(
+                      (m) => m.fromR === r && m.fromC === c
+                    );
+                    if (pieceMoves.length > 0) {
+                      pDiv.classList.add(
+                        "hover:scale-[1.06]",
+                        "cursor-pointer"
+                      );
+                    }
+                  }
+                }
+              }
+
+              if (shouldAnimate && lastMove.toR === r && lastMove.toC === c) {
+                let rDiff = r - lastMove.fromR;
+                let cDiff = c - lastMove.fromC;
+                if (flip) {
+                  rDiff = -rDiff;
+                  cDiff = -cDiff;
+                }
+                square.classList.add("z-50");
+                pDiv.classList.add("z-50");
+                pDiv.animate(
+                  [
+                    {
+                      transform: `translate(${-cDiff * 125}%, ${
+                        -rDiff * 125
+                      }%)`,
+                    },
+                    { transform: "translate(0, 0)" },
+                  ],
+                  {
+                    duration: 300,
+                    easing: "ease-out",
+                  }
+                );
+              }
+
+              square.appendChild(pDiv);
+            }
+
+            if (gameState.selectedPiece) {
+              let isValidDest = gameState.validMoves.find(
+                (m) => m.toR === r && m.toC === c
+              );
+              if (isValidDest) {
+                let dot = document.createElement("div");
+                dot.className = `absolute w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full ${
+                  isValidDest.isJump ? "bg-teal-300" : "bg-teal-400/80"
+                } z-10 animate-bounce cursor-pointer`;
+                square.appendChild(dot);
+                square.classList.add("cursor-pointer");
+              }
+            }
+
+            container.appendChild(square);
+          }
+        }
+      }
+
+      function updateLiveScore() {
+        if (!gameState.startTime) return;
+
+        let myNormals = 0,
+          myKings = 0,
+          oppTotal = 0;
+        let myP = gameState.myPlayer || P1;
+        let oppP = myP === P1 ? P2 : P1;
+        let myKingType = myP === P1 ? P1_KING : P2_KING;
+
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            let p = gameState.board[r][c];
+            if (p === myP) myNormals++;
+            if (p === myKingType) myKings++;
+            if (isPlayerPiece(p, oppP)) oppTotal++;
+          }
+        }
+
+        let oppCaptured = 12 - oppTotal;
+        let durationSeconds = Math.floor(
+          (Date.now() - gameState.startTime) / 1000
+        );
+
+        let baseScore = oppCaptured * 100;
+        let pieceBonus = myNormals * 50 + myKings * 150;
+        let timeBonus = Math.max(0, 300 - durationSeconds) * 5;
+
+        let multiplier = 1.0;
+        if (gameState.mode === "ai") {
+          if (gameState.aiDifficulty === "medium") multiplier = 1.5;
+          if (gameState.aiDifficulty === "hard") multiplier = 2.5;
+        } else if (gameState.mode === "online") {
+          multiplier = 2.0;
+        }
+
+        gameState.currentLiveScore = Math.floor(
+          (baseScore + pieceBonus + timeBonus) * multiplier
+        );
+      }
+
+      window.makeAIMove = makeAIMove;
+      function makeAIMove() {
+        if (gameState.winner) return;
+        let bestMove = null;
+
+        if (gameState.aiDifficulty === "easy") {
+          let moves = getAllValidMoves(
+            gameState.board,
+            P2,
+            gameState.mustJumpPiece
+          );
+          bestMove = moves[Math.floor(Math.random() * moves.length)];
+        } else if (gameState.aiDifficulty === "medium") {
+          bestMove = getMinimaxMove(
+            gameState.board,
+            2,
+            P2,
+            gameState.mustJumpPiece
+          );
+        } else {
+          bestMove = getMinimaxMove(
+            gameState.board,
+            5,
+            P2,
+            gameState.mustJumpPiece
+          );
+        }
+
+        if (bestMove) {
+          executeMoveLocally(bestMove);
+        }
+      }
+
+      function getMinimaxMove(board, depth, player, mustJumpPiece) {
+        let moves = getAllValidMoves(board, player, mustJumpPiece);
+        if (moves.length === 0) return null;
+
+        let bestScore = -Infinity;
+        let bestMoves = [];
+
+        for (let move of moves) {
+          let result = applyMove(board, move);
+          let nextTurnPlayer = result.turnEnds ? P1 : P2;
+          let score = minimax(
+            result.board,
+            depth - 1,
+            -Infinity,
+            Infinity,
+            P2,
+            nextTurnPlayer,
+            result.mustJumpPiece
+          );
+
+          score += Math.random() * 0.1;
+
+          if (score > bestScore) {
+            bestScore = score;
+            bestMoves = [move];
+          } else if (Math.abs(score - bestScore) < 0.001) {
+            bestMoves.push(move);
+          }
+        }
+        return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+      }
+
+      function minimax(
+        board,
+        depth,
+        alpha,
+        beta,
+        aiPlayer,
+        turnPlayer,
+        mustJumpPiece
+      ) {
+        if (depth === 0) return evaluateBoard(board, aiPlayer);
+
+        let moves = getAllValidMoves(board, turnPlayer, mustJumpPiece);
+        if (moves.length === 0) {
+          return turnPlayer === aiPlayer ? -10000 : 10000;
+        }
+
+        if (turnPlayer === aiPlayer) {
+          let maxEval = -Infinity;
+          for (let move of moves) {
+            let result = applyMove(board, move);
+            let nextTurnPlayer = result.turnEnds
+              ? aiPlayer === P1
+                ? P2
+                : P1
+              : aiPlayer;
+            let eval = minimax(
+              result.board,
+              depth - 1,
+              alpha,
+              beta,
+              aiPlayer,
+              nextTurnPlayer,
+              result.mustJumpPiece
+            );
+            maxEval = Math.max(maxEval, eval);
+            alpha = Math.max(alpha, eval);
+            if (beta <= alpha) break;
+          }
+          return maxEval;
+        } else {
+          let minEval = Infinity;
+          for (let move of moves) {
+            let result = applyMove(board, move);
+            let nextTurnPlayer = result.turnEnds
+              ? aiPlayer
+              : aiPlayer === P1
+              ? P2
+              : P1;
+            let eval = minimax(
+              result.board,
+              depth - 1,
+              alpha,
+              beta,
+              aiPlayer,
+              nextTurnPlayer,
+              result.mustJumpPiece
+            );
+            minEval = Math.min(minEval, eval);
+            beta = Math.min(beta, eval);
+            if (beta <= alpha) break;
+          }
+          return minEval;
+        }
+      }
+
+      function evaluateBoard(board, aiPlayer) {
+        let score = 0;
+        let aiKing = aiPlayer === P1 ? P1_KING : P2_KING;
+        let opp = aiPlayer === P1 ? P2 : P1;
+        let oppKing = aiPlayer === P1 ? P2_KING : P1_KING;
+
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            let p = board[r][c];
+            if (p === aiPlayer) score += 10;
+            else if (p === aiKing) score += 30;
+            else if (p === opp) score -= 10;
+            else if (p === oppKing) score -= 30;
+
+            if (p === aiPlayer || p === aiKing) {
+              if (c === 0 || c === 7) score += 1.5;
+              if (p === aiPlayer) score += (aiPlayer === P1 ? 7 - r : r) * 0.5;
+            } else if (p === opp || p === oppKing) {
+              if (c === 0 || c === 7) score -= 1.5;
+              if (p === opp) score -= (opp === P1 ? 7 - r : r) * 0.5;
+            }
+          }
+        }
+        return score;
+      }
+
+      async function startHost() {
+        if (window.startHostFirebase) await window.startHostFirebase();
+      }
+
+      async function joinGame(overrideId = null) {
+        if (window.joinGameFirebase) await window.joinGameFirebase(overrideId);
+      }
+
+      function setupGameListener(gameId) {
+        if (window.setupGameListenerFirebase)
+          window.setupGameListenerFirebase(gameId);
+      }
+
+      function restartGame() {
+        if (gameState.mode === "online") {
+          if (window.restartGameFirebase) window.restartGameFirebase();
+        } else {
+          startGame(gameState.mode, P1, gameState.wildRules);
+          closeModal("modal-gameover");
+        }
+      }
+
+      function quitGame() {
+        if (gameState.mode === "online") {
+          showConfirm("Are you sure you want to quit this online game?", () => {
+            if (window.quitGameFirebase) window.quitGameFirebase();
+          });
+        } else {
+          showView("view-main-menu");
+        }
+      }
+
+      function quitGameFromEnd() {
+        if (gameState.mode === "online") {
+          if (window.quitGameFirebase) window.quitGameFirebase();
+        } else {
+          showView("view-main-menu");
+        }
+      }
+
+      window.P1 = P1;
+      window.P2 = P2;
+      window.startGame = startGame;
+      window.showNotification = showNotification;
+      window.showView = showView;
+      window.getPeer = () => null;
+      window.setPeer = (p) => {};
+      window.getConn = () => null;
+      window.setConn = (c) => {};
+      window.joinGame = joinGame;
+      window.startHost = startHost;
+      window.quitGame = quitGame;
+      window.checkWinCondition = checkWinCondition;
+      window.renderBoard = renderBoard;
+      window.updateStatusText = updateStatusText;
+      window.quitGameFromEnd = quitGameFromEnd;
+      window.restartGame = restartGame;
+
+      window.opponentPoints = 5;
+      window.myPlayerPoints = 5;
+
+      window.showFooterModal = (type, customTitle = "", customContent = "") => {
+        const title = document.getElementById("footer-modal-title");
+        const content = document.getElementById("footer-modal-content");
+        const modal = document.getElementById("modal-footer");
+
+        if (type === "custom") {
+          title.innerText = customTitle;
+          content.innerHTML = `<p>${customContent}</p>`;
+        } else if (type === "about") {
+          title.innerText = "About Checkers";
+          content.innerHTML = `
+                    <p>Checkers (also known as Draughts) is a classic strategy board game for two players. Our version brings a modern, sleek liquid glass aesthetic to this timeless game, offering both local and online play, as well as challenging AI opponents.</p>
+                    <h3 class="text-teal-300 font-bold mt-4">Features</h3>
+                    <ul class="list-disc list-inside text-slate-300 space-y-1 mt-2">
+                        <li>Global Matchmaking & Private Lobbies</li>
+                        <li>Advanced AI with multiple difficulties</li>
+                        <li>Daily Challenges & Achievement Badges</li>
+                        <li>Real-time Social Feed & Friend System</li>
+                        <li>Competitive Leaderboards & Player Points</li>
+                    </ul>
+                    <p class="mt-4 italic text-slate-400 text-sm">Developed with passion for the strategy gaming community.</p>
+                `;
+        } else if (type === "privacy") {
+          title.innerText = "Privacy Policy";
+          content.innerHTML = `
+                    <p>Your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your personal information when you use our Checkers game.</p>
+                    <h3 class="text-teal-300 font-bold mt-4">1. Information We Collect</h3>
+                    <p>We collect information you provide directly to us, such as your username, email address (if you sign up), and game statistics. We also collect data about your interactions with the game.</p>
+                    <h3 class="text-teal-300 font-bold mt-4">2. How We Use Your Information</h3>
+                    <p>We use the information we collect to provide, maintain, and improve our game, to save your progress, and to display leaderboards.</p>
+                    <h3 class="text-teal-300 font-bold mt-4">3. Data Security</h3>
+                    <p>We take reasonable measures to protect your personal information from loss, theft, misuse, and unauthorized access.</p>
+                `;
+        } else if (type === "terms") {
+          title.innerText = "Terms of Service";
+          content.innerHTML = `
+                    <p>By using our Checkers game, you agree to be bound by these Terms of Service. Please read them carefully.</p>
+                    <h3 class="text-teal-300 font-bold mt-4">1. Use of the Game</h3>
+                    <p>You may use the game for your personal, non-commercial use only. You agree not to use the game for any illegal or unauthorized purpose.</p>
+                    <h3 class="text-teal-300 font-bold mt-4">2. User Content</h3>
+                    <p>You are responsible for any content you post in the game, such as your username. You agree not to post any content that is offensive, defamatory, or violates the rights of others.</p>
+                    <h3 class="text-teal-300 font-bold mt-4">3. Termination</h3>
+                    <p>We reserve the right to terminate your access to the game at any time, for any reason, without notice.</p>
+                `;
+        } else if (type === "contact") {
+          title.innerText = "FEATURES";
+          content.innerHTML = `
+                    <p>These are the links to other features we provide for you to have a more pleasant experience at our site.</p>
+                    
+                    <div class="bg-slate-900/50 p-4 rounded-2xl border border-teal-500/20 mt-4">
+                        <p class="text-teal-300 font-bold">Polls</p>
+                        <p class="text-slate-300">checkers.page/polls</p>
+                    </div>
+                    
+                    <div class="bg-slate-900/50 p-4 rounded-2xl border border-teal-500/20 mt-4">
+                        <p class="text-teal-300 font-bold">Total Social</p>
+                        <p class="text-slate-300">checkers.page/social</p>
+                    </div>
+                        
+                    <div class="bg-slate-900/50 p-4 rounded-2xl border border-teal-500/20 mt-4">
+                        <p class="text-teal-300 font-bold">Devs</p>
+                        <p class="text-slate-300">dev.checkers.page</p>
+                    </div>
+
+                    <div class="bg-slate-900/50 p-4 rounded-2xl border border-teal-500/20 mt-4">
+                        <p class="text-teal-300 font-bold">Beta</p>
+                        <p class="text-slate-300">beta.dev.checkers.page</p>
+                    </div>
+
+                    <div class="bg-slate-900/50 p-4 rounded-2xl border border-teal-500/20 mt-4">
+                        <p class="text-teal-300 font-bold">Strategies page</p>
+                        <p class="text-slate-300">checkers.page/strategies</p>
+                    </div>
+
+                    <div id="appreciation-button-container" hidden class="bg-slate-900/50 p-4 rounded-2xl border border-teal-500/20 mt-4">
+                        <p class="text-teal-300 font-bold"><a href="https://checkers.page/kiribati" target="_blank" class="appreciation-btn underline">We appreciate you being on our site! 🇰🇮</a></p>
+                        <p class="text-slate-300">That text is a link. We just wanted to recognize people from Kiribati!</p>
+                    </div>
+
+                    <div class="bg-slate-900/50 p-4 rounded-2xl border border-teal-500/20 mt-4">
+                        <p class="text-teal-300 font-bold">Celebrations</p>
+                        <p class="text-slate-300">checkers.page/celebrate</p>
+                        <p class="text-slate-300">Please check out what we are currently celebrating!</p>
+                    </div>
+
+                    <div class="bg-slate-900/50 p-4 rounded-2xl border border-teal-500/20 mt-4">
+                        <p class="text-teal-300 font-bold">Theater</p>
+                        <p class="text-slate-300">checkers.page/theater</p>
+                    </div>
+                `;
+        }
+
+        modal.classList.remove("hidden");
+      };
+
+      window.showAwardModal = (awardName) => {
+        const title = awardName.startsWith("badge_")
+          ? `Daily Challenge: ${awardName.replace("badge_", "")}`
+          : awardName;
+        const desc = getAwardDescription(awardName);
+        window.showFooterModal("custom", title, desc);
+      };
+    </script>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+      import {
+        getAuth,
+        signInAnonymously,
+        onAuthStateChanged,
+        GoogleAuthProvider,
+        signInWithPopup,
+        signInWithRedirect,
+        getRedirectResult,
+        signOut,
+        updateProfile,
+        createUserWithEmailAndPassword,
+        signInWithEmailAndPassword,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        doc,
+        setDoc,
+        getDocs,
+        deleteDoc,
+        getDoc,
+        onSnapshot,
+        updateDoc,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
+        authDomain: "auth.checkers.page",
+        projectId: "checkers-matchmaking-5ac55",
+        storageBucket: "checkers-matchmaking-5ac55.firebasestorage.app",
+        messagingSenderId: "778086491027",
+        appId: "1:778086491027:web:c315fd9d97aebae6087e66",
+        firestoreDatabaseId: "(default)",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+      const appId = "checkers-app";
+
+      let fbUser = null;
+      let isRegisteredUser = false;
+      let authInitialized = false;
+      let currentGameId = null;
+      let isHost = false;
+      let gameUnsubscribe = null;
+      let pendingInviteUid = null;
+      let pendingInviteName = null;
+      let authMode = "signin";
+
+      window.isRegisteredUser = () => isRegisteredUser;
+
+      const OperationType = {
+        CREATE: "create",
+        UPDATE: "update",
+        DELETE: "delete",
+        LIST: "list",
+        GET: "get",
+        WRITE: "write",
+      };
+
+      function handleFirestoreError(error, operationType, path) {
+        const errInfo = {
+          error: error instanceof Error ? error.message : String(error),
+          authInfo: {
+            userId: auth.currentUser?.uid,
+            email: auth.currentUser?.email,
+            emailVerified: auth.currentUser?.emailVerified,
+            isAnonymous: auth.currentUser?.isAnonymous,
+            tenantId: auth.currentUser?.tenantId,
+            providerInfo:
+              auth.currentUser?.providerData?.map((provider) => ({
+                providerId: provider.providerId,
+                displayName: provider.displayName,
+                email: provider.email,
+                photoUrl: provider.photoURL,
+              })) || [],
+          },
+          operationType,
+          path,
+        };
+        console.error("Firestore Error: ", JSON.stringify(errInfo));
+      }
+
+      window.startHostFirebase = async (
+        isPublic = false,
+        mode = "standard"
+      ) => {
+        if (!authInitialized || !fbUser) {
+          window.showNotification("Connecting to servers...");
+          await initAuth();
+          if (!fbUser) {
+            window.showNotification("Failed to connect to servers.");
+            return;
+          }
+        }
+
+        window.showView("view-searching");
+        document.getElementById("searching-title").innerText = isPublic
+          ? "Matchmaking"
+          : "Private Lobby";
+        document.getElementById("matchmaking-status-text").innerText = isPublic
+          ? `Looking for ${mode} players...`
+          : `Waiting for friend...`;
+        document
+          .getElementById("searching-lobby-info")
+          .classList.remove("hidden");
+        document.getElementById("searching-lobby-code").innerText =
+          "Generating...";
+
+        try {
+          const gameId = Math.floor(100000 + Math.random() * 900000).toString();
+          currentGameId = gameId;
+          isHost = true;
+
+          const info = window.getMyInfo
+            ? window.getMyInfo()
+            : { displayName: "Player 1", friendCode: "" };
+          const gameRef = doc(db, "artifacts", appId, "games", gameId);
+
+          let wildRules = null;
+          if (mode === "wild") wildRules = window.getDailyWildRules();
+
+          await setDoc(gameRef, {
+            board: JSON.stringify(window.initBoard()),
+            turn: window.P1,
+            p1: {
+              uid: fbUser.uid,
+              displayName: info.displayName,
+              friendCode: info.friendCode,
+              points: info.playerPoints || 5,
+            },
+            p2: null,
+            lastMove: null,
+            restartRequested: 0,
+            chat: null,
+            status: "waiting",
+            wildRules: wildRules || window.gameState.wildRules || null,
+            timestamp: Date.now(),
+          });
+
+          document.getElementById("searching-lobby-code").innerText = gameId;
+          window.showNotification("Lobby Created!");
+
+          if (pendingInviteUid) {
+            const inviteRef = doc(
+              db,
+              "artifacts",
+              appId,
+              "users",
+              pendingInviteUid,
+              "invites",
+              fbUser.uid
+            );
+            await setDoc(inviteRef, {
+              fromName: fbUser.displayName || "Friend",
+              fromId: fbUser.uid,
+              code: gameId,
+              timestamp: Date.now(),
+            }).catch((e) =>
+              handleFirestoreError(
+                e,
+                OperationType.CREATE,
+                `artifacts/${appId}/users/${pendingInviteUid}/invites`
+              )
+            );
+            window.showNotification(`Invite sent to ${pendingInviteName}!`);
+            pendingInviteUid = null;
+            pendingInviteName = null;
+          }
+
+          if (isPublic) {
+            const matchRef = doc(
+              db,
+              "artifacts",
+              appId,
+              "public",
+              "data",
+              "matchmaking",
+              fbUser.uid
+            );
+            await setDoc(matchRef, {
+              uid: fbUser.uid,
+              gameId: gameId,
+              status: "waiting",
+              timestamp: Date.now(),
+              mode: mode,
+            }).catch((e) =>
+              handleFirestoreError(
+                e,
+                OperationType.CREATE,
+                `artifacts/${appId}/public/data/matchmaking/${fbUser.uid}`
+              )
+            );
+            window.currentMatchDoc = matchRef;
+          }
+
+          window.setupGameListenerFirebase(gameId);
+          window.startGame(
+            "online",
+            window.P1,
+            wildRules || window.gameState.wildRules,
+            true
+          );
+        } catch (e) {
+          console.error("Host failed", e);
+          window.showNotification("Failed to create lobby.");
+          window.showView("view-main-menu");
+        }
+      };
+
+      window.joinGameFirebase = async (overrideId = null) => {
+        if (!authInitialized || !fbUser) {
+          window.showNotification("Connecting to servers...");
+          await initAuth();
+          if (!fbUser) {
+            window.showNotification("Failed to connect to servers.");
+            return;
+          }
+        }
+
+        const inputEl = document.getElementById("join-id-input");
+        let gameId =
+          overrideId || (inputEl ? inputEl.value.trim().toUpperCase() : null);
+
+        if (!gameId || gameId.length !== 6) {
+          window.showNotification("Please enter a 6-digit code");
+          return;
+        }
+
+        const btnText = document.getElementById("join-btn-text");
+        if (btnText) btnText.innerText = "Connecting...";
+
+        try {
+          const gameRef = doc(db, "artifacts", appId, "games", gameId);
+          const gameSnap = await getDoc(gameRef).catch((e) =>
+            handleFirestoreError(
+              e,
+              OperationType.GET,
+              `artifacts/${appId}/games/${gameId}`
+            )
+          );
+
+          if (!gameSnap.exists()) {
+            window.showNotification("Game not found");
+            if (btnText) btnText.innerText = "Connect to Game";
+            return;
+          }
+
+          const gameData = gameSnap.data();
+          if (
+            gameData.status !== "waiting" &&
+            gameData.p2 &&
+            gameData.p2.uid !== fbUser.uid
+          ) {
+            window.showNotification("Game is full");
+            if (btnText) btnText.innerText = "Connect to Game";
+            return;
+          }
+
+          currentGameId = gameId;
+          isHost = false;
+          const info = window.getMyInfo
+            ? window.getMyInfo()
+            : { displayName: "Player 2", friendCode: "" };
+
+          await updateDoc(gameRef, {
+            p2: {
+              uid: fbUser.uid,
+              displayName: info.displayName,
+              friendCode: info.friendCode,
+              points: info.playerPoints || 5,
+            },
+            status: "playing",
+            timestamp: Date.now(),
+          }).catch((e) =>
+            handleFirestoreError(
+              e,
+              OperationType.UPDATE,
+              `artifacts/${appId}/games/${gameId}`
+            )
+          );
+
+          window.setupGameListenerFirebase(gameId);
+          window.startGame("online", window.P2, gameData.wildRules);
+          window.showNotification("Connected to Game!");
+          if (btnText) btnText.innerText = "Connect to Game";
+        } catch (e) {
+          console.error(e);
+          window.showNotification("Failed to join");
+          if (btnText) btnText.innerText = "Connect to Game";
+        }
+      };
+
+      window.processGameSnapshot = (snapshot) => {
+        if (!snapshot.exists()) {
+          if (
+            window.gameState &&
+            window.gameState.mode === "online" &&
+            !window.gameState.winner
+          ) {
+            showConfirm(
+              "Opponent left the game. Switch to Hard AI to continue?",
+              () => {
+                window.gameState.mode = "ai";
+                window.gameState.aiDifficulty = "hard";
+                window.gameState.wasOnlineGame = true;
+                if (gameUnsubscribe) {
+                  gameUnsubscribe();
+                  gameUnsubscribe = null;
+                }
+                currentGameId = null;
+
+                if (window.currentMatchDoc) {
+                  window.currentMatchDoc = null;
+                }
+
+                window.updateStatusText();
+                window.showNotification("Switched to AI (Hard)");
+
+                const chatBtns = document.querySelectorAll('[id^="btn-chat"]');
+                chatBtns.forEach((b) => b.classList.add("hidden"));
+
+                if (window.gameState.turn !== window.gameState.myPlayer) {
+                  setTimeout(window.makeAIMove, 500);
+                }
+              },
+              () => {
+                window.showNotification("Game closed");
+                window.quitGameFromEnd();
+              }
+            );
+          } else {
+            window.showNotification("Game closed");
+            window.quitGameFromEnd();
+          }
+          return;
+        }
+
+        const data = snapshot.data();
+
+        const opponent = isHost ? data.p2 : data.p1;
+        if (opponent) {
+          window.gameState.opponentInfo = {
+            displayName: opponent.displayName,
+            friendCode: opponent.friendCode,
+          };
+          window.opponentPoints = opponent.points || 5;
+          const optNameEl = document.getElementById("opponent-name");
+          if (optNameEl)
+            optNameEl.innerText = opponent.displayName || "Unknown Player";
+
+          if (opponent.friendCode && isRegisteredUser) {
+            const addBtn = document.getElementById("btn-add-friend-opponent");
+            if (addBtn) {
+              addBtn.classList.remove("hidden");
+              addBtn.onclick = () => {
+                window.addFriendByCode(opponent.friendCode);
+              };
+            }
+          }
+        }
+
+        if (data.p1 && data.p2) {
+          if (isHost && window.currentMatchDoc) {
+            updateDoc(window.currentMatchDoc, { status: "playing" }).catch(
+              (e) =>
+                handleFirestoreError(
+                  e,
+                  OperationType.UPDATE,
+                  `artifacts/${appId}/public/data/matchmaking/${fbUser?.uid}`
+                )
+            );
+            window.currentMatchDoc = null;
+          }
+
+          let wasWaiting = false;
+
+          const waitingModal = document.getElementById(
+            "modal-waiting-opponent"
+          );
+          if (waitingModal && !waitingModal.classList.contains("hidden")) {
+            closeModal("modal-waiting-opponent");
+            wasWaiting = true;
+          }
+
+          const searchView = document.getElementById("view-searching");
+          if (searchView && !searchView.classList.contains("hidden")) {
+            wasWaiting = true;
+          }
+
+          const gameView = document.getElementById("view-game");
+          if (gameView && gameView.classList.contains("hidden")) {
+            wasWaiting = true;
+          }
+
+          if (wasWaiting) {
+            window.showView("view-game");
+            window.showNotification("Opponent connected! Game on.");
+            window.renderBoard();
+            window.updateStatusText();
+          }
+        }
+
+        if (data.timestamp > (window.gameState.lastSyncTime || 0)) {
+          window.gameState.lastSyncTime = data.timestamp;
+
+          let newMoveSig = data.lastMove
+            ? `${data.lastMove.fromR},${data.lastMove.fromC}->${data.lastMove.toR},${data.lastMove.toC}`
+            : null;
+          let oldMoveSig = window.gameState.lastMove
+            ? `${window.gameState.lastMove.fromR},${window.gameState.lastMove.fromC}->${window.gameState.lastMove.toR},${window.gameState.lastMove.toC}`
+            : null;
+
+          if (
+            data.turn !== window.gameState.myPlayer ||
+            newMoveSig !== oldMoveSig
+          ) {
+            window.gameState.board =
+              typeof data.board === "string"
+                ? JSON.parse(data.board)
+                : data.board;
+            window.gameState.turn = data.turn;
+            window.gameState.mustJumpPiece = data.mustJumpPiece;
+            window.gameState.lastMove = data.lastMove;
+            window.checkWinCondition();
+            window.renderBoard();
+            window.updateStatusText();
+          }
+
+          if (
+            data.restartRequested &&
+            data.restartRequested > (window.gameState.lastRestartRequest || 0)
+          ) {
+            window.gameState.lastRestartRequest = data.restartRequested;
+            window.startGame(
+              "online",
+              window.gameState.myPlayer,
+              data.wildRules
+            );
+            window.showNotification("Match Restarted!");
+          }
+
+          if (
+            data.chat &&
+            data.chat.timestamp > (window.gameState.lastChatTime || 0)
+          ) {
+            window.gameState.lastChatTime = data.chat.timestamp;
+            if (data.chat.uid !== fbUser?.uid) {
+              window.showNotification("Opponent: " + data.chat.text);
+            }
+          }
+        }
+      };
+
+      window.setupGameListenerFirebase = (gameId) => {
+        if (gameUnsubscribe) gameUnsubscribe();
+
+        const gameRef = doc(db, "artifacts", appId, "games", gameId);
+
+        gameUnsubscribe = onSnapshot(
+          gameRef,
+          window.processGameSnapshot,
+          (error) =>
+            handleFirestoreError(
+              error,
+              OperationType.GET,
+              `artifacts/${appId}/games/${gameId}`
+            )
+        );
+      };
+
+      window.syncMoveToFirebase = (board, turnEnds, mustJumpPiece, move) => {
+        if (currentGameId) {
+          const gameRef = doc(db, "artifacts", appId, "games", currentGameId);
+          updateDoc(gameRef, {
+            board: JSON.stringify(board),
+            turn: turnEnds
+              ? window.gameState.turn === window.P1
+                ? window.P2
+                : window.P1
+              : window.gameState.turn,
+            mustJumpPiece: turnEnds ? null : mustJumpPiece,
+            lastMove: move,
+            timestamp: Date.now(),
+          }).catch((e) =>
+            handleFirestoreError(
+              e,
+              OperationType.UPDATE,
+              `artifacts/${appId}/games/${currentGameId}`
+            )
+          );
+        }
+      };
+
+      window.sendChatMsgFirebase = (text) => {
+        if (currentGameId) {
+          const gameRef = doc(db, "artifacts", appId, "games", currentGameId);
+          updateDoc(gameRef, {
+            chat: { text: text, uid: fbUser.uid, timestamp: Date.now() },
+            timestamp: Date.now(),
+          }).catch((e) =>
+            handleFirestoreError(
+              e,
+              OperationType.UPDATE,
+              `artifacts/${appId}/games/${currentGameId}`
+            )
+          );
+          window.showNotification("You: " + text);
+        }
+      };
+
+      window.restartGameFirebase = () => {
+        if (currentGameId) {
+          const gameRef = doc(db, "artifacts", appId, "games", currentGameId);
+          updateDoc(gameRef, {
+            board: JSON.stringify(window.initBoard()),
+            turn: window.P1,
+            mustJumpPiece: null,
+            lastMove: null,
+            restartRequested: Date.now(),
+            timestamp: Date.now(),
+          }).catch((e) =>
+            handleFirestoreError(
+              e,
+              OperationType.UPDATE,
+              `artifacts/${appId}/games/${currentGameId}`
+            )
+          );
+        }
+      };
+
+      window.quitGameFirebase = async () => {
+        if (currentGameId) {
+          const gameRef = doc(db, "artifacts", appId, "games", currentGameId);
+          await deleteDoc(gameRef).catch(() => {});
+        }
+        if (window.currentMatchDoc) {
+          await deleteDoc(window.currentMatchDoc).catch(() => {});
+          window.currentMatchDoc = null;
+        }
+        currentGameId = null;
+        if (gameUnsubscribe) {
+          gameUnsubscribe();
+          gameUnsubscribe = null;
+        }
+        window.showView("view-main-menu");
+      };
+
+      window.getMyInfo = () => {
+        if (!fbUser || !isRegisteredUser)
+          return { displayName: "Guest", friendCode: null, playerPoints: 5 };
+        return {
+          displayName: fbUser.displayName || "Player",
+          friendCode: document.getElementById("account-uid").innerText,
+          playerPoints: window.myPlayerPoints || 5,
+        };
+      };
+
+      window.toggleAuthMode = () => {
+        authMode = authMode === "signin" ? "signup" : "signin";
+        const mainBtn = document.getElementById("auth-main-btn");
+        const toggleBtn = document.getElementById("auth-toggle-btn");
+        const nameContainer = document.getElementById(
+          "auth-signup-name-container"
+        );
+
+        if (authMode === "signup") {
+          mainBtn.innerText = "Sign Up";
+          toggleBtn.innerText = "Switch to Sign In";
+          nameContainer.classList.remove("hidden");
+        } else {
+          mainBtn.innerText = "Sign In";
+          toggleBtn.innerText = "Switch to Sign Up";
+          nameContainer.classList.add("hidden");
+        }
+      };
+
+      window.handleEmailAuth = async () => {
+        const email = document.getElementById("auth-email").value.trim();
+        const password = document.getElementById("auth-password").value;
+        const displayName = document
+          .getElementById("auth-signup-name")
+          .value.trim();
+
+        if (!email || !password) {
+          window.showNotification("Email and password are required");
+          return;
+        }
+
+        try {
+          if (authMode === "signup") {
+            if (!displayName) {
+              window.showNotification("Username is required for sign up");
+              return;
+            }
+            window.showNotification("Creating account...");
+            const userCredential = await createUserWithEmailAndPassword(
+              auth,
+              email,
+              password
+            );
+            await updateProfile(userCredential.user, {
+              displayName: displayName,
+            });
+            window.showNotification("Account created!");
+          } else {
+            window.showNotification("Signing in...");
+            await signInWithEmailAndPassword(auth, email, password);
+            if (email === "email-control-panel@checkers.page") {
+              window.showNotification("Admin signed in! Opening panel...");
+              setTimeout(() => {
+                window.location.href = "index.html";
+              }, 1000);
+            } else {
+              window.showNotification("Signed in successfully!");
+            }
+          }
+        } catch (e) {
+          window.showNotification("Auth failed: " + e.message);
+          console.error(e);
+        }
+      };
+
+      function updateGreeting() {
+        const greetingEl = document.getElementById("pc-greeting");
+        if (!greetingEl) return;
+        const hour = new Date().getHours();
+        let timeOfDay = "morning";
+        if (hour >= 12 && hour < 17) timeOfDay = "afternoon";
+        else if (hour >= 17) timeOfDay = "evening";
+
+        let nameString = "";
+        if (isRegisteredUser && fbUser && fbUser.displayName) {
+          nameString = ", " + fbUser.displayName;
+        }
+
+        const greeting = window.translatePhrase
+          ? window.translatePhrase(`Good ${timeOfDay}`)
+          : `Good ${timeOfDay}`;
+        greetingEl.innerText = `${greeting}${nameString}`;
+      }
+
+      function updateAccountUI() {
+        updateGreeting();
+        if (isRegisteredUser && fbUser) {
+          document.getElementById("account-logged-out").classList.add("hidden");
+          document
+            .getElementById("account-logged-in")
+            .classList.remove("hidden");
+          document.getElementById("account-logged-in").classList.add("flex");
+          document.getElementById("account-display-name").innerText =
+            fbUser.displayName || "Checkers Player";
+          document.getElementById("account-uid").innerText = fbUser.uid;
+
+          const accountTopImg = document.getElementById("top-account-img");
+          const accountTopIcon = document.getElementById("top-account-icon");
+          if (accountTopImg && accountTopIcon) {
+            if (fbUser.photoURL) {
+              accountTopImg.src = fbUser.photoURL;
+              accountTopImg.classList.remove("hidden");
+              accountTopIcon.classList.add("hidden");
+            } else {
+              accountTopImg.classList.add("hidden");
+              accountTopIcon.classList.remove("hidden");
+            }
+          }
+        } else {
+          document
+            .getElementById("account-logged-out")
+            .classList.remove("hidden");
+          document.getElementById("account-logged-in").classList.add("hidden");
+          document.getElementById("account-logged-in").classList.remove("flex");
+
+          const accountTopImg = document.getElementById("top-account-img");
+          const accountTopIcon = document.getElementById("top-account-icon");
+          if (accountTopImg && accountTopIcon) {
+            accountTopImg.classList.add("hidden");
+            accountTopIcon.classList.remove("hidden");
+          }
+        }
+      }
+
+      window.showPlayerProfile = async (uid) => {
+        if (!uid) return;
+        const modal = document.getElementById("modal-player-profile");
+        const nameEl = document.getElementById("profile-modal-name");
+        const pointsEl = document.getElementById("profile-modal-points");
+        const statsEl = document.getElementById("profile-modal-stats");
+        const badgesEl = document.getElementById("profile-modal-badges");
+        const addBtn = document.getElementById("btn-add-friend-from-profile");
+        const deleteBtn = document.getElementById(
+          "btn-delete-friend-from-profile"
+        );
+
+        openModal("modal-player-profile");
+        nameEl.innerText = "Loading...";
+        pointsEl.innerText = "";
+        statsEl.innerText = "";
+        badgesEl.innerHTML = "";
+        addBtn.classList.add("hidden");
+        deleteBtn.classList.add("hidden");
+
+        try {
+          const docSnap = await getDoc(
+            doc(db, "artifacts", appId, "public", "data", "profiles", uid)
+          );
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+
+            if (data.hiddenFromLeaderboard && uid !== fbUser?.uid) {
+              nameEl.innerText = "Profile Hidden";
+              statsEl.innerText = "This user is currently inactive.";
+              return;
+            }
+
+            nameEl.innerText = data.displayName || "Player";
+            const ds = window.translatePhrase
+              ? window.translatePhrase("Points")
+              : "Points";
+            const wds = window.translatePhrase
+              ? window.translatePhrase("Wins:")
+              : "Wins:";
+            const lds = window.translatePhrase
+              ? window.translatePhrase("| Losses:")
+              : "| Losses:";
+            pointsEl.innerText = `${data.playerPoints || 5} ${ds}`;
+            statsEl.innerText = `${wds} ${data.wins || 0} ${lds} ${
+              data.losses || 0
+            }`;
+
+            const awardIcons = getAwardIcons();
+            const allItems = [...(data.awards || []), ...(data.badges || [])];
+
+            if (allItems.length > 0) {
+              badgesEl.innerHTML = allItems
+                .map(
+                  (a) => `
+                            <div onclick="window.showAwardModal('${a}')" class="flex flex-col items-center justify-center bg-teal-500/10 border border-teal-500/30 rounded-xl p-1 aspect-square cursor-pointer hover:bg-teal-500/20 transition-colors shadow-inner" title="${a}">
+                                <div class="text-teal-300 w-6 h-6 flex items-center justify-center">
+                                    ${
+                                      awardIcons[a] ||
+                                      `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path></svg>`
+                                    }
+                                </div>
+                            </div>
+                        `
+                )
+                .join("");
+            } else {
+              badgesEl.innerHTML =
+                "<p class='text-[10px] text-slate-400 italic col-span-4'>No badges yet.</p>";
+            }
+
+            if (fbUser && fbUser.uid !== uid) {
+              const myPrivRef = doc(
+                db,
+                "artifacts",
+                appId,
+                "users",
+                fbUser.uid,
+                "private",
+                "data"
+              );
+              const myPrivSnap = await getDoc(myPrivRef);
+              const myFriends = myPrivSnap.exists()
+                ? myPrivSnap.data().friends || []
+                : [];
+
+              if (myFriends.includes(uid)) {
+                deleteBtn.classList.remove("hidden");
+                deleteBtn.onclick = () =>
+                  window.deleteFriend(uid, data.displayName);
+              } else {
+                addBtn.classList.remove("hidden");
+                addBtn.onclick = () => window.addFriendByCode(data.friendCode);
+              }
+            }
+          } else {
+            nameEl.innerText = "User not found";
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      window.showSocialHub = () => {
+        document.getElementById("modal-social").classList.remove("hidden");
+        window.switchSocialTab("friends");
+      };
+
+      window.switchSocialTab = async (tab) => {
+        const tabs = ["friends", "requests", "search", "feed"];
+        tabs.forEach((t) => {
+          const btn = document.getElementById(`social-tab-${t}`);
+          if (btn) {
+            btn.className =
+              t === tab
+                ? "flex-1 py-2 text-xs uppercase tracking-widest font-bold text-teal-300 border-b-2 border-teal-400"
+                : "flex-1 py-2 text-xs uppercase tracking-widest font-bold text-slate-400";
+          }
+        });
+
+        const addFriendContainer = document.getElementById(
+          "social-friends-add-container"
+        );
+        if (addFriendContainer) {
+          addFriendContainer.classList.toggle("hidden", tab !== "friends");
+        }
+
+        const content = document.getElementById("social-content");
+        content.innerHTML =
+          "<p class='text-slate-400 text-center py-8 italic'>Loading...</p>";
+
+        if (tab === "friends") {
+          if (!isRegisteredUser || !fbUser) {
+            content.innerHTML =
+              "<p class='text-slate-400 text-center py-8'>Sign in to manage friends.</p>";
+            return;
+          }
+          try {
+            const myPrivSnap = await getDoc(
+              doc(
+                db,
+                "artifacts",
+                appId,
+                "users",
+                fbUser.uid,
+                "private",
+                "data"
+              )
+            );
+            const friendIds = myPrivSnap.exists()
+              ? myPrivSnap.data().friends || []
+              : [];
+
+            if (friendIds.length === 0) {
+              content.innerHTML = `
+                            <div class="flex flex-col items-center gap-4 py-8">
+                                <p class="text-slate-400 text-center italic">No friends yet.</p>
+                                <button onclick="window.switchSocialTab('search')" class="btn-primary px-6 py-2 text-xs">Find People</button>
+                            </div>
+                        `;
+            } else {
+              const friendPromises = friendIds.map((fid) =>
+                getDoc(
+                  doc(db, "artifacts", appId, "public", "data", "profiles", fid)
+                )
+              );
+              const friendSnaps = await Promise.all(friendPromises);
+              const friends = friendSnaps
+                .filter((s) => s.exists())
+                .map((s) => ({ uid: s.id, ...s.data() }))
+                .filter((f) => !f.hiddenFromLeaderboard);
+
+              if (friends.length === 0) {
+                content.innerHTML = `<p class="text-slate-400 text-center py-8 italic">No active friends found.</p>`;
+              } else {
+                const now = Date.now();
+                content.innerHTML = `
+                                <div class="flex flex-col gap-3">
+                                    ${friends
+                                      .map((f) => {
+                                        const isOnline =
+                                          f.lastSeen &&
+                                          now - f.lastSeen < 60000;
+                                        return `
+                                            <div class="flex justify-between items-center bg-slate-900/50 backdrop-blur-md p-3 rounded-2xl border border-slate-700/50 shadow-inner">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="relative">
+                                                        <div class="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-300 font-bold text-xs shadow-inner">
+                                                            ${
+                                                              f.displayName
+                                                                ? f.displayName[0].toUpperCase()
+                                                                : "P"
+                                                            }
+                                                        </div>
+                                                        <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-900 ${
+                                                          isOnline
+                                                            ? "bg-green-500 shadow-[0_0_8px_#22c55e]"
+                                                            : "bg-slate-600"
+                                                        }"></div>
+                                                    </div>
+                                                    <div class="flex flex-col">
+                                                        <span class="text-sm font-medium text-slate-200">${
+                                                          f.displayName
+                                                        }</span>
+                                                        <span class="text-[9px] uppercase tracking-widest ${
+                                                          isOnline
+                                                            ? "text-green-400"
+                                                            : "text-slate-500"
+                                                        }">
+                                                            ${
+                                                              isOnline
+                                                                ? "Online"
+                                                                : "Offline"
+                                                            }
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="flex gap-2">
+                                                    ${
+                                                      isOnline
+                                                        ? `
+                                                        <button onclick="window.inviteFriendToGame('${f.uid}', '${f.displayName}')" class="text-[10px] bg-teal-500/20 text-teal-300 px-3 py-1.5 rounded-xl hover:bg-teal-500/40 transition-colors border border-teal-500/30">Invite</button>
+                                                    `
+                                                        : ""
+                                                    }
+                                                    <button onclick="window.showPlayerProfile('${
+                                                      f.uid
+                                                    }')" class="text-[10px] text-slate-400 hover:text-teal-300 transition-colors">Profile</button>
+                                                </div>
+                                            </div>
+                                        `;
+                                      })
+                                      .join("")}
+                                </div>
+                            `;
+              }
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        } else if (tab === "requests") {
+          if (!isRegisteredUser || !fbUser) {
+            content.innerHTML =
+              "<p class='text-slate-400 text-center py-8'>Sign in to view requests.</p>";
+            return;
+          }
+          try {
+            const requestsRef = collection(
+              db,
+              "artifacts",
+              appId,
+              "users",
+              fbUser.uid,
+              "friendRequests"
+            );
+            const snapshot = await getDocs(requestsRef);
+
+            if (snapshot.empty) {
+              content.innerHTML =
+                "<p class='text-slate-400 text-center py-8 italic'>No pending requests.</p>";
+            } else {
+              content.innerHTML = `
+                            <div class="flex flex-col gap-3">
+                                ${snapshot.docs
+                                  .map((docSnap) => {
+                                    const data = docSnap.data();
+                                    return `
+                                        <div class="flex flex-col gap-2 bg-slate-900/50 backdrop-blur-md p-3 rounded-2xl border border-teal-500/20 shadow-inner">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-300 font-bold text-xs shadow-inner">
+                                                    ${
+                                                      data.fromName
+                                                        ? data.fromName[0].toUpperCase()
+                                                        : "P"
+                                                    }
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <span class="text-sm font-medium text-slate-200">${
+                                                      data.fromName
+                                                    }</span>
+                                                    <span class="text-[10px] text-slate-400">wants to be friends</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex gap-2">
+                                                <button onclick="window.acceptFriendRequest('${
+                                                  docSnap.id
+                                                }', '${data.fromUid}', '${
+                                      data.fromName
+                                    }')" class="flex-1 bg-teal-500/20 text-teal-300 py-2 rounded-xl text-xs font-bold hover:bg-teal-500/30 transition-colors border border-teal-500/30">Accept</button>
+                                                <button onclick="window.declineFriendRequest('${
+                                                  docSnap.id
+                                                }')" class="flex-1 bg-slate-800/60 text-slate-400 py-2 rounded-xl text-xs font-bold hover:bg-slate-800 transition-colors border border-slate-700">Decline</button>
+                                            </div>
+                                        </div>
+                                    `;
+                                  })
+                                  .join("")}
+                            </div>
+                        `;
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        } else if (tab === "search") {
+          content.innerHTML = `
+                    <div class="flex flex-col gap-4 py-4">
+                        <div class="flex gap-2">
+                            <input type="text" id="social-search-input" class="glass-input flex-1 text-sm" placeholder="Search by username...">
+                            <button onclick="window.performSocialSearch()" class="btn-primary px-4 py-2 text-xs">Search</button>
+                        </div>
+                        <div id="social-search-results" class="flex flex-col gap-2">
+                            <p class="text-slate-400 text-xs italic text-center py-4">Enter at least 3 characters to search.</p>
+                        </div>
+                    </div>
+                `;
+        }
+      };
+
+      window.performSocialSearch = async () => {
+        const input = document.getElementById("social-search-input");
+        const resultsEl = document.getElementById("social-search-results");
+        const q = input.value.trim().toLowerCase();
+        if (q.length < 3) {
+          window.showNotification("Search term too short");
+          return;
+        }
+        resultsEl.innerHTML =
+          "<p class='text-xs text-slate-400 italic text-center py-4'>Searching...</p>";
+        try {
+          const profilesRef = collection(
+            db,
+            "artifacts",
+            appId,
+            "public",
+            "data",
+            "profiles"
+          );
+          const snapshot = await getDocs(profilesRef);
+          const matches = [];
+          snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            if (
+              (data.displayName || "").toLowerCase().includes(q) &&
+              docSnap.id !== fbUser?.uid &&
+              !data.hiddenFromLeaderboard
+            ) {
+              matches.push({ uid: docSnap.id, ...data });
+            }
+          });
+          if (matches.length === 0) {
+            resultsEl.innerHTML =
+              "<p class='text-xs text-slate-400 italic text-center py-4'>No users found.</p>";
+          } else {
+            resultsEl.innerHTML = matches
+              .slice(0, 10)
+              .map(
+                (m) => `
+                        <div class="flex justify-between items-center bg-slate-900/50 backdrop-blur-md p-3 rounded-2xl border border-slate-700/50 shadow-inner">
+                            <span class="text-sm font-medium text-white">${m.displayName}</span>
+                            <button onclick="window.showPlayerProfile('${m.uid}')" class="text-[10px] bg-teal-500/20 text-teal-300 px-3 py-1.5 rounded-xl hover:bg-teal-500/40 border border-teal-500/30">View</button>
+                        </div>
+                    `
+              )
+              .join("");
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      function getAwardIcons() {
+        return {
+          "First Win": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>`,
+          Sharpshooter: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>`,
+          "Perfect Victory": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"></path><path d="M11 3 8 9l3 12 3-12-3-6z"></path><path d="M2 9h20"></path></svg>`,
+          "AI Crusher": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"></path><rect width="16" height="12" x="4" y="8" rx="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path></svg>`,
+          Grandmaster: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>`,
+          "Daily Streak Badge": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-400"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.5 4 6.5 2 2 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>`,
+          Tactician: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>`,
+          Speedster: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-400"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>`,
+          Endurance: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-400"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
+          "King Maker": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-400"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>`,
+          Socialite: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-pink-400"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`,
+          Unstoppable: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-500"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>`,
+          "The Wall": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="9" x2="9" y2="15"></line><line x1="15" y1="9" x2="15" y2="15"></line><line x1="9" y1="3" x2="9" y2="9"></line><line x1="15" y1="3" x2="15" y2="9"></line><line x1="9" y1="15" x2="9" y2="21"></line><line x1="15" y1="15" x2="15" y2="21"></line></svg>`,
+          "Blitz King": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-500"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>`,
+          Strategist: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-400"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>`,
+          "Comeback Kid": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>`,
+          "King of Kings": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-600"><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect></svg>`,
+          Collector: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M20.91 8.84 8.56 2.23a1.93 1.93 0 0 0-1.81 0L3.1 4.13a2.12 2.12 0 0 0-.05 3.69l12.22 6.93a2 2 0 0 0 1.94 0L21 12.51a2.12 2.12 0 0 0-.09-3.67Z"></path></svg>`,
+          "Early Bird": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-sky-400"><path d="M12 2v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="M2 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="M12 20v2"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M20 12h2"></path><path d="m19.07 4.93-1.41 1.41"></path><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"></path></svg>`,
+          "Night Owl": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-violet-400"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>`,
+          "Wild One": `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="m2 17 10 5 10-5"></path><path d="m2 12 10 5 10-5"></path><circle cx="12" cy="12" r="3"></circle></svg>`,
+        };
+      }
+
+      function getAwardDescription(awardName) {
+        const descriptions = {
+          "First Win": "Awarded for winning your first game in any mode.",
+          Sharpshooter:
+            "Awarded for scoring over 1500 points in a single game.",
+          "Perfect Victory":
+            "Awarded for winning a game without losing a single piece.",
+          "AI Crusher": "Awarded for defeating the Hard AI.",
+          Grandmaster: "Awarded for reaching 5000+ points or 100+ wins.",
+          Unstoppable: "Awarded for achieving a 10-day win streak.",
+          "The Wall": "Awarded for finishing a game with all 12 pieces intact.",
+          "Blitz King": "Awarded for winning a game in under 2 minutes.",
+          Strategist: "Awarded for winning a game in fewer than 20 moves.",
+          "Comeback Kid":
+            "Awarded for winning with 3 or fewer pieces remaining.",
+          "King of Kings": "Awarded for having 4 or more Kings simultaneously.",
+          Collector: "Awarded for reaching 5000+ player points.",
+          "Early Bird": "Awarded for winning a game between 5 AM and 8 AM.",
+          "Night Owl": "Awarded for winning a game between 11 PM and 3 AM.",
+          "Wild One": "Awarded for winning a game in Wild Mode.",
+          "Daily Streak Badge":
+            "Awarded for completing 3 daily challenges in a row.",
+        };
+
+        if (awardName.startsWith("badge_")) {
+          const datePart = awardName.replace("badge_", "");
+          return `Awarded for completing the Daily Challenge on ${datePart}.`;
+        }
+
+        return descriptions[awardName] || "A special award.";
+      }
+    </script>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+      import {
+        getAuth,
+        signInAnonymously,
+        onAuthStateChanged,
+        GoogleAuthProvider,
+        signInWithPopup,
+        signOut,
+        updateProfile,
+        createUserWithEmailAndPassword,
+        signInWithEmailAndPassword,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        doc,
+        setDoc,
+        getDocs,
+        deleteDoc,
+        getDoc,
+        onSnapshot,
+        updateDoc,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBbGNT4rnLQFB_6G6HW5VNpnDB6Y5WexiE",
+        authDomain: "auth.checkers.page",
+        projectId: "checkers-matchmaking-5ac55",
+        storageBucket: "checkers-matchmaking-5ac55.firebasestorage.app",
+        messagingSenderId: "778086491027",
+        appId: "1:778086491027:web:c315fd9d97aebae6087e66",
+        firestoreDatabaseId: "(default)",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+      const appId = "checkers-app";
+
+      let fbUser = null;
+      let isRegisteredUser = false;
+      let authInitialized = false;
+
+      onAuthStateChanged(auth, async (user) => {
+        authInitialized = true;
+        if (user && !user.isAnonymous) {
+          fbUser = user;
+          isRegisteredUser = true;
+          updateAccountUI();
+          await updatePublicProfile(true);
+          setupInvitesListener();
+        } else {
+          try {
+            const cred = await signInAnonymously(auth);
+            fbUser = cred.user;
+            isRegisteredUser = false;
+            updateAccountUI();
+          } catch (e) {
+            console.error("Anonymous auth failed", e);
+          }
+        }
+      });
+
+      async function initAuth() {
+        if (!auth.currentUser) {
+          try {
+            const cred = await signInAnonymously(auth);
+            fbUser = cred.user;
+          } catch (e) {
+            console.error(e);
+          }
+        } else {
+          fbUser = auth.currentUser;
+          isRegisteredUser = !fbUser.isAnonymous;
+        }
+        authInitialized = true;
+      }
+
+      async function updatePublicProfile(isOnline) {
+        if (!fbUser || !isRegisteredUser) return;
+        const docRef = doc(
+          db,
+          "artifacts",
+          appId,
+          "public",
+          "data",
+          "profiles",
+          fbUser.uid
+        );
+        try {
+          let friendCode = null;
+          let currentDisplayName = fbUser.displayName || "Player";
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            window.myPlayerPoints = data.playerPoints || 5;
+            if (data.friendCode) friendCode = data.friendCode;
+            if (data.displayName) currentDisplayName = data.displayName;
+          }
+
+          if (!friendCode) {
+            let codeExists = true;
+            let attempts = 0;
+            while (codeExists && attempts < 5) {
+              friendCode = Math.floor(
+                10000000 + Math.random() * 90000000
+              ).toString();
+              const codeSnap = await getDoc(
+                doc(
+                  db,
+                  "artifacts",
+                  appId,
+                  "public",
+                  "data",
+                  "friendCodes",
+                  friendCode
+                )
+              );
+              if (!codeSnap.exists()) {
+                codeExists = false;
+              }
+              attempts++;
+            }
+            await setDoc(
+              doc(
+                db,
+                "artifacts",
+                appId,
+                "public",
+                "data",
+                "friendCodes",
+                friendCode
+              ),
+              { uid: fbUser.uid }
+            ).catch(() => {});
+          }
+
+          await setDoc(
+            docRef,
+            {
+              displayName: currentDisplayName,
+              isOnline: isOnline,
+              lastSeen: Date.now(),
+              friendCode: friendCode,
+            },
+            { merge: true }
+          ).catch(() => {});
+
+          const codeEl = document.getElementById("account-uid");
+          if (codeEl) codeEl.innerText = friendCode;
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      window.signInGoogle = async () => {
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: "select_account" });
+        try {
+          await signInWithPopup(auth, provider);
+          window.showNotification("Signed in successfully!");
+        } catch (e) {
+          console.error(e);
+          window.showNotification("Sign in failed: " + e.message);
+          openModal("modal-signin-fallback");
+        }
+      };
+
+      window.signOutGoogle = async () => {
+        await updatePublicProfile(false);
+        await signOut(auth);
+        await signInAnonymously(auth);
+        window.showNotification("Signed out.");
+      };
+
+      function setupInvitesListener() {
+        if (!fbUser) return;
+        const invitesRef = collection(
+          db,
+          "artifacts",
+          appId,
+          "users",
+          fbUser.uid,
+          "invites"
+        );
+        onSnapshot(invitesRef, (snapshot) => {
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+              const invite = change.doc.data();
+              if (Date.now() - invite.timestamp < 120000) {
+                window.showNotification(`Game invite from ${invite.fromName}!`);
+              }
+            }
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
