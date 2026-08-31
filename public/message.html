@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>message.</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <!-- PeerJS -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  
+  <style>
+    /* Custom scrollbar for a clean look */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.2); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.4); }
+    
+    /* Utility to hide elements cleanly */
+    .hide { display: none !important; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-200 font-sans h-[100dvh] w-screen overflow-hidden flex selection:bg-slate-700 relative">
+  
+  <!-- Ambient Background Gradients -->
+  <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-slate-800 rounded-full mix-blend-screen filter blur-[120px] opacity-40 pointer-events-none"></div>
+  <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-slate-700 rounded-full mix-blend-screen filter blur-[120px] opacity-30 pointer-events-none"></div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="opacity-0 pointer-events-none absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-800/90 text-slate-200 text-sm px-6 py-3 rounded-full border border-slate-600/50 backdrop-blur-md shadow-lg transition-all duration-300 transform -translate-y-4">
+    <span id="toast-msg"></span>
+  </div>
+
+  <!-- ================= SIDEBAR (Individual Boxes) ================= -->
+  <div id="sidebar" class="w-full md:w-80 lg:w-96 h-full flex flex-col p-4 sm:p-6 gap-6 z-10 overflow-y-auto border-r border-slate-800/50 bg-slate-900/30 backdrop-blur-xl transition-all">
+    
+    <div class="flex items-center justify-between px-2 pt-2">
+      <h1 class="text-3xl font-light tracking-wide text-slate-100">message.</h1>
+    </div>
+    
+    <!-- Box 1: Your Code -->
+    <div class="bg-slate-800/40 border border-slate-700/50 rounded-[1.5rem] p-4 flex flex-col items-center gap-2 shadow-inner backdrop-blur-md">
+      <span class="text-slate-400 text-[10px] font-medium tracking-widest uppercase">Your Code</span>
+      <div id="copy-btn" class="cursor-pointer group flex items-center justify-center gap-2 bg-slate-900/50 hover:bg-slate-700/50 border border-slate-700/50 px-4 py-2 rounded-xl transition-all w-full active:scale-95">
+        <span id="my-code-display" class="text-xl font-light tracking-[0.2em] font-mono text-slate-100 select-none">........</span>
+        <i class="ph ph-copy text-slate-400 group-hover:text-slate-200 text-lg transition-colors"></i>
+      </div>
+    </div>
+
+    <!-- Box 2: Connect Input -->
+    <div class="bg-slate-800/40 border border-slate-700/50 rounded-[2rem] p-6 flex flex-col items-center gap-4 shadow-inner backdrop-blur-md">
+      <span class="text-slate-400 text-xs font-medium tracking-widest uppercase">Connect to Device</span>
+      <input 
+        id="connect-input" 
+        type="text" 
+        maxlength="8" 
+        placeholder="Enter 8 digits" 
+        class="w-full bg-slate-950/40 border border-slate-700/50 focus:border-slate-500 rounded-2xl px-4 py-4 text-center text-2xl tracking-[0.1em] font-mono placeholder:text-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-700/30 transition-all text-slate-100"
+      >
+    </div>
+
+    <!-- Box 3: Device History -->
+    <div class="bg-slate-800/40 border border-slate-700/50 rounded-[2rem] p-6 flex flex-col flex-1 shadow-inner backdrop-blur-md min-h-[250px] overflow-hidden">
+      <div class="flex justify-between items-center mb-4 px-1">
+        <span class="text-slate-400 text-xs font-medium tracking-widest uppercase">Saved Devices</span>
+        <button id="clear-history-btn" class="text-slate-500 hover:text-red-400 transition-colors p-1 rounded hover:bg-red-400/10" title="Clear History">
+          <i class="ph ph-trash text-lg"></i>
+        </button>
+      </div>
+      <div id="history-list" class="flex flex-col gap-3 overflow-y-auto pr-2 flex-1">
+        <!-- History items generated here -->
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ================= MAIN CHAT AREA ================= -->
+  <div id="main-area" class="hidden md:flex flex-1 flex-col h-full relative z-10 bg-slate-950/20 backdrop-blur-sm">
+    
+    <!-- Empty State -->
+    <div id="empty-state" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 z-0 px-6 text-center">
+      <div class="w-24 h-24 mb-6 rounded-full bg-slate-800/50 flex items-center justify-center border border-slate-700/50">
+        <i class="ph ph-paper-plane-tilt text-4xl text-slate-400"></i>
+      </div>
+      <h2 class="text-2xl font-light text-slate-300 mb-2">No active connection</h2>
+      <p class="font-light tracking-wide max-w-md">Enter an 8-digit code on the left or select a previously saved device to start a secure peer-to-peer session.</p>
+    </div>
+
+    <!-- Active Chat Interface -->
+    <div id="chat-interface" class="hide flex-col h-full w-full z-10 bg-slate-900/60 backdrop-blur-xl shadow-[-10px_0_30px_rgba(0,0,0,0.2)]">
+      
+      <!-- Chat Header -->
+      <div class="px-6 py-4 border-b border-slate-800/60 flex items-center justify-between bg-slate-900/80">
+        <div class="flex items-center gap-4">
+          <button id="back-btn" class="md:hidden p-2 -ml-2 text-slate-400 hover:text-slate-100 bg-slate-800/50 rounded-full">
+            <i class="ph ph-arrow-left text-xl"></i>
+          </button>
+          <span id="remote-id-display" class="font-mono tracking-widest text-lg text-slate-200"></span>
+        </div>
+        <button id="disconnect-btn" class="p-2.5 text-slate-400 hover:text-red-400 bg-slate-800/50 hover:bg-slate-800 rounded-full transition shadow-inner border border-slate-700/50">
+          <i class="ph ph-x font-bold"></i>
+        </button>
+      </div>
+      
+      <!-- Messages List -->
+      <div id="messages-container" class="flex-1 overflow-y-auto p-4 sm:p-8 flex flex-col gap-6">
+        <div class="w-full text-center text-xs text-slate-500 font-medium tracking-widest uppercase my-4">Connection Secured</div>
+        <!-- Messages will be injected here -->
+      </div>
+
+      <!-- Input Form -->
+      <div class="p-4 sm:p-6 bg-slate-900/90 border-t border-slate-800/60">
+        <form id="chat-form" class="flex items-end gap-2 relative max-w-5xl mx-auto">
+          <input type="file" id="file-input" class="hidden" />
+          
+          <div class="flex-1 bg-slate-800/50 border border-slate-700/50 rounded-[2rem] flex items-center p-1.5 focus-within:border-slate-500 focus-within:ring-2 focus-within:ring-slate-700/30 transition-all backdrop-blur-md shadow-inner">
+            <button type="button" id="attach-btn" class="p-3 text-slate-400 hover:text-slate-200 rounded-full transition-colors flex-shrink-0">
+              <i class="ph ph-paperclip text-2xl"></i>
+            </button>
+            
+            <input type="text" id="chat-input" placeholder="Message..." class="flex-1 bg-transparent border-none text-slate-200 placeholder:text-slate-500 focus:outline-none px-3 py-3 text-lg" autocomplete="off" />
+            
+            <button type="submit" id="send-btn" disabled class="p-3.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-40 disabled:bg-slate-800 text-slate-100 rounded-full transition-all mr-1 shadow-md flex-shrink-0">
+              <i class="ph ph-paper-plane-tilt text-xl font-bold"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // State Variables
+    let myId = '';
+    let peer = null;
+    let conn = null;
+    let savedDeviceIds = [];
+
+    // DOM Elements
+    const els = {
+      sidebar: document.getElementById('sidebar'),
+      mainArea: document.getElementById('main-area'),
+      emptyState: document.getElementById('empty-state'),
+      chatInterface: document.getElementById('chat-interface'),
+      myCodeDisplay: document.getElementById('my-code-display'),
+      copyBtn: document.getElementById('copy-btn'),
+      connectInput: document.getElementById('connect-input'),
+      historyList: document.getElementById('history-list'),
+      clearHistoryBtn: document.getElementById('clear-history-btn'),
+      remoteIdDisplay: document.getElementById('remote-id-display'),
+      backBtn: document.getElementById('back-btn'),
+      disconnectBtn: document.getElementById('disconnect-btn'),
+      messagesContainer: document.getElementById('messages-container'),
+      chatForm: document.getElementById('chat-form'),
+      chatInput: document.getElementById('chat-input'),
+      sendBtn: document.getElementById('send-btn'),
+      attachBtn: document.getElementById('attach-btn'),
+      fileInput: document.getElementById('file-input'),
+      toast: document.getElementById('toast'),
+      toastMsg: document.getElementById('toast-msg')
+    };
+
+    // --- UTILITIES ---
+
+    function showToast(msg, isError = false) {
+      els.toastMsg.textContent = msg;
+      if (isError) {
+        els.toast.classList.add('border-red-500/50', 'text-red-200');
+        els.toast.classList.remove('border-slate-600/50', 'text-slate-200');
+      } else {
+        els.toast.classList.remove('border-red-500/50', 'text-red-200');
+        els.toast.classList.add('border-slate-600/50', 'text-slate-200');
+      }
+      
+      els.toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
+      
+      setTimeout(() => {
+        els.toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
+      }, 3000);
+    }
+
+    function formatTime() {
+      return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // --- UI VIEW SWITCHING ---
+
+    function setView(viewMode) {
+      if (viewMode === 'chat') {
+        // On mobile: Hide sidebar, show main area
+        els.sidebar.classList.add('hidden', 'md:flex');
+        els.mainArea.classList.remove('hidden');
+        
+        // Hide empty state, show chat interface
+        els.emptyState.classList.add('hide');
+        els.chatInterface.classList.remove('hide');
+        els.chatInterface.classList.add('flex');
+      } else {
+        // On mobile: Show sidebar, hide main area
+        els.sidebar.classList.remove('hidden');
+        els.mainArea.classList.add('hidden', 'md:flex');
+        
+        // Show empty state, hide chat interface
+        els.emptyState.classList.remove('hide');
+        els.chatInterface.classList.add('hide');
+        els.chatInterface.classList.remove('flex');
+      }
+    }
+
+    // --- HISTORY LOGIC (IDs ONLY) ---
+
+    function loadHistory() {
+      try {
+        savedDeviceIds = JSON.parse(localStorage.getItem('message_device_ids')) || [];
+      } catch (e) {
+        savedDeviceIds = [];
+      }
+      renderHistory();
+    }
+
+    function saveDeviceId(id) {
+      if (!savedDeviceIds.includes(id)) {
+        savedDeviceIds.unshift(id); // Add to beginning
+        localStorage.setItem('message_device_ids', JSON.stringify(savedDeviceIds));
+        renderHistory();
+      }
+    }
+
+    function clearHistory() {
+      if(confirm("Are you sure you want to clear your saved devices?")) {
+        localStorage.removeItem('message_device_ids');
+        savedDeviceIds = [];
+        renderHistory();
+      }
+    }
+
+    function renderHistory() {
+      els.historyList.innerHTML = '';
+      if (savedDeviceIds.length === 0) {
+        els.historyList.innerHTML = `
+          <div class="flex flex-col items-center justify-center h-full text-slate-600 opacity-60 gap-3 mt-4">
+            <i class="ph ph-devices text-4xl"></i>
+            <span class="text-sm">No saved devices</span>
+          </div>`;
+        return;
+      }
+
+      savedDeviceIds.forEach(id => {
+        const btn = document.createElement('button');
+        btn.className = 'w-full flex items-center gap-4 p-4 bg-slate-900/40 hover:bg-slate-700/60 border border-slate-700/30 rounded-2xl transition-all text-left group';
+        btn.innerHTML = `
+          <div class="w-10 h-10 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-300 font-mono text-sm border border-slate-600/50 group-hover:bg-slate-600 transition-colors shadow-sm">
+            ${id.slice(0, 2)}
+          </div>
+          <div class="flex-1">
+            <span class="font-mono text-slate-200 tracking-wider block">${id}</span>
+            <span class="text-[10px] text-slate-500 uppercase tracking-widest">Saved Device</span>
+          </div>
+          <i class="ph ph-caret-right text-slate-600 group-hover:text-slate-300 transition-colors"></i>
+        `;
+        btn.onclick = () => {
+          els.connectInput.value = id;
+          initiateConnection(id);
+        };
+        els.historyList.appendChild(btn);
+      });
+    }
+
+    // --- PEERJS & CONNECTION LOGIC ---
+
+    function initPeer() {
+      let savedId = localStorage.getItem('message_my_id');
+      if (!savedId) {
+        savedId = Math.floor(10000000 + Math.random() * 90000000).toString();
+        localStorage.setItem('message_my_id', savedId);
+      }
+      myId = savedId;
+      els.myCodeDisplay.textContent = myId;
+
+      peer = new Peer(myId);
+
+      peer.on('open', (id) => {
+        console.log('PeerJS server connected. ID:', id);
+      });
+
+      // Handle INCOMING connections
+      peer.on('connection', (c) => {
+        setupConnection(c);
+      });
+
+      peer.on('error', (err) => {
+        console.error(err);
+        if (err.type === 'peer-unavailable') {
+          showToast('Peer not found or offline.', true);
+        } else {
+          showToast('Connection error occurred.', true);
+        }
+        resetConnection();
+      });
+    }
+
+    function initiateConnection(remoteId) {
+      if (remoteId === myId) {
+        showToast("Cannot connect to yourself.", true);
+        els.connectInput.value = '';
+        return;
+      }
+      if (peer) {
+        const c = peer.connect(remoteId);
+        setupConnection(c);
+      }
+    }
+
+    function setupConnection(c) {
+      // Clean up existing connection if any
+      if (conn) conn.close();
+      
+      conn = c;
+
+      conn.on('open', () => {
+        els.remoteIdDisplay.textContent = conn.peer;
+        els.messagesContainer.innerHTML = '<div class="w-full text-center text-xs text-slate-500 font-medium tracking-widest uppercase my-4">Connection Secured</div>'; // Reset messages (not saved in history)
+        setView('chat');
+        saveDeviceId(conn.peer);
+        els.connectInput.value = '';
+      });
+
+      conn.on('data', (data) => {
+        renderMessage(data, false);
+      });
+
+      conn.on('close', () => {
+        showToast('Device disconnected.');
+        resetConnection();
+      });
+    }
+
+    function resetConnection() {
+      if (conn) {
+        conn.close();
+        conn = null;
+      }
+      els.connectInput.value = '';
+      setView('home');
+    }
+
+    // --- MESSAGING LOGIC ---
+
+    function renderMessage(msg, isMe) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `flex w-full ${isMe ? 'justify-end' : 'justify-start'}`;
+      
+      let contentHtml = '';
+      
+      if (msg.type === 'image') {
+        contentHtml = `<img src="${msg.content}" class="max-w-[200px] sm:max-w-xs rounded-xl border border-slate-600/30 object-cover mt-1 shadow-sm" />`;
+      } else if (msg.type === 'file') {
+        contentHtml = `
+          <a href="${msg.content}" download="${msg.filename}" class="flex items-center gap-3 p-3 bg-slate-900/40 rounded-xl mt-1 hover:bg-slate-900/80 transition border border-slate-700/50 shadow-sm">
+            <i class="ph ph-file-arrow-down text-2xl text-slate-300"></i>
+            <span class="text-sm font-medium truncate max-w-[150px]">${msg.filename}</span>
+          </a>`;
+      } else {
+        // Sanitize Text
+        const tempDiv = document.createElement('div');
+        tempDiv.textContent = msg.content;
+        contentHtml = `<p class="whitespace-pre-wrap break-words text-[15px]">${tempDiv.innerHTML}</p>`;
+      }
+
+      wrapper.innerHTML = `
+        <div class="flex flex-col gap-1 max-w-[85%] ${isMe ? 'items-end' : 'items-start'}">
+          <div class="px-5 py-3 shadow-md backdrop-blur-sm ${isMe ? 'bg-slate-700 text-slate-100 rounded-2xl rounded-br-sm' : 'bg-slate-800 border border-slate-700/50 text-slate-200 rounded-2xl rounded-bl-sm'}">
+            ${contentHtml}
+          </div>
+          <span class="text-[10px] text-slate-500 px-1 font-medium tracking-widest uppercase">
+            ${formatTime()}
+          </span>
+        </div>
+      `;
+      
+      els.messagesContainer.appendChild(wrapper);
+      
+      // Smooth scroll to bottom
+      els.messagesContainer.scrollTo({
+        top: els.messagesContainer.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+
+    // --- EVENT LISTENERS ---
+
+    // Copy ID
+    els.copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(myId).then(() => {
+        showToast("Code copied to clipboard");
+      }).catch(err => {
+        // Fallback
+        const textArea = document.createElement("textarea");
+        textArea.value = myId;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast("Code copied to clipboard");
+      });
+    });
+
+    // Connect Input - Auto connect on 8 digits
+    els.connectInput.addEventListener('input', (e) => {
+      const val = e.target.value.replace(/\D/g, '').slice(0, 8);
+      e.target.value = val;
+      if (val.length === 8) {
+        initiateConnection(val);
+      }
+    });
+
+    // Chat Form Submit
+    els.chatForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = els.chatInput.value.trim();
+      if (!text || !conn) return;
+
+      const msg = { type: 'text', content: text };
+      conn.send(msg);
+      renderMessage(msg, true);
+      
+      els.chatInput.value = '';
+      els.sendBtn.disabled = true;
+    });
+
+    // Chat Input change (toggle send button)
+    els.chatInput.addEventListener('input', (e) => {
+      els.sendBtn.disabled = e.target.value.trim().length === 0;
+    });
+
+    // File Attachment
+    els.attachBtn.addEventListener('click', () => els.fileInput.click());
+
+    els.fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file || !conn) return;
+
+      if (file.size > 2 * 1024 * 1024) {
+        showToast("File is too large (Max 2MB).", true);
+        els.fileInput.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target.result;
+        const isImage = file.type.startsWith('image/');
+        const msg = {
+          type: isImage ? 'image' : 'file',
+          content: base64,
+          filename: file.name
+        };
+        
+        conn.send(msg);
+        renderMessage(msg, true);
+      };
+      reader.readAsDataURL(file);
+      els.fileInput.value = ''; // reset
+    });
+
+    // App Navigation & Controls
+    els.clearHistoryBtn.addEventListener('click', clearHistory);
+    els.disconnectBtn.addEventListener('click', resetConnection);
+    els.backBtn.addEventListener('click', () => {
+      // On mobile, just hide chat visually but keep connection alive
+      els.sidebar.classList.remove('hidden');
+      els.mainArea.classList.add('hidden');
+    });
+
+    // --- BOOTSTRAP ---
+    window.addEventListener('DOMContentLoaded', () => {
+      loadHistory();
+      initPeer();
+    });
+
+  </script>
+</body>
+</html>
