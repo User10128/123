@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Audio Blob</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0B132B; /* Dark Navy Background */
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Transcription Text Styling */
+        #transcription {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 1.5rem;
+            text-align: center;
+            max-width: 80%;
+            pointer-events: auto;
+            cursor: pointer;
+            z-index: 10;
+            user-select: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            background: rgba(11, 19, 43, 0.3);
+            padding: 10px 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        #transcription:hover {
+            color: #ffffff;
+            transform: translateX(-50%) scale(1.02);
+            background: rgba(11, 19, 43, 0.5);
+        }
+
+        /* Initial Start Overlay */
+        #start-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #0B132B;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #5B7B9A;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 20;
+            transition: opacity 0.5s ease;
+        }
+    </style>
+    <!-- Include Three.js for 3D rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <!-- Start Overlay to handle browser autoplay policies requiring user interaction -->
+    <div id="start-overlay">Click anywhere to begin</div>
+    
+    <!-- Transcription Display -->
+    <div id="transcription" style="display: none;">Listening...</div>
+    
+    <!-- 3D Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <script>
+        let scene, camera, renderer, blobMesh, originalGeometry;
+        let audioContext, analyser, dataArray, bufferLength;
+        let currentStream = null;
+        let currentSource = null;
+        let isDeviceAudio = false;
+        
+        // Smoothing variables for fluid animations
+        let smoothVolume = 0;
+        let smoothPitch = 0;
+        
+        // Speech Recognition variables
+        let recognition;
+        let transcriptionEnabled = true;
+        const transcriptionElement = document.getElementById('transcription');
+        const startOverlay = document.getElementById('start-overlay');
+        const clock = new THREE.Clock();
+
+        // 1. Initialize 3D Scene
+        function init3D() {
+            const container = document.getElementById('canvas-container');
+
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0B132B); // Dark Navy
+
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.z = 8;
+
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // Lighting setup for a "Matte" finish
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+
+            const backLight = new THREE.DirectionalLight(0xaaccff, 0.3);
+            backLight.position.set(-5, -5, -5);
+            scene.add(backLight);
+
+            // Blob Mesh Setup
+            // High segment count allows for smooth deformation and "spikiness"
+            originalGeometry = new THREE.SphereGeometry(1.5, 64, 64);
+            const geometry = originalGeometry.clone();
+            
+            const material = new THREE.MeshStandardMaterial({
+                color: 0x5B7B9A,     // Light Navy
+                roughness: 1.0,      // Fully Matte
+                metalness: 0.0,
+                flatShading: false
+            });
+
+            blobMesh = new THREE.Mesh(geometry, material);
+            scene.add(blobMesh);
+
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        // Handle window resizing
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // 2. Initialize Audio and Speech
+        
+        async function setAudioSource(useDevice) {
+            try {
+                // Clean up previous streams and sources
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                }
+                if (currentSource) {
+                    currentSource.disconnect();
+                }
+
+                let stream;
+                if (useDevice) {
+                    // Request screen share to capture system/device audio
+                    stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+                    // Immediately stop the video track so we only capture the audio
+                    stream.getVideoTracks().forEach(track => track.stop());
+                } else {
+                    // Request microphone
+                    stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                }
+                
+                currentStream = stream;
+
+                // Set up Web Audio API if not already initialized
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 1024;
+                    bufferLength = analyser.frequencyBinCount;
+                    dataArray = new Uint8Array(bufferLength);
+                }
+                
+                currentSource = audioContext.createMediaStreamSource(stream);
+                currentSource.connect(analyser);
+
+                // Apply Colors based on the mode
+                if (useDevice) {
+                    scene.background.setHex(0x0B2B13); // Dark Green Background
+                    blobMesh.material.color.setHex(0x5B9A6A); // Light Matte Green Blob
+                    document.body.style.backgroundColor = '#0B2B13';
+                } else {
+                    scene.background.setHex(0x0B132B); // Dark Navy Background
+                    blobMesh.material.color.setHex(0x5B7B9A); // Light Matte Navy Blob
+                    document.body.style.backgroundColor = '#0B132B';
+                }
+            } catch (err) {
+                console.error('Error switching audio source:', err);
+                isDeviceAudio = !useDevice; // Revert the state variable on failure/cancel
+            }
+        }
+
+        async function startInteractions() {
+            // Hide overlay
+            startOverlay.style.opacity = '0';
+            setTimeout(() => startOverlay.style.display = 'none', 500);
+
+            try {
+                // Initialize with microphone
+                await setAudioSource(false);
+
+                // Initialize Speech Recognition
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (SpeechRecognition) {
+                    recognition = new SpeechRecognition();
+                    recognition.continuous = true;
+                    recognition.interimResults = true;
+                    
+                    transcriptionElement.style.display = 'block';
+
+                    recognition.onresult = (event) => {
+                        if (!transcriptionEnabled) return;
+                        
+                        let transcript = '';
+                        for (let i = event.resultIndex; i < event.results.length; ++i) {
+                            transcript += event.results[i][0].transcript;
+                        }
+                        
+                        // Capitalize and format text
+                        if (transcript) {
+                            transcript = transcript.charAt(0).toUpperCase() + transcript.slice(1);
+                        }
+                        
+                        transcriptionElement.innerText = transcript || "Listening...";
+                    };
+
+                    recognition.onend = () => {
+                        // Automatically restart if not intentionally disabled
+                        if (transcriptionEnabled) {
+                            try { recognition.start(); } catch(e) {}
+                        }
+                    };
+                    
+                    recognition.start();
+                } else {
+                    transcriptionElement.innerText = "Speech recognition not supported in this browser.";
+                    transcriptionElement.style.display = 'block';
+                }
+
+                // Start the animation loop once everything is ready
+                animate();
+
+            } catch (err) {
+                console.error('Error accessing microphone:', err);
+                startOverlay.innerText = "Microphone access denied or error occurred.";
+                startOverlay.style.opacity = '1';
+                startOverlay.style.display = 'flex';
+            }
+        }
+
+        // 3. Audio Processing Logic
+        function analyzeAudio() {
+            if (!analyser) return { volume: 0, pitch: 0 };
+
+            analyser.getByteTimeDomainData(dataArray);
+            
+            // Calculate Volume (RMS - Root Mean Square)
+            let sumSquares = 0;
+            let zeroCrossings = 0;
+            
+            for (let i = 0; i < bufferLength; i++) {
+                // Normalize data between -1 and 1
+                let normalized = (dataArray[i] - 128) / 128.0;
+                sumSquares += normalized * normalized;
+                
+                // Calculate Zero-Crossing Rate to estimate Pitch/Frequency
+                if (i > 0) {
+                    let prevNormalized = (dataArray[i-1] - 128) / 128.0;
+                    if ((prevNormalized >= 0 && normalized < 0) || (prevNormalized < 0 && normalized >= 0)) {
+                        zeroCrossings++;
+                    }
+                }
+            }
+
+            let rms = Math.sqrt(sumSquares / bufferLength);
+            
+            // Map Zero Crossings to a pitch factor (0 to 1)
+            // Normal voice ranges usually produce a specific range of zero crossings
+            let pitchFactor = Math.min(1.0, zeroCrossings / (bufferLength * 0.2));
+
+            // Reduce pitch impact if volume is very low (background noise filter)
+            if (rms < 0.02) pitchFactor = 0;
+
+            return {
+                volume: rms,
+                pitch: pitchFactor
+            };
+        }
+
+        // 4. Animation and Deformation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = clock.getElapsedTime();
+            const audioData = analyzeAudio();
+
+            // Smooth the audio inputs to prevent jerky movements
+            smoothVolume += (audioData.volume - smoothVolume) * 0.15;
+            smoothPitch += (audioData.pitch - smoothPitch) * 0.15;
+
+            // Update Blob Scale based on Volume (louder = larger)
+            const targetScale = 1.0 + (smoothVolume * 3.5); 
+            blobMesh.scale.set(targetScale, targetScale, targetScale);
+
+            // Deform Geometry based on Pitch (higher pitched = spikier)
+            const positions = blobMesh.geometry.attributes.position;
+            const originals = originalGeometry.attributes.position;
+            const normals = originalGeometry.attributes.normal;
+
+            const v = new THREE.Vector3();
+            const n = new THREE.Vector3();
+
+            // Determine frequency and amplitude of the spikes based on pitch
+            const spikeFrequency = 1.0 + (smoothPitch * 15.0);
+            
+            // Spikes should only protrude heavily if it's both pitched and loud enough
+            const spikeAmplitude = smoothPitch * (0.2 + smoothVolume * 4.0);
+
+            for (let i = 0; i < positions.count; i++) {
+                v.fromBufferAttribute(originals, i);
+                n.fromBufferAttribute(normals, i);
+
+                // 3D noise approximation using sine waves for the spiky effect
+                const noiseX = Math.sin(v.x * spikeFrequency + time * 4.0);
+                const noiseY = Math.cos(v.y * spikeFrequency + time * 4.0);
+                const noiseZ = Math.sin(v.z * spikeFrequency + time * 4.0);
+                const spikeNoise = noiseX * noiseY * noiseZ;
+
+                // Base organic breathing/undulating movement
+                const breatheX = Math.sin(v.x * 2.0 + time * 1.2);
+                const breatheY = Math.cos(v.y * 2.0 + time * 1.2);
+                const breatheZ = Math.sin(v.z * 2.0 + time * 1.2);
+                const baseUndulation = (breatheX * breatheY * breatheZ) * 0.15;
+
+                // Total displacement from the original sphere surface
+                const totalDisplacement = (spikeNoise * spikeAmplitude) + baseUndulation;
+
+                // Apply displacement along the vertex normal
+                v.add(n.multiplyScalar(totalDisplacement));
+                positions.setXYZ(i, v.x, v.y, v.z);
+            }
+
+            // Update geometry arrays and recompute normals for correct lighting (matte effect)
+            positions.needsUpdate = true;
+            blobMesh.geometry.computeVertexNormals();
+
+            // Gentle floating rotation and bobbing
+            blobMesh.rotation.y = time * 0.2;
+            blobMesh.position.y = Math.sin(time * 0.8) * 0.3;
+
+            renderer.render(scene, camera);
+        }
+
+        // 5. Setup Event Listeners
+        
+        window.addEventListener('keydown', (event) => {
+            if (event.code === 'Space' && audioContext) {
+                event.preventDefault(); // Prevent page scrolling down
+                isDeviceAudio = !isDeviceAudio; // Toggle state
+                setAudioSource(isDeviceAudio);
+            }
+        });
+
+        startOverlay.addEventListener('click', () => {
+            if(!audioContext) startInteractions();
+        });
+
+        transcriptionElement.addEventListener('click', () => {
+            // Disable transcription and hide the UI entirely
+            transcriptionEnabled = false;
+            if (recognition) {
+                recognition.stop();
+            }
+            transcriptionElement.style.opacity = '0';
+            setTimeout(() => {
+                transcriptionElement.style.display = 'none';
+            }, 300);
+        });
+
+        // Initialization
+        init3D();
+        renderer.render(scene, camera); // Render initial frame before click
+
+        // 6. Check Permissions to Auto-Start
+        if (navigator.permissions && navigator.permissions.query) {
+            navigator.permissions.query({ name: 'microphone' })
+                .then((permissionStatus) => {
+                    if (permissionStatus.state === 'granted') {
+                        // Automatically begin if microphone permission is already granted
+                        startInteractions();
+                    }
+                })
+                .catch((err) => {
+                    console.warn("Permissions API issue, waiting for user click:", err);
+                });
+        }
+
+    </script>
+</body>
+</html>
