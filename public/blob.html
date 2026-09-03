@@ -92,6 +92,7 @@
         // Speech Recognition variables
         let recognition;
         let transcriptionEnabled = true;
+        let transcriptionPermanentlyDisabled = false;
         const transcriptionElement = document.getElementById('transcription');
         const startOverlay = document.getElementById('start-overlay');
         const clock = new THREE.Clock();
@@ -188,15 +189,29 @@
                 currentSource = audioContext.createMediaStreamSource(stream);
                 currentSource.connect(analyser);
 
-                // Apply Colors based on the mode
+                // Apply Colors and handle transcription based on the mode
                 if (useDevice) {
                     scene.background.setHex(0x0B2B13); // Dark Green Background
                     blobMesh.material.color.setHex(0x5B9A6A); // Light Matte Green Blob
                     document.body.style.backgroundColor = '#0B2B13';
+                    
+                    // Stop microphone transcription while using device audio
+                    transcriptionEnabled = false;
+                    if (recognition) recognition.stop();
+                    transcriptionElement.style.display = 'none';
                 } else {
                     scene.background.setHex(0x0B132B); // Dark Navy Background
                     blobMesh.material.color.setHex(0x5B7B9A); // Light Matte Navy Blob
                     document.body.style.backgroundColor = '#0B132B';
+                    
+                    // Resume transcription if it wasn't permanently hidden by the user
+                    if (!transcriptionPermanentlyDisabled) {
+                        transcriptionEnabled = true;
+                        if (recognition) {
+                            try { recognition.start(); } catch(e) {}
+                        }
+                        transcriptionElement.style.display = 'block';
+                    }
                 }
             } catch (err) {
                 console.error('Error switching audio source:', err);
@@ -220,7 +235,9 @@
                     recognition.continuous = true;
                     recognition.interimResults = true;
                     
-                    transcriptionElement.style.display = 'block';
+                    if (!transcriptionPermanentlyDisabled) {
+                        transcriptionElement.style.display = 'block';
+                    }
 
                     recognition.onresult = (event) => {
                         if (!transcriptionEnabled) return;
@@ -325,7 +342,8 @@
             const n = new THREE.Vector3();
 
             // Determine frequency and amplitude of the spikes based on pitch
-            const spikeFrequency = 1.0 + (smoothPitch * 15.0);
+            // Cap the frequency to limit the maximum number of spikes
+            const spikeFrequency = Math.min(1.0 + (smoothPitch * 15.0), 4.5);
             
             // Spikes should only protrude heavily if it's both pitched and loud enough
             const spikeAmplitude = smoothPitch * (0.2 + smoothVolume * 4.0);
@@ -382,6 +400,7 @@
         transcriptionElement.addEventListener('click', () => {
             // Disable transcription and hide the UI entirely
             transcriptionEnabled = false;
+            transcriptionPermanentlyDisabled = true;
             if (recognition) {
                 recognition.stop();
             }
