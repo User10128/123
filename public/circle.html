@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathematical Circles</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            /* Cobalt black base gradient */
+            background: radial-gradient(circle at 50% 50%, #151e32 0%, #080b13 60%, #030408 100%);
+        }
+
+        /* Subtle frosted grain to create the glassmorphic texture on the dark background */
+        .glass-texture {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)"/></svg>');
+            opacity: 0.06;
+            mix-blend-mode: overlay;
+        }
+
+        /* Ambient glow in the center to enhance depth */
+        .ambient-glow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw;
+            height: 80vh;
+            background: radial-gradient(circle, rgba(28, 43, 76, 0.4) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(60px);
+        }
+
+        /* Main canvas for rendering the pure white circles */
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow"></div>
+    <div class="glass-texture"></div>
+    <canvas id="mathCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('mathCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height, centerX, centerY, R, circleRadius;
+
+        // Resize handler to maintain perfect center and scales across any device
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            centerX = width / 2;
+            centerY = height / 2;
+            // R defines the bounds of the movement paths
+            R = Math.min(width, height) * 0.28;
+            // The size of the actual white circles
+            circleRadius = Math.min(width, height) * 0.015;
+            // Ensure a minimum size so they are always visible
+            if (circleRadius < 4) circleRadius = 4;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Smoothstep interpolation function for fluid transitions between formations
+        function smoothstep(min, max, value) {
+            let x = Math.max(0, Math.min(1, (value - min) / (max - min)));
+            return x * x * (3 - 2 * x);
+        }
+
+        // Linear interpolation
+        function lerp(a, b, t) {
+            return a + (b - a) * t;
+        }
+
+        // Each scene is a function that returns the {x, y} coordinate for circle `i` (0, 1, or 2)
+        // given the current time `t`, center coordinates `cx/cy`, and radius multiplier `r`.
+        const scenes = [
+            // 0: Perfect Rotating Triangle (Base Orbit)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                return {
+                    x: cx + r * Math.cos(t + phase),
+                    y: cy + r * Math.sin(t + phase)
+                };
+            },
+            
+            // 1: Basic Horizontal Line Wave (Basic Movement)
+            (t, i, cx, cy, r) => {
+                const spacing = (i - 1) * (r * 0.8);
+                return {
+                    x: cx + spacing,
+                    y: cy + Math.sin(t * 2 + i * Math.PI / 2) * (r * 0.6)
+                };
+            },
+
+            // 2: Basic Vertical Crossing Lines (Basic Movement)
+            (t, i, cx, cy, r) => {
+                const spacing = (i - 1) * (r * 0.8);
+                return {
+                    x: cx + Math.sin(t * 1.5 + i * Math.PI) * (r * 0.7),
+                    y: cy + spacing
+                };
+            },
+
+            // 3: Lissajous Figure-8 (Infinity Formation)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                return {
+                    x: cx + r * Math.cos(t + phase),
+                    y: cy + r * 0.6 * Math.sin(2 * t + 2 * phase)
+                };
+            },
+
+            // 4: Butterfly Curve (Abstract Math)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 0.8 + phase;
+                const factor = Math.pow(Math.E, Math.cos(T)) - 2 * Math.cos(4 * T) - Math.pow(Math.sin(T / 12), 5);
+                return {
+                    x: cx + (r * 0.25) * Math.sin(T) * factor,
+                    y: cy - (r * 0.25) * Math.cos(T) * factor
+                };
+            },
+
+            // 5: Breathing / Pulsating Intersection
+            (t, i, cx, cy, r) => {
+                const angle = i * (Math.PI / 3) + t * 0.1;
+                const dist = r * Math.sin(t * 1.2 + i * Math.PI / 3);
+                return {
+                    x: cx + dist * Math.cos(angle),
+                    y: cy + dist * Math.sin(angle)
+                };
+            },
+
+            // 6: Parametric Star (Hypocycloid)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 1.5 + phase;
+                const k = 5 / 2; // 5-pointed star ratio
+                const rBase = r * 0.3;
+                return {
+                    x: cx + rBase * (k - 1) * Math.cos(T) + rBase * Math.cos((k - 1) * T),
+                    y: cy + rBase * (k - 1) * Math.sin(T) - rBase * Math.sin((k - 1) * T)
+                };
+            },
+
+            // 7: Epicycloidal Swirl (Spirograph Dynamics)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const r1 = r * 0.6;
+                const r2 = r * 0.4;
+                return {
+                    x: cx + r1 * Math.cos(t) + r2 * Math.cos(3 * t + phase),
+                    y: cy + r1 * Math.sin(t) + r2 * Math.sin(3 * t + phase)
+                };
+            },
+
+            // 8: Nested Orbits (Sun, Planet, Moon dynamics)
+            (t, i, cx, cy, r) => {
+                if (i === 0) {
+                    return { x: cx + r * 0.1 * Math.cos(t), y: cy + r * 0.1 * Math.sin(t) };
+                } else if (i === 1) {
+                    const px = cx + r * 0.1 * Math.cos(t);
+                    const py = cy + r * 0.1 * Math.sin(t);
+                    return { x: px + r * 0.4 * Math.cos(t * 3), y: py + r * 0.4 * Math.sin(t * 3) };
+                } else {
+                    const px = cx + r * 0.1 * Math.cos(t) + r * 0.4 * Math.cos(t * 3);
+                    const py = cy + r * 0.1 * Math.sin(t) + r * 0.4 * Math.sin(t * 3);
+                    return { x: px + r * 0.2 * Math.cos(t * -6), y: py + r * 0.2 * Math.sin(t * -6) };
+                }
+            },
+
+            // 9: Expanding and Collapsing Triangle
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const scale = r * (0.4 + 0.6 * Math.pow(Math.sin(t * 0.8), 2));
+                const rotation = t * -0.5;
+                return {
+                    x: cx + scale * Math.cos(phase + rotation),
+                    y: cy + scale * Math.sin(phase + rotation)
+                };
+            },
+
+            // 10: Smooth Breathing Archimedean Spiral Dance
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const angle = t * 3 + phase;
+                const smoothSpiralR = r * 0.8 * Math.abs(Math.sin(t * 0.5));
+                return {
+                    x: cx + smoothSpiralR * Math.cos(angle),
+                    y: cy + smoothSpiralR * Math.sin(angle)
+                };
+            },
+
+            // 11: Cascading Orbits (Chaos to Order)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                return {
+                    x: cx + r * 0.5 * Math.cos(t + phase) + r * 0.5 * Math.cos(t * 2.5),
+                    y: cy + r * 0.5 * Math.sin(t + phase) + r * 0.5 * Math.sin(t * 2.5)
+                };
+            },
+
+            // 12: Diagonal Sine Spring
+            (t, i, cx, cy, r) => {
+                const tOffset = t * 2 + i * 1.5;
+                return {
+                    x: cx + r * 0.7 * Math.sin(tOffset),
+                    y: cy + r * 0.7 * Math.sin(tOffset * 1.5)
+                };
+            },
+
+            // 13: Concentric Circles Rotation
+            (t, i, cx, cy, r) => {
+                const radii = [r * 0.3, r * 0.6, r * 0.9];
+                const speeds = [1.5, -1.0, 2.0];
+                return {
+                    x: cx + radii[i] * Math.cos(t * speeds[i]),
+                    y: cy + radii[i] * Math.sin(t * speeds[i])
+                };
+            },
+
+            // 14: Vertical Wave Resonance
+            (t, i, cx, cy, r) => {
+                const phaseX = Math.sin(t * 0.5 + i) * (r * 0.8);
+                const phaseY = Math.cos(t * 1.2 + i * Math.PI / 2) * (r * 0.8);
+                return {
+                    x: cx + phaseX,
+                    y: cy + phaseY
+                };
+            },
+
+            // 15: Rose Curve (Rhodonea 4-petaled)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const theta = t * 1.5 + phase;
+                const radius = r * 0.8 * Math.cos(2 * t * 0.8);
+                return {
+                    x: cx + radius * Math.cos(theta),
+                    y: cy + radius * Math.sin(theta)
+                };
+            },
+
+            // 16: Chaotic Pendulum (Double pendulum approximation)
+            (t, i, cx, cy, r) => {
+                const phase = i * 2.0;
+                const a1 = t * 2.1 + phase;
+                const a2 = t * 3.4 - phase;
+                const r1 = r * 0.45;
+                const r2 = r * 0.45;
+                return {
+                    x: cx + r1 * Math.sin(a1) + r2 * Math.sin(a2),
+                    y: cy + r1 * Math.cos(a1) + r2 * Math.cos(a2)
+                };
+            },
+
+            // 17: Tri-lobe Cardioid (Epitrochoid)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const theta = t * 2.5 + phase;
+                const a = r * 0.2;
+                const b = r * 0.2;
+                const h = r * 0.45;
+                return {
+                    x: cx + (a + b) * Math.cos(theta) - h * Math.cos(((a + b) / b) * theta),
+                    y: cy + (a + b) * Math.sin(theta) - h * Math.sin(((a + b) / b) * theta)
+                };
+            },
+
+            // 18: Lemniscate of Gerono (Infinity track chasing)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const theta = t * 1.8 + phase;
+                return {
+                    x: cx + r * 0.9 * Math.sin(theta),
+                    y: cy + r * 0.9 * Math.sin(theta) * Math.cos(theta)
+                };
+            },
+
+            // 19: Bounding Box Lissajous (Sine-Cosine interplay)
+            (t, i, cx, cy, r) => {
+                const phaseX = i * 1.3;
+                const phaseY = i * 2.7;
+                return {
+                    x: cx + r * 0.85 * Math.sin(t * 1.7 + phaseX),
+                    y: cy + r * 0.85 * Math.cos(t * 2.3 + phaseY)
+                };
+            },
+
+            // 20: Triangular orbit around a moving centroid
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const cx_move = r * 0.4 * Math.cos(t * 1.1);
+                const cy_move = r * 0.4 * Math.sin(t * 0.8);
+                return {
+                    x: cx + cx_move + r * 0.45 * Math.cos(t * 3.5 + phase),
+                    y: cy + cy_move + r * 0.45 * Math.sin(t * 3.5 + phase)
+                };
+            },
+
+            // 21: Rotating Ellipses Overlay
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const angle = t * 0.8 + phase;
+                const ex = r * 0.85 * Math.cos(t * 3);
+                const ey = r * 0.3 * Math.sin(t * 3);
+                return {
+                    x: cx + ex * Math.cos(angle) - ey * Math.sin(angle),
+                    y: cy + ex * Math.sin(angle) + ey * Math.cos(angle)
+                };
+            },
+
+            // 22: Torus Knot Projection
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const u = t * 0.8; 
+                const v = t * 3.5 + phase; 
+                const R_torus = r * 0.6;
+                const r_tube = r * 0.3;
+                return {
+                    x: cx + (R_torus + r_tube * Math.cos(v)) * Math.cos(u),
+                    y: cy + (R_torus + r_tube * Math.cos(v)) * Math.sin(u) + r_tube * Math.sin(v) * 0.5
+                };
+            },
+            
+            // 23: Nephroid (Epicycloid k=2)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 1.5 + phase;
+                const a = r * 0.25;
+                return {
+                    x: cx + a * (3 * Math.cos(T) - Math.cos(3 * T)),
+                    y: cy + a * (3 * Math.sin(T) - Math.sin(3 * T))
+                };
+            },
+            
+            // 24: Astroid (Hypocycloid k=4)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 1.5 + phase;
+                return {
+                    x: cx + r * 0.8 * Math.pow(Math.cos(T), 3),
+                    y: cy + r * 0.8 * Math.pow(Math.sin(T), 3)
+                };
+            },
+            
+            // 25: Deltoid (Hypocycloid k=3)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 2 + phase;
+                const a = r * 0.25;
+                return {
+                    x: cx + 2 * a * Math.cos(T) + a * Math.cos(2 * T),
+                    y: cy + 2 * a * Math.sin(T) - a * Math.sin(2 * T)
+                };
+            },
+            
+            // 26: Lemniscate of Bernoulli
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 1.5 + phase;
+                const a = r * 0.9;
+                const denom = 1 + Math.sin(T) * Math.sin(T);
+                return {
+                    x: cx + (a * Math.cos(T)) / denom,
+                    y: cy + (a * Math.sin(T) * Math.cos(T)) / denom
+                };
+            },
+            
+            // 27: Bicorn (Cocked Hat Curve)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 1.5 + phase;
+                const a = r * 0.8;
+                return {
+                    x: cx + a * Math.sin(T),
+                    y: cy - a * (Math.cos(T) * Math.cos(T) * (2 + Math.cos(T))) / (3 + Math.sin(T) * Math.sin(T)) + r*0.3
+                };
+            },
+            
+            // 28: Dumbbell Curve
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 1.5 + phase;
+                const a = r * 0.9;
+                return {
+                    x: cx + a * Math.cos(T),
+                    y: cy + a * (Math.cos(T) * Math.cos(T) * Math.cos(T)) * Math.sin(T) * 2
+                };
+            },
+            
+            // 29: Trefoil Knot (2D Projection)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 1.2 + phase;
+                return {
+                    x: cx + r * 0.3 * (Math.sin(T) + 2 * Math.sin(2 * T)),
+                    y: cy + r * 0.3 * (Math.cos(T) - 2 * Math.cos(2 * T))
+                };
+            },
+            
+            // 30: Harmonograph (2-pendulum damping approximation, oscillating)
+            (t, i, cx, cy, r) => {
+                const phase = i * Math.PI;
+                const T = t * 2;
+                const damp = Math.sin(t * 0.5) * 0.5 + 0.5;
+                return {
+                    x: cx + r * 0.8 * damp * Math.sin(T * 1.01 + phase) * Math.cos(T * 0.05),
+                    y: cy + r * 0.8 * damp * Math.sin(T * 0.99) * Math.cos(T * 0.03)
+                };
+            },
+            
+            // 31: Maclaurin Trisectrix (Bounded parameter)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = (Math.sin(t * 1.5 + phase) * 1.4); 
+                const a = r * 0.4;
+                const sec = 1 / Math.cos(T / 3);
+                return {
+                    x: cx + a * (sec - Math.cos(T)),
+                    y: cy + a * Math.sin(T)
+                };
+            },
+            
+            // 32: Pear-shaped Quartic
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 2 + phase;
+                const a = r * 0.4;
+                return {
+                    x: cx + a * (1 + Math.sin(T)),
+                    y: cy + a * Math.cos(T) * (1 + Math.sin(T))
+                };
+            },
+            
+            // 33: Eight Curve (Gerono skew)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 1.5 + phase;
+                const a = r * 0.8;
+                return {
+                    x: cx + a * Math.sin(T) * Math.cos(T),
+                    y: cy + a * Math.sin(T)
+                };
+            },
+            
+            // 34: Kissing Circles (Osculating)
+            (t, i, cx, cy, r) => {
+                const radii = [r * 0.2, r * 0.4, r * 0.6];
+                const T = t * 2;
+                return {
+                    x: cx + (r - radii[i]) * Math.cos(T),
+                    y: cy + (r - radii[i]) * Math.sin(T)
+                };
+            },
+            
+            // 35: Lituus (Bounded Spiral)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = Math.abs(Math.sin(t * 0.5)) * 10 + 0.1;
+                const rad = (r * 1.5) / Math.sqrt(T);
+                const angle = T * 2 + phase;
+                return {
+                    x: cx + rad * Math.cos(angle),
+                    y: cy + rad * Math.sin(angle)
+                };
+            },
+            
+            // 36: Cochleoid (Bounded)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = (Math.sin(t * 0.8) * 4) + 0.01;
+                const a = r * 0.8;
+                const rad = a * Math.sin(T) / T;
+                const angle = T + phase + t;
+                return {
+                    x: cx + rad * Math.cos(angle),
+                    y: cy + rad * Math.sin(angle)
+                };
+            },
+            
+            // 37: Triple Helix (Orthographic 3D)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const z = Math.sin(t * 1.5 + phase);
+                const scale = 0.5 + 0.5 * (z + 1) / 2;
+                const T = t * 3 + phase;
+                return {
+                    x: cx + r * 0.5 * scale * Math.cos(T),
+                    y: cy + r * 0.5 * Math.sin(t * 0.5) + r * 0.5 * scale * Math.sin(T)
+                };
+            },
+            
+            // 38: Hypotrochoid (Spirograph dense)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 2 + phase;
+                const R = r * 0.5;
+                const sm_r = r * 0.15;
+                const d = r * 0.25;
+                return {
+                    x: cx + (R - sm_r) * Math.cos(T) + d * Math.cos((R - sm_r) / sm_r * T),
+                    y: cy + (R - sm_r) * Math.sin(T) - d * Math.sin((R - sm_r) / sm_r * T)
+                };
+            },
+            
+            // 39: Cycloidal Wave (Circular wrapped)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 1.5 + phase;
+                const R = r * 0.6;
+                const r2 = r * 0.2;
+                return {
+                    x: cx + (R + r2 * Math.cos(T * 4)) * Math.cos(T),
+                    y: cy + (R + r2 * Math.cos(T * 4)) * Math.sin(T)
+                };
+            },
+            
+            // 40: Chaotic Three-Body Approximation
+            (t, i, cx, cy, r) => {
+                const p1 = i * 1.3;
+                const p2 = i * 2.7;
+                return {
+                    x: cx + r * 0.4 * Math.sin(t * 1.7 + p1) + r * 0.3 * Math.cos(t * 2.1 - p2),
+                    y: cy + r * 0.4 * Math.cos(t * 1.9 - p1) + r * 0.3 * Math.sin(t * 2.3 + p2)
+                };
+            },
+            
+            // 41: Lissajous 5:4 ratio
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                return {
+                    x: cx + r * 0.8 * Math.sin(5 * t * 0.5 + phase),
+                    y: cy + r * 0.8 * Math.sin(4 * t * 0.5)
+                };
+            },
+            
+            // 42: Magnetic Dipole Field Lines
+            (t, i, cx, cy, r) => {
+                const phase = (i / 3) * Math.PI;
+                const T = (t % (Math.PI)) - Math.PI / 2;
+                const R = r * 0.8 * Math.cos(T) * Math.cos(T);
+                const angle = T + phase;
+                return {
+                    x: cx + R * Math.cos(angle),
+                    y: cy + R * Math.sin(angle)
+                };
+            },
+            
+            // 43: Synchronized Sine Wave Intersections
+            (t, i, cx, cy, r) => {
+                const speed = 2.0;
+                const T = t * speed;
+                const yOffset = (i - 1) * (r * 0.3);
+                return {
+                    x: cx + Math.sin(T + i * Math.PI) * (r * 0.7),
+                    y: cy + Math.sin(T * 2 + i * Math.PI / 2) * (r * 0.4) + yOffset
+                };
+            },
+            
+            // 44: Wobbly Circle (Perturbed Orbit)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 2 + phase;
+                const pertub = 1 + 0.15 * Math.sin(10 * T);
+                return {
+                    x: cx + r * 0.7 * pertub * Math.cos(T),
+                    y: cy + r * 0.7 * pertub * Math.sin(T)
+                };
+            },
+            
+            // 45: Fermat's Spiral (Bounded/Oscillating)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const maxTurns = 4 * Math.PI;
+                const T = (Math.sin(t * 0.5) + 1) / 2 * maxTurns; 
+                const rad = r * 0.8 * Math.sqrt(T / maxTurns);
+                return {
+                    x: cx + rad * Math.cos(T + phase + t),
+                    y: cy + rad * Math.sin(T + phase + t)
+                };
+            },
+            
+            // 46: Rose Curve (Rhodonea 7-petaled)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 1.2 + phase;
+                const rad = r * 0.9 * Math.cos(7 * t * 0.3);
+                return {
+                    x: cx + rad * Math.cos(T),
+                    y: cy + rad * Math.sin(T)
+                };
+            },
+            
+            // 47: Superellipse (Squircle oscillating to diamond)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 2 + phase;
+                const n = 2 + 1.5 * Math.sin(t * 1.5); 
+                const a = r * 0.7;
+                const b = r * 0.7;
+                const cosT = Math.cos(T);
+                const sinT = Math.sin(T);
+                return {
+                    x: cx + a * Math.pow(Math.abs(cosT), 2/n) * Math.sign(cosT),
+                    y: cy + b * Math.pow(Math.abs(sinT), 2/n) * Math.sign(sinT)
+                };
+            },
+            
+            // 48: Epicycloid (k=3, Nephroid-like 4 cusps)
+            (t, i, cx, cy, r) => {
+                const phase = i * (Math.PI * 2) / 3;
+                const T = t * 1.5 + phase;
+                const a = r * 0.2;
+                const k = 3;
+                return {
+                    x: cx + a * ((k + 1) * Math.cos(T) - Math.cos((k + 1) * T)),
+                    y: cy + a * ((k + 1) * Math.sin(T) - Math.sin((k + 1) * T))
+                };
+            },
+            
+            // 49: Damped Oscillation Drop
+            (t, i, cx, cy, r) => {
+                const T = (t % 3) * 2;
+                const damp = Math.exp(-T);
+                const yPos = cy - r * 0.8 + r * 1.6 * (1 - damp * Math.cos(T * 5));
+                const xSpacing = (i - 1) * r * 0.5;
+                return {
+                    x: cx + xSpacing,
+                    y: yPos
+                };
+            }
+        ];
+
+        
+        // Random duration generators (seconds)
+        function getRandomDuration() {
+            return 3 + Math.random() * 6; // Scenes hold for 3 to 9 seconds
+        }
+        function getRandomTransition() {
+            return 1.5 + Math.random() * 2.5; // Smooth transitions take 1.5 to 4.0 seconds
+        }
+
+        let currentSceneIndex = Math.floor(Math.random() * scenes.length);
+        let nextSceneIndex = Math.floor(Math.random() * scenes.length);
+        
+        // Ensure the next scene isn't the same as the current one initially
+        if (nextSceneIndex === currentSceneIndex) {
+            nextSceneIndex = (currentSceneIndex + 1) % scenes.length;
+        }
+
+        let currentSceneDuration = getRandomDuration();
+        let currentTransitionDuration = getRandomTransition();
+        let cycleStartTime = 0; 
+        let firstFrame = true;
+
+        function animate(timestamp) {
+            const currentSeconds = timestamp / 1000;
+            
+            if (firstFrame) {
+                cycleStartTime = currentSeconds;
+                firstFrame = false;
+            }
+
+            const t = currentSeconds; 
+            
+            // Clear canvas for this frame
+            ctx.clearRect(0, 0, width, height);
+
+            let timeInCycle = t - cycleStartTime;
+            let totalCycleTime = currentSceneDuration + currentTransitionDuration;
+
+            // If we've completed the phase (hold + transition), pick new randoms
+            if (timeInCycle >= totalCycleTime) {
+                cycleStartTime += totalCycleTime;
+                timeInCycle = t - cycleStartTime;
+                
+                currentSceneIndex = nextSceneIndex;
+                
+                // Pick a new random next scene
+                do {
+                    nextSceneIndex = Math.floor(Math.random() * scenes.length);
+                } while (nextSceneIndex === currentSceneIndex);
+
+                currentSceneDuration = getRandomDuration();
+                currentTransitionDuration = getRandomTransition();
+                totalCycleTime = currentSceneDuration + currentTransitionDuration;
+            }
+
+            // Determine interpolation factor (0.0 to 1.0) for morphing
+            let u = 0;
+            if (timeInCycle > currentSceneDuration) {
+                const transitionProgress = (timeInCycle - currentSceneDuration) / currentTransitionDuration;
+                u = smoothstep(0, 1, transitionProgress);
+            }
+
+            // Set up circle aesthetics
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
+
+            // Draw the perfectly synchronized circles
+            for (let i = 0; i < 3; i++) {
+                const posA = scenes[currentSceneIndex](t, i, centerX, centerY, R);
+                
+                let finalX = posA.x;
+                let finalY = posA.y;
+
+                if (u > 0) {
+                    const posB = scenes[nextSceneIndex](t, i, centerX, centerY, R);
+                    finalX = lerp(posA.x, posB.x, u);
+                    finalY = lerp(posA.y, posB.y, u);
+                }
+
+                ctx.beginPath();
+                ctx.arc(finalX, finalY, circleRadius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Start the perfectly mathematically synchronized loop
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>
