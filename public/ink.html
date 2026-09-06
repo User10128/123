@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ink Timer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            background-color: #f4f1ea;
+        }
+        .paper-panel {
+            background: rgba(255, 253, 249, 0.94);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            transition: all 0.5s ease-in-out;
+        }
+        .ink-glow {
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.25);
+        }
+        .timer-hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.95);
+        }
+        .title-font {
+            font-family: 'Playfair Display', serif;
+        }
+    </style>
+</head>
+<body class="h-full w-full relative flex flex-col items-center justify-center select-none">
+
+    <div id="bg-container" class="absolute inset-0 z-0 overflow-hidden bg-[#f4f1ea]">
+        <div class="absolute inset-0 bg-[radial-gradient(#d1cbbd_1px,transparent_1px)] [background-size:24px_24px] opacity-40"></div>
+        <div class="absolute top-1/3 left-1/4 w-96 h-96 bg-[#e6dfd1] rounded-full filter blur-3xl opacity-60"></div>
+    </div>
+
+    <canvas id="timerCanvas" class="absolute inset-0 z-10 w-full h-full cursor-crosshair"></canvas>
+
+    <div id="mainPanel" class="relative z-20 w-11/12 max-w-md p-6 rounded-3xl paper-panel text-zinc-900 flex flex-col items-center space-y-6">
+        <div class="text-center">
+            <h1 class="text-2xl font-bold tracking-wide title-font text-zinc-900">INK TIMER</h1>
+            <p class="text-xs text-zinc-500 mt-1">Minimalistic timer using the spread of ink</p>
+        </div>
+
+        <!-- Timer Display (Millisecond Precision) -->
+        <div class="flex flex-col items-center justify-center bg-[#f9f7f2] border border-zinc-200/80 w-full py-4 rounded-2xl shadow-inner">
+            <div id="timeDisplay" class="text-4xl sm:text-5xl font-mono font-bold tracking-widest text-zinc-900 drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)]">
+                01:00.000
+            </div>
+            <div class="text-xs font-medium text-zinc-500 mt-1 uppercase tracking-wider" id="statusText">Ready</div>
+        </div>
+
+        <div id="setupControls" class="w-full space-y-3">
+            <label class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider">Set Duration</label>
+            <div class="grid grid-cols-4 gap-2">
+                <button onclick="setDuration(30)" class="duration-btn py-2 text-xs font-semibold rounded-xl bg-zinc-200/60 hover:bg-zinc-300/80 border border-zinc-300 text-zinc-800 transition">30s</button>
+                <button onclick="setDuration(60)" class="duration-btn py-2 text-xs font-semibold rounded-xl bg-zinc-200/60 hover:bg-zinc-300/80 border border-zinc-300 text-zinc-800 transition">1m</button>
+                <button onclick="setDuration(300)" class="duration-btn py-2 text-xs font-semibold rounded-xl bg-zinc-900 text-white border border-zinc-900 transition shadow-md" id="defaultDurationBtn">5m</button>
+                <button onclick="setDuration(600)" class="duration-btn py-2 text-xs font-semibold rounded-xl bg-zinc-200/60 hover:bg-zinc-300/80 border border-zinc-300 text-zinc-800 transition">10m</button>
+            </div>
+            <div class="flex space-x-2 pt-1">
+                <input type="number" id="customDurationInput" min="0.01" max="1440" step="any" value="1" placeholder="Custom Minutes" class="flex-1 py-2 px-3 text-xs font-semibold rounded-xl bg-zinc-200/60 border border-zinc-300 text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900">
+                <button onclick="setCustomDuration()" class="py-2 px-4 text-xs font-semibold rounded-xl bg-zinc-900 text-white border border-zinc-900 hover:bg-zinc-800 transition shadow-md">Set</button>
+            </div>
+        </div>
+
+        <!-- Control Action Buttons -->
+        <div class="flex space-x-3 w-full">
+            <button id="startBtn" onclick="toggleTimer()" class="flex-1 py-3 px-4 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-white font-semibold shadow-lg ink-glow transition transform active:scale-95">
+                Start Timer
+            </button>
+            <button id="resetBtn" onclick="resetTimer()" class="py-3 px-5 rounded-2xl bg-zinc-200/80 hover:bg-zinc-300 border border-zinc-300 text-zinc-800 font-semibold transition transform active:scale-95">
+                Reset
+            </button>
+        </div>
+    </div>
+
+    <div id="floatControls" class="fixed top-6 right-6 z-30 hidden space-x-2">
+        <button onclick="toggleTimer()" class="py-2.5 px-5 rounded-xl bg-zinc-900/90 backdrop-blur-md border border-zinc-700 text-white text-xs font-semibold shadow-lg hover:bg-zinc-800 transition">Pause / Resume</button>
+        <button onclick="resetTimer()" class="py-2.5 px-4 rounded-xl bg-white/90 backdrop-blur-md border border-zinc-300 text-zinc-800 text-xs font-semibold shadow-lg hover:bg-zinc-100 transition">Reset</button>
+    </div>
+
+    <!-- Completion Modal -->
+    <div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="paper-panel p-8 rounded-3xl max-w-sm w-full mx-4 text-center space-y-4 border border-zinc-300 shadow-2xl">
+            <div id="modalTitle" class="text-xl font-bold title-font text-zinc-900">Timer Complete!</div>
+            <p id="modalMessage" class="text-sm text-zinc-600">The ink has fully covered the paper.</p>
+            <button onclick="closeModal()" class="w-full py-3 rounded-xl bg-zinc-900 text-white font-semibold shadow-lg ink-glow hover:bg-zinc-800 transition">
+                Okay
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('timerCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let totalDurationMs = 60000;
+        let remainingMs = 60000;
+        let isRunning = false;
+        let startTime = null;
+        let animationFrameId = null;
+
+        let width = 0;
+        let height = 0;
+        let totalPixels = 0;
+        let sortedPixels = null;
+        let imageData = null;
+        let specularValues = null; 
+        let currentSpreadIndex = 0;
+
+        // Fast integer hash for highly organic randomness
+        function hash(x, y) {
+            let h = Math.imul(x, 374761393) + Math.imul(y, 668265263);
+            h = Math.imul(h ^ (h >>> 13), 3266489917);
+            return ((h ^ (h >>> 16)) >>> 0) / 4294967296.0;
+        }
+
+        // Bilinear interpolation for smooth fluid lobes
+        function fastNoise(x, y) {
+            const xi = Math.floor(x), yi = Math.floor(y);
+            const xf = x - xi, yf = y - yi;
+            const tl = hash(xi, yi), tr = hash(xi + 1, yi);
+            const bl = hash(xi, yi + 1), br = hash(xi + 1, yi + 1);
+            return tl * (1 - xf) * (1 - yf) + tr * xf * (1 - yf) + 
+                   bl * (1 - xf) * yf + br * xf * yf;
+        }
+
+        function getCost(x, y) {
+            // Lower frequencies for much less evenly put macro shape
+            let n = fastNoise(x * 0.003, y * 0.003) * 0.65 + 
+                    fastNoise(x * 0.015, y * 0.015) * 0.25 +
+                    fastNoise(x * 0.05, y * 0.05) * 0.1;
+            // High exponent to make fluid shoot down valleys and avoid hills, making it very uneven
+            return Math.pow(Math.max(0, n), 3.0); 
+        }
+
+        function initSpreadSystem() {
+            const dpr = window.devicePixelRatio || 1;
+            const cssW = window.innerWidth;
+            const cssH = window.innerHeight;
+
+            width = Math.floor(cssW * dpr);
+            height = Math.floor(cssH * dpr);
+
+            canvas.width = width;
+            canvas.height = height;
+            canvas.style.width = cssW + 'px';
+            canvas.style.height = cssH + 'px';
+
+            totalPixels = width * height;
+            sortedPixels = new Int32Array(totalPixels);
+            specularValues = new Float32Array(totalPixels);
+            const dist = new Int32Array(totalPixels).fill(2147483647);
+            const visited = new Uint8Array(totalPixels);
+
+            // Much less centric seed generation
+            const seedX = Math.floor(width * (0.15 + Math.random() * 0.7));
+            const seedY = Math.floor(height * (0.15 + Math.random() * 0.7));
+
+            const NUM_BUCKETS = 1024; 
+            const buckets = Array.from({ length: NUM_BUCKETS }, () => []);
+            
+            // Seed a perfectly round spread point at the start
+            for (let dy = -25; dy <= 25; dy++) {
+                for (let dx = -25; dx <= 25; dx++) {
+                    const nx = seedX + dx;
+                    const ny = seedY + dy;
+                    if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                        const nIdx = ny * width + nx;
+                        const distFromCenter = Math.sqrt(dx*dx + dy*dy);
+                        if (distFromCenter < 18) {
+                            dist[nIdx] = 0;
+                            buckets[0].push(nIdx);
+                        }
+                    }
+                }
+            }
+
+            if (buckets[0].length === 0) {
+                const seedIdx = seedY * width + seedX;
+                dist[seedIdx] = 0;
+                buckets[0].push(seedIdx);
+            }
+
+            let count = 0;
+            let currentBucket = 0;
+
+            while (count < totalPixels) {
+                let b = currentBucket & 1023;
+                while (buckets[b].length === 0) {
+                    currentBucket++;
+                    b = currentBucket & 1023;
+                    if (currentBucket > 2147483647) break;
+                }
+
+                const u = buckets[b].pop();
+
+                if (visited[u]) continue;
+                visited[u] = 1;
+                sortedPixels[count++] = u;
+
+                const ux = u % width;
+                const uy = Math.floor(u / width);
+                const uDist = dist[u];
+
+                // 8-connectivity with diagonal weighting
+                if (ux > 0) evaluateNeighbor(u - 1, ux - 1, uy, 10, uDist, dist, buckets, visited, NUM_BUCKETS);
+                if (ux < width - 1) evaluateNeighbor(u + 1, ux + 1, uy, 10, uDist, dist, buckets, visited, NUM_BUCKETS);
+                if (uy > 0) evaluateNeighbor(u - width, ux, uy - 1, 10, uDist, dist, buckets, visited, NUM_BUCKETS);
+                if (uy < height - 1) evaluateNeighbor(u + width, ux, uy + 1, 10, uDist, dist, buckets, visited, NUM_BUCKETS);
+
+                if (ux > 0 && uy > 0) evaluateNeighbor(u - width - 1, ux - 1, uy - 1, 14, uDist, dist, buckets, visited, NUM_BUCKETS);
+                if (ux < width - 1 && uy > 0) evaluateNeighbor(u - width + 1, ux + 1, uy - 1, 14, uDist, dist, buckets, visited, NUM_BUCKETS);
+                if (ux > 0 && uy < height - 1) evaluateNeighbor(u + width - 1, ux - 1, uy + 1, 14, uDist, dist, buckets, visited, NUM_BUCKETS);
+                if (ux < width - 1 && uy < height - 1) evaluateNeighbor(u + width + 1, ux + 1, uy + 1, 14, uDist, dist, buckets, visited, NUM_BUCKETS);
+            }
+
+            if (count < totalPixels) {
+                for (let i = 0; i < totalPixels; i++) {
+                    if (!visited[i]) {
+                        sortedPixels[count++] = i;
+                        dist[i] = dist[sortedPixels[count-2]] + 1;
+                    }
+                }
+            }
+
+            const Hx = 0.38, Hy = -0.38, Hz = 0.84;
+            const Z_FLATNESS = 300.0;
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const i = y * width + x;
+                    
+                    const yTop = y > 0 ? y - 1 : 0;
+                    const yBot = y < height - 1 ? y + 1 : height - 1;
+                    const xLeft = x > 0 ? x - 1 : 0;
+                    const xRight = x < width - 1 ? x + 1 : width - 1;
+                    
+                    const tl = dist[yTop * width + xLeft];
+                    const tc = dist[yTop * width + x];
+                    const tr = dist[yTop * width + xRight];
+                    const ml = dist[y * width + xLeft];
+                    const mr = dist[y * width + xRight];
+                    const bl = dist[yBot * width + xLeft];
+                    const bc = dist[yBot * width + x];
+                    const br = dist[yBot * width + xRight];
+                    
+                    const dX = (tr + 2 * mr + br) - (tl + 2 * ml + bl);
+                    const dY = (bl + 2 * bc + br) - (tl + 2 * tc + tr);
+                    
+                    const len = Math.sqrt(dX * dX + dY * dY + Z_FLATNESS * Z_FLATNESS);
+                    const nx = dX / len;
+                    const ny = dY / len;
+                    const nz = Z_FLATNESS / len;
+                    
+                    const dot = Math.max(0, nx * Hx + ny * Hy + nz * Hz);
+                    specularValues[i] = Math.pow(dot, 65.0);
+                }
+            }
+
+            imageData = ctx.createImageData(width, height);
+            const data = imageData.data;
+            for (let i = 0; i < totalPixels; i++) {
+                const p = i * 4;
+                data[p]     = 244;
+                data[p + 1] = 241;
+                data[p + 2] = 234;
+                data[p + 3] = 255;
+            }
+            ctx.putImageData(imageData, 0, 0);
+            currentSpreadIndex = 0;
+        }
+
+        function evaluateNeighbor(v, vx, vy, stepCost, uDist, dist, buckets, visited, numBuckets) {
+            if (!visited[v]) {
+                const cost = getCost(vx, vy);
+                // Lower base cost, massive noise penalty for highly uneven spread
+                const newDist = uDist + Math.round(stepCost * (0.1 + cost * 10.0));
+                if (newDist < dist[v]) {
+                    dist[v] = newDist;
+                    buckets[newDist & (numBuckets - 1)].push(v);
+                }
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            if (!isRunning && remainingMs === totalDurationMs) {
+                initSpreadSystem();
+                drawInkScreen(0.0);
+            }
+        });
+
+        function setDuration(seconds) {
+            if (isRunning) return;
+            totalDurationMs = seconds * 1000;
+            remainingMs = totalDurationMs;
+            updateDisplay();
+            
+            document.querySelectorAll('.duration-btn').forEach(btn => {
+                btn.className = "duration-btn py-2 text-xs font-semibold rounded-xl bg-zinc-200/60 hover:bg-zinc-300/80 border border-zinc-300 text-zinc-800 transition";
+            });
+            if (event && event.target && event.target.classList.contains('duration-btn')) {
+                event.target.className = "duration-btn py-2 text-xs font-semibold rounded-xl bg-zinc-900 text-white border border-zinc-900 transition shadow-md";
+            }
+            
+            initSpreadSystem();
+            drawInkScreen(0.0);
+        }
+function setCustomDuration() {
+    if (isRunning) return;
+    const val = parseFloat(document.getElementById('customDurationInput').value);
+    if (isNaN(val) || val <= 0) return;
+    setDuration(val * 60);
+    
+    document.querySelectorAll('.duration-btn').forEach(btn => {
+        btn.className = "duration-btn py-2 text-xs font-semibold rounded-xl bg-zinc-200/60 hover:bg-zinc-300/80 border border-zinc-300 text-zinc-800 transition";
+    });
+}
+
+        function updateDisplay() {
+            const displayMs = Math.max(0, remainingMs);
+            const mins = Math.floor(displayMs / 60000);
+            const secs = Math.floor((displayMs % 60000) / 1000);
+            const millis = Math.floor((displayMs % 1000));
+
+            document.getElementById('timeDisplay').innerText = 
+                `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
+        }
+
+        function toggleTimer() {
+            if (!isRunning) {
+                if (remainingMs <= 0) {
+                    remainingMs = totalDurationMs;
+                    initSpreadSystem();
+                }
+                if (!sortedPixels || sortedPixels.length === 0) {
+                    initSpreadSystem();
+                }
+                
+                isRunning = true;
+                startTime = performance.now() - (totalDurationMs - remainingMs);
+                
+                document.getElementById('mainPanel').classList.add('timer-hidden');
+                document.getElementById('floatControls').classList.remove('hidden');
+                document.getElementById('floatControls').classList.add('flex');
+
+                document.getElementById('statusText').innerText = "Spreading Ink...";
+                animationFrameId = requestAnimationFrame(timerLoop);
+            } else {
+                pauseTimer();
+            }
+        }
+
+        function pauseTimer() {
+            isRunning = false;
+            cancelAnimationFrame(animationFrameId);
+            
+            document.getElementById('mainPanel').classList.remove('timer-hidden');
+            document.getElementById('floatControls').classList.remove('flex');
+            document.getElementById('floatControls').classList.add('hidden');
+            document.getElementById('startBtn').innerText = "Resume";
+            document.getElementById('statusText').innerText = "Paused";
+        }
+
+        function resetTimer() {
+            isRunning = false;
+            cancelAnimationFrame(animationFrameId);
+            remainingMs = totalDurationMs;
+            updateDisplay();
+            
+            document.getElementById('mainPanel').classList.remove('timer-hidden');
+            document.getElementById('floatControls').classList.remove('flex');
+            document.getElementById('floatControls').classList.add('hidden');
+            
+            document.getElementById('startBtn').innerText = "Start Timer";
+            document.getElementById('statusText').innerText = "Ready";
+            document.getElementById('setupControls').style.opacity = "1";
+            document.getElementById('setupControls').style.pointerEvents = "auto";
+            
+            initSpreadSystem();
+            drawInkScreen(0.0);
+        }
+
+        function drawInkScreen(fractionElapsed) {
+            const targetSpreadIndex = Math.floor(fractionElapsed * totalPixels);
+            const wetWindowSize = Math.floor((2000 / totalDurationMs) * totalPixels);
+
+            if (targetSpreadIndex !== currentSpreadIndex) {
+                const data = imageData.data;
+                
+                for (let i = currentSpreadIndex; i < targetSpreadIndex; i++) {
+                    const pixIdx = sortedPixels[i];
+                    const pIdx = pixIdx * 4;
+                    const specular = specularValues[pixIdx];
+                    
+                    data[pIdx]     = Math.min(255, 10 + specular * 230);
+                    data[pIdx + 1] = Math.min(255, 10 + specular * 240);
+                    data[pIdx + 2] = Math.min(255, 12 + specular * 255);
+                    data[pIdx + 3] = 255;
+                }
+
+                const wetStart = Math.max(0, targetSpreadIndex - wetWindowSize);
+                const wetEnd = targetSpreadIndex;
+                
+                for (let i = wetStart; i < wetEnd; i++) {
+                    const pixIdx = sortedPixels[i];
+                    const pIdx = pixIdx * 4;
+                    const pixelsBehind = targetSpreadIndex - i;
+                    const fadeFactor = Math.max(0, 1.0 - (pixelsBehind / wetWindowSize));
+                    
+                    const specular = specularValues[pixIdx] * fadeFactor;
+                    data[pIdx]     = Math.min(255, 10 + specular * 230);
+                    data[pIdx + 1] = Math.min(255, 10 + specular * 240);
+                    data[pIdx + 2] = Math.min(255, 12 + specular * 255);
+                    data[pIdx + 3] = 255;
+                }
+
+                currentSpreadIndex = targetSpreadIndex;
+                ctx.putImageData(imageData, 0, 0);
+            }
+        }
+
+        function timerLoop(timestamp) {
+            if (!isRunning) return;
+
+            const elapsed = timestamp - startTime;
+            remainingMs = totalDurationMs - elapsed;
+
+            if (remainingMs <= 0) {
+                remainingMs = 0;
+                updateDisplay();
+                drawInkScreen(1.0);
+                finishTimer();
+                return;
+            }
+
+            const fractionElapsed = 1.0 - (remainingMs / totalDurationMs);
+            updateDisplay();
+            drawInkScreen(fractionElapsed);
+
+            animationFrameId = requestAnimationFrame(timerLoop);
+        }
+
+        function finishTimer() {
+            isRunning = false;
+            document.getElementById('floatControls').classList.remove('flex');
+            document.getElementById('floatControls').classList.add('hidden');
+            document.getElementById('mainPanel').classList.remove('timer-hidden');
+            
+            document.getElementById('startBtn').innerText = "Start Timer";
+            document.getElementById('statusText').innerText = "Complete";
+            document.getElementById('setupControls').style.opacity = "1";
+            document.getElementById('setupControls').style.pointerEvents = "auto";
+            
+            const modal = document.getElementById('messageModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('messageModal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        window.onload = function() {
+            initSpreadSystem();
+            updateDisplay();
+        };
+    </script>
+</body>
+</html>
