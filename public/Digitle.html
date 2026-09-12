@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digitle - The Number Wordle</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Google Fonts: Comfortaa -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        digitle: {
+                            bg: '#121213',      // Official Wordle Dark BG
+                            surface: '#272729', // Slightly lighter for keys
+                            border: '#3a3a3c',  // Wordle Border
+                            green: '#538d4e',   // Official Wordle Green
+                            yellow: '#b59f3b',  // Official Wordle Yellow
+                            grey: '#3a3a3c',    // Official Wordle Dark Grey (Absent)
+                            text: '#ffffff',
+                            
+                            // Google Brand Colors for the extra mechanics
+                            blue: '#4285F4',    // Google Blue
+                            purple: '#A142F4',  // Vibrant Purple (Google Forms-ish)
+                            red: '#EA4335',     // Google Red (Error states)
+                        }
+                    },
+                    animation: {
+                        'flip': 'flip 0.5s ease forwards',
+                        'bounce-short': 'bounce-short 0.5s ease-in-out',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'pop': 'pop 0.1s ease-in-out'
+                    },
+                    keyframes: {
+                        flip: {
+                            '0%': { transform: 'rotateX(0deg)', borderColor: '#3a3a3c' },
+                            '50%': { transform: 'rotateX(90deg)', borderColor: '#3a3a3c' },
+                            '100%': { transform: 'rotateX(0deg)' }
+                        },
+                        'bounce-short': {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20%)' }
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        pop: {
+                            '0%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.1)' },
+                            '100%': { transform: 'scale(1)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        body {
+            background-color: #121213;
+            color: white;
+            font-family: 'Comfortaa', cursive; /* Updated Font */
+            touch-action: manipulation;
+        }
+        
+        /* Override default font weights for Comfortaa since it looks thicker */
+        .font-bold {
+            font-weight: 700;
+        }
+        
+        .tile-flip {
+            animation-name: flip;
+            animation-duration: 500ms;
+            animation-timing-function: ease-in-out;
+            animation-fill-mode: forwards;
+        }
+
+        .delay-0 { animation-delay: 0ms; }
+        .delay-1 { animation-delay: 100ms; }
+        .delay-2 { animation-delay: 200ms; }
+        .delay-3 { animation-delay: 300ms; }
+        .delay-4 { animation-delay: 400ms; }
+        .delay-5 { animation-delay: 500ms; }
+        .delay-6 { animation-delay: 600ms; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useRef } = React;
+
+        // Fixed Configuration
+        const DIGIT_COUNT = 7;
+        const MAX_GUESSES = 5;
+
+        // Utility to get random digits
+        const generateAnswer = () => {
+            return Array.from({ length: DIGIT_COUNT }, () => Math.floor(Math.random() * 10));
+        };
+
+        const checkGuess = (guessArr, answerArr) => {
+            const results = new Array(DIGIT_COUNT).fill(null);
+            const answerCounts = {};
+            const guessCpy = [...guessArr];
+            const answerCpy = [...answerArr];
+
+            // Count frequencies in answer
+            for (const num of answerArr) {
+                answerCounts[num] = (answerCounts[num] || 0) + 1;
+            }
+
+            // PASS 1: Green (Exact Match)
+            for (let i = 0; i < DIGIT_COUNT; i++) {
+                if (guessCpy[i] === answerCpy[i]) {
+                    results[i] = 'green';
+                    answerCounts[guessCpy[i]]--;
+                }
+            }
+
+            // PASS 2: Blue (Value +/- 1)
+            for (let i = 0; i < DIGIT_COUNT; i++) {
+                if (results[i]) continue;
+
+                const diff = Math.abs(guessCpy[i] - answerCpy[i]);
+                if (diff === 1) {
+                    results[i] = 'blue';
+                    // Note: Blue does NOT consume a count
+                }
+            }
+
+            // PASS 3: Purple (Position +/- 1) and Yellow (General Presence)
+            for (let i = 0; i < DIGIT_COUNT; i++) {
+                if (results[i]) continue;
+
+                const guessVal = guessCpy[i];
+
+                if (answerCounts[guessVal] > 0) {
+                    // Check Purple Condition: Is this value at i-1 or i+1 in the TARGET?
+                    const leftMatch = (i > 0 && answerArr[i-1] === guessVal);
+                    const rightMatch = (i < DIGIT_COUNT - 1 && answerArr[i+1] === guessVal);
+                    
+                    if (leftMatch || rightMatch) {
+                        results[i] = 'purple';
+                        answerCounts[guessVal]--;
+                    } else {
+                        results[i] = 'yellow';
+                        answerCounts[guessVal]--;
+                    }
+                } else {
+                    results[i] = 'grey';
+                }
+            }
+
+            return results;
+        };
+
+        const Modal = ({ isOpen, onClose, title, children, showClose = true }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s] backdrop-blur-sm">
+                    <div className="bg-digitle-bg border border-digitle-border rounded-xl p-6 max-w-md w-full shadow-2xl relative">
+                        {showClose && (
+                            <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white">
+                                <i data-lucide="x" className="w-6 h-6"></i>
+                            </button>
+                        )}
+                        <h2 className="text-2xl font-bold mb-4 text-white text-center uppercase tracking-wider">{title}</h2>
+                        <div className="text-gray-300">
+                            {children}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const HelpModal = ({ isOpen, onClose }) => (
+            <Modal isOpen={isOpen} onClose={onClose} title="How to Play">
+                <p className="mb-4 text-sm text-gray-400 text-center">Guess the hidden sequence of digits.</p>
+                <div className="space-y-4 text-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-digitle-green rounded flex items-center justify-center font-bold text-white text-xl">1</div>
+                        <div><strong className="text-digitle-green">Correct</strong><br/>Right number, right spot.</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-digitle-blue rounded flex items-center justify-center font-bold text-white text-xl">2</div>
+                        <div><strong className="text-digitle-blue">Close Value (±1)</strong><br/>The answer is 1 higher or lower (e.g., Target is 3, you guessed 2).</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-digitle-purple rounded flex items-center justify-center font-bold text-white text-xl">5</div>
+                        <div><strong className="text-digitle-purple">Close Position</strong><br/>Correct number, but it belongs one spot to the left or right.</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-digitle-yellow rounded flex items-center justify-center font-bold text-white text-xl">9</div>
+                        <div><strong className="text-digitle-yellow">Wrong Spot</strong><br/>Number is in the answer, but not close.</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-digitle-grey rounded flex items-center justify-center font-bold text-white text-xl">0</div>
+                        <div><strong className="text-gray-400">Absent</strong><br/>Number is not in the puzzle.</div>
+                    </div>
+                </div>
+            </Modal>
+        );
+
+        function App() {
+            // Game State
+            const [answer, setAnswer] = useState([]);
+            const [guesses, setGuesses] = useState([]);
+            const [currentGuess, setCurrentGuess] = useState("");
+            const [gameStatus, setGameStatus] = useState("playing"); // playing, won, lost
+            const [invalidShake, setInvalidShake] = useState(false);
+            const [currentRowIndex, setCurrentRowIndex] = useState(0);
+            
+            // UI State
+            const [showHelp, setShowHelp] = useState(false);
+            const [showStats, setShowStats] = useState(false);
+
+            // Initialize icons
+            useEffect(() => {
+                lucide.createIcons();
+            }, [showHelp, showStats, gameStatus]);
+
+            // Start New Game
+            const startNewGame = () => {
+                setAnswer(generateAnswer());
+                setGuesses([]);
+                setCurrentGuess("");
+                setGameStatus("playing");
+                setCurrentRowIndex(0);
+                setShowStats(false);
+            };
+
+            // Initial Load
+            useEffect(() => {
+                startNewGame();
+            }, []);
+
+            // Handle Input
+            const handleKeyPress = useCallback((key) => {
+                if (gameStatus !== "playing") return;
+                if (showHelp || showStats) return; // Disable input when modals are open
+
+                if (key === "Backspace" || key === "Delete") {
+                    setCurrentGuess(prev => prev.slice(0, -1));
+                    return;
+                }
+
+                if (key === "Enter") {
+                    if (currentGuess.length !== DIGIT_COUNT) {
+                        setInvalidShake(true);
+                        setTimeout(() => setInvalidShake(false), 500);
+                        return;
+                    }
+                    submitGuess();
+                    return;
+                }
+
+                if (/^\d$/.test(key)) {
+                    if (currentGuess.length < DIGIT_COUNT) {
+                        setCurrentGuess(prev => prev + key);
+                    }
+                }
+            }, [currentGuess, gameStatus, showHelp, showStats]);
+
+            // Keyboard Listener
+            useEffect(() => {
+                const listener = (e) => handleKeyPress(e.key);
+                window.addEventListener("keydown", listener);
+                return () => window.removeEventListener("keydown", listener);
+            }, [handleKeyPress]);
+
+            const submitGuess = () => {
+                const guessArr = currentGuess.split('').map(Number);
+                const feedback = checkGuess(guessArr, answer);
+                
+                const newGuessObj = {
+                    guess: guessArr,
+                    feedback: feedback
+                };
+
+                const newGuesses = [...guesses, newGuessObj];
+                setGuesses(newGuesses);
+                setCurrentGuess("");
+                setCurrentRowIndex(prev => prev + 1);
+
+                // Check Win
+                const isWin = feedback.every(c => c === 'green');
+                if (isWin) {
+                    setGameStatus("won");
+                    setTimeout(() => setShowStats(true), 1600); 
+                } else if (newGuesses.length >= MAX_GUESSES) {
+                    setGameStatus("lost");
+                    setTimeout(() => setShowStats(true), 1600);
+                }
+            };
+
+            // Styles
+            const getCellStyles = (rowIndex, colIndex, val, feedback) => {
+                const base = "w-full aspect-square border-2 flex items-center justify-center text-3xl font-bold select-none transition-all duration-300";
+                
+                // Active Row (Typing)
+                if (rowIndex === currentRowIndex) {
+                    if (invalidShake) return `${base} border-digitle-red bg-digitle-surface animate-shake text-white`;
+                    if (val !== undefined) return `${base} border-gray-400 bg-digitle-surface text-white animate-pop`;
+                    return `${base} border-digitle-border bg-transparent text-transparent`;
+                }
+
+                // Future Rows (Empty)
+                if (rowIndex > currentRowIndex) {
+                    return `${base} border-digitle-border bg-transparent text-transparent`;
+                }
+
+                // Completed Rows (Animated)
+                const color = feedback[colIndex];
+                let bgClass = "bg-digitle-grey border-digitle-grey";
+                if (color === 'green') bgClass = "bg-digitle-green border-digitle-green";
+                if (color === 'blue') bgClass = "bg-digitle-blue border-digitle-blue";
+                if (color === 'purple') bgClass = "bg-digitle-purple border-digitle-purple";
+                if (color === 'yellow') bgClass = "bg-digitle-yellow border-digitle-yellow";
+
+                return `${base} ${bgClass} text-white tile-flip delay-${colIndex}`;
+            };
+
+            const getKeyColor = (num) => {
+                let bestStatus = null;
+                
+                guesses.forEach(({ guess, feedback }) => {
+                    guess.forEach((g, i) => {
+                        if (g === num) {
+                            const status = feedback[i];
+                            // Ranking: Green > Blue > Purple > Yellow > Grey
+                            if (status === 'green') bestStatus = 'green';
+                            else if (status === 'blue' && bestStatus !== 'green') bestStatus = 'blue'; 
+                            else if (status === 'purple' && !['green', 'blue'].includes(bestStatus)) bestStatus = 'purple';
+                            else if (status === 'yellow' && !['green', 'blue', 'purple'].includes(bestStatus)) bestStatus = 'yellow';
+                            else if (status === 'grey' && !bestStatus) bestStatus = 'grey';
+                        }
+                    });
+                });
+
+                switch(bestStatus) {
+                    case 'green': return 'bg-digitle-green border-digitle-green text-white';
+                    case 'blue': return 'bg-digitle-blue border-digitle-blue text-white';
+                    case 'purple': return 'bg-digitle-purple border-digitle-purple text-white';
+                    case 'yellow': return 'bg-digitle-yellow border-digitle-yellow text-white';
+                    case 'grey': return 'bg-digitle-grey/50 border-transparent text-gray-400';
+                    default: return 'bg-digitle-surface hover:bg-gray-600 text-white';
+                }
+            };
+
+            return (
+                <div className="flex flex-col h-screen max-w-lg mx-auto p-2 sm:p-4 select-none overflow-hidden">
+                    {/* Header */}
+                    <header className="flex items-center justify-between py-2 border-b border-digitle-border mb-2 shrink-0">
+                        <button onClick={() => setShowHelp(true)} className="p-2 text-gray-400 hover:text-white transition-colors" title="How to Play">
+                            <i data-lucide="help-circle"></i>
+                        </button>
+                        <h1 className="text-3xl font-bold tracking-widest text-white">DIGITLE</h1>
+                        <div className="w-10"></div> {/* Spacer to center title */}
+                    </header>
+
+                    {/* Game Grid Container */}
+                    <div className="flex-1 overflow-y-auto flex items-center justify-center min-h-0 py-2">
+                        <div className="w-full max-w-md flex flex-col gap-1.5 sm:gap-2">
+                            {Array.from({ length: MAX_GUESSES }).map((_, rIndex) => {
+                                const isCurrent = rIndex === currentRowIndex;
+                                const guessData = guesses[rIndex];
+                                
+                                return (
+                                    <div 
+                                        key={rIndex} 
+                                        className="grid gap-1.5 sm:gap-2 mx-auto w-full"
+                                        style={{ gridTemplateColumns: `repeat(${DIGIT_COUNT}, minmax(0, 1fr))` }}
+                                    >
+                                        {Array.from({ length: DIGIT_COUNT }).map((_, cIndex) => {
+                                            let val;
+                                            if (isCurrent) {
+                                                val = currentGuess[cIndex];
+                                            } else if (guessData) {
+                                                val = guessData.guess[cIndex];
+                                            }
+                                            
+                                            const feedback = guessData ? guessData.feedback : null;
+                                            
+                                            return (
+                                                <div 
+                                                    key={cIndex} 
+                                                    className={getCellStyles(rIndex, cIndex, val, feedback)}
+                                                    style={feedback ? {animationDelay: `${cIndex * 100}ms`} : {}}
+                                                >
+                                                    {val}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Keyboard */}
+                    <div className="mt-auto shrink-0 pt-2 pb-4">
+                        <div className="grid grid-cols-5 gap-1.5 mb-1.5">
+                            {[1, 2, 3, 4, 5].map(num => (
+                                <button
+                                    key={num}
+                                    onClick={() => handleKeyPress(num.toString())}
+                                    className={`h-12 sm:h-14 rounded font-bold text-xl transition-all active:scale-95 ${getKeyColor(num)}`}
+                                >
+                                    {num}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="grid grid-cols-5 gap-1.5 mb-1.5">
+                            {[6, 7, 8, 9, 0].map(num => (
+                                <button
+                                    key={num}
+                                    onClick={() => handleKeyPress(num.toString())}
+                                    className={`h-12 sm:h-14 rounded font-bold text-xl transition-all active:scale-95 ${getKeyColor(num)}`}
+                                >
+                                    {num}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="flex gap-1.5 h-12 sm:h-14">
+                            <button
+                                onClick={() => handleKeyPress("Enter")}
+                                className="flex-1 rounded font-bold bg-digitle-surface hover:bg-gray-600 text-white text-sm transition-all active:scale-95 uppercase tracking-wider"
+                            >
+                                Enter
+                            </button>
+                            <button
+                                onClick={() => handleKeyPress("Backspace")}
+                                className="w-20 rounded font-bold bg-digitle-surface hover:bg-gray-600 text-white flex items-center justify-center transition-all active:scale-95"
+                            >
+                                <i data-lucide="delete" className="w-6 h-6"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Modals */}
+                    <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
+                    
+                    <Modal isOpen={showStats} onClose={() => {}} showClose={false} title={gameStatus === 'won' ? "You Won!" : "Game Over"}>
+                        <div className="flex flex-col items-center gap-4">
+                            {gameStatus === 'won' ? (
+                                <div className="text-digitle-green text-5xl animate-bounce-short">
+                                    <i data-lucide="trophy" className="w-16 h-16"></i>
+                                </div>
+                            ) : (
+                                <div className="text-digitle-blue text-5xl">
+                                    <i data-lucide="frown" className="w-16 h-16"></i>
+                                </div>
+                            )}
+                            
+                            <p className="text-center text-lg">
+                                {gameStatus === 'won' 
+                                    ? `Splendid! You found the sequence in ${guesses.length} guesses.` 
+                                    : `The correct sequence was:`}
+                            </p>
+                            
+                            {gameStatus === 'lost' && (
+                                <div className="flex justify-center gap-1 text-2xl font-bold font-mono bg-black/30 p-4 rounded-lg border border-digitle-border text-white tracking-widest w-full">
+                                    {answer.join('')}
+                                </div>
+                            )}
+
+                            <button 
+                                onClick={() => startNewGame()}
+                                className="mt-4 px-8 py-3 bg-digitle-green text-white font-bold rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2 shadow-lg shadow-green-900/20"
+                            >
+                                <i data-lucide="refresh-cw" className="w-5 h-5"></i> Play Again
+                            </button>
+                        </div>
+                    </Modal>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
