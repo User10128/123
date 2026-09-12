@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocVault</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Product+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #0f0f0f;
+            color: #e8eaed;
+            background-image: radial-gradient(circle at 50% -20%, #1e293b 0%, #0f0f0f 80%);
+            min-height: 100vh;
+        }
+        .google-font { font-family: 'Product Sans', sans-serif; }
+        
+        /* Show actions on hover for desktop, always visible icons for touch */
+        @media (hover: hover) {
+            .doc-card:hover .actions { opacity: 1; }
+            .actions { opacity: 0; }
+        }
+        @media (hover: none) {
+            .actions { opacity: 1 !important; background: rgba(0,0,0,0.4) !important; }
+        }
+        
+        .glass {
+            background: rgba(30, 30, 35, 0.7);
+            backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-dark {
+            background: rgba(20, 20, 25, 0.9);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #3b82f6; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .color-dot { cursor: pointer; transition: transform 0.2s; border: 2px solid transparent; }
+        .color-dot:hover { transform: scale(1.1); }
+        .color-dot.active { border-color: white; transform: scale(1.1); }
+
+        .icon-opt { transition: all 0.2s; }
+        .icon-opt.active { background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.5); }
+        
+        .feather-active { color: #f43f5e !important; filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.4)); }
+    </style>
+</head>
+<body class="text-gray-200">
+
+    <header class="bg-[#121212]/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <svg id="appLogo" class="w-7 h-7 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14,2H6C4.9,2,4,2.9,4,4v16c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V8L14,2z M13,9V3.5L18.5,9H13z"/>
+                </svg>
+                <h1 class="text-xl google-font font-medium text-gray-100 tracking-tight hidden xs:block">DocVault</h1>
+            </div>
+            
+            <div class="flex-1 max-w-lg mx-2 sm:mx-8">
+                <div class="relative">
+                    <input type="text" id="searchInput" placeholder="Search..." 
+                        class="w-full bg-white/5 border border-white/10 focus:bg-white/10 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 rounded-xl py-1.5 px-9 transition-all outline-none text-sm text-gray-200">
+                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-4">
+                <button id="featherToggle" onclick="toggleFeatherMode()" class="text-gray-500 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-all" title="Low-Bandwidth / Firewall Bypass (Feather Mode)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </button>
+                <button onclick="toggleManageShares()" class="text-gray-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-all" title="Logs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                </button>
+                <div id="syncIndicator" class="hidden items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-wider">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping"></span> Sync Active
+                </div>
+                
+                <button onclick="openModal('folderModal')" class="bg-[#1a1a24] hover:bg-[#2a2a35] border border-white/10 text-white p-2 sm:px-3 sm:py-2 rounded-xl font-medium shadow-lg flex items-center gap-1.5 transition-all active:scale-95 text-sm" title="New Folder">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg>
+                </button>
+                <button onclick="openModal('editorModal')" class="bg-[#1a1a24] hover:bg-[#2a2a35] border border-white/10 text-white p-2 sm:px-3 sm:py-2 rounded-xl font-medium shadow-lg flex items-center gap-1.5 transition-all active:scale-95 text-sm" title="Write HTML">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                </button>
+                
+                <button onclick="document.getElementById('fileInput').click()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 sm:px-4 py-2 rounded-xl font-medium shadow-lg shadow-blue-900/20 flex items-center gap-2 transition-all active:scale-95 text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    <span class="hidden md:inline">Upload</span>
+                </button>
+                <input type="file" id="fileInput" accept=".html" class="hidden" multiple>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 pb-24">
+        <div id="peerStatus" class="mb-6 p-4 rounded-2xl glass flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+            <div class="flex items-center gap-3">
+                <div id="statusDot" class="w-2.5 h-2.5 rounded-full bg-gray-500 animate-pulse"></div>
+                <span id="statusText" class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Initializing...</span>
+            </div>
+            <div class="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-xl border border-white/5 w-full sm:w-auto justify-between sm:justify-start">
+                <span class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Vault ID</span>
+                <code id="myPeerId" class="text-blue-400 font-bold tracking-widest text-sm">------</code>
+            </div>
+        </div>
+
+        <div id="breadcrumb" class="mb-5 flex items-center gap-2 text-sm font-medium text-gray-400 hidden">
+            <button onclick="navigateToFolder(null)" class="hover:text-white transition-colors flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg> Vault</button>
+            <span class="opacity-50">/</span>
+            <span id="currentFolderName" class="text-white bg-white/5 px-3 py-1 rounded-lg"></span>
+        </div>
+
+        <div id="docGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
+            <div id="emptyState" class="col-span-full py-24 flex flex-col items-center opacity-20">
+                <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <p class="text-lg font-medium">Vault is empty</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- HTML Editor Modal -->
+    <div id="editorModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center z-[110] p-4">
+        <div class="glass-dark rounded-3xl w-full max-w-4xl p-6 sm:p-8 shadow-2xl border border-white/10 flex flex-col h-[85vh]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold google-font text-white flex items-center gap-2">
+                    <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg> HTML Editor
+                </h3>
+                <button onclick="closeModal('editorModal')" class="text-gray-500 hover:text-white p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <input type="text" id="editorFileName" placeholder="Document Name (e.g. index.html)" class="w-full bg-white/5 border border-white/10 text-white rounded-xl p-3 outline-none focus:border-indigo-500/50 mb-4 font-mono text-sm">
+            <textarea id="editorContent" class="flex-1 w-full bg-[#121216] border border-white/10 text-gray-300 rounded-xl p-4 outline-none focus:border-indigo-500/50 font-mono text-sm resize-none" placeholder="<!DOCTYPE html>&#10;<html>&#10;<head>&#10;  <title>New Document</title>&#10;</head>&#10;<body>&#10;  <h1>Hello World!</h1>&#10;</body>&#10;</html>"></textarea>
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeModal('editorModal')" class="flex-1 py-3 text-sm text-gray-400 font-bold hover:text-white transition-colors">Discard</button>
+                <button onclick="saveEditorDoc()" class="flex-[2] px-6 py-3 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-500 active:scale-95 transition-all">Save Document</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Folder Modal -->
+    <div id="folderModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[110] p-4">
+        <div class="glass-dark rounded-3xl w-full max-w-sm p-6 sm:p-8 shadow-2xl border border-white/10">
+            <h3 class="text-xl font-semibold mb-4 google-font text-white">Create Folder</h3>
+            <input type="text" id="folderNameInput" placeholder="Folder Name" class="w-full bg-white/5 border border-white/10 text-white rounded-xl p-3 outline-none focus:border-blue-500/50 mb-6">
+            <div class="flex gap-3">
+                <button onclick="closeModal('folderModal')" class="flex-1 py-3 text-sm text-gray-400 font-bold hover:text-white transition-colors">Cancel</button>
+                <button onclick="createFolder()" class="flex-[2] px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-500 active:scale-95 transition-all">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Move to Folder Modal -->
+    <div id="moveModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[110] p-4">
+        <div class="glass-dark rounded-3xl w-full max-w-sm p-6 sm:p-8 shadow-2xl border border-white/10">
+            <h3 class="text-xl font-semibold mb-4 google-font text-white">Move Item</h3>
+            <select id="moveFolderSelect" class="w-full bg-[#1a1a1f] border border-white/10 text-white rounded-xl p-3 outline-none focus:border-blue-500/50 appearance-none mb-6">
+            </select>
+            <div class="flex gap-3">
+                <button onclick="closeModal('moveModal')" class="flex-1 py-3 text-sm text-gray-400 font-bold hover:text-white transition-colors">Cancel</button>
+                <button onclick="confirmMove()" class="flex-[2] px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-500 active:scale-95 transition-all">Move</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[110] p-4">
+        <div class="glass-dark rounded-3xl w-full max-w-[400px] p-6 sm:p-8 shadow-2xl border border-white/10">
+            <h3 class="text-xl font-semibold mb-1 google-font text-white text-center">Share Securely</h3>
+            <p id="shareFileName" class="text-[11px] text-blue-400/80 mb-6 font-medium truncate bg-blue-500/5 p-2 rounded-lg block w-full text-center"></p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 mb-1.5 ml-1 uppercase tracking-wider">Target vault id</label>
+                    <input type="text" id="shareTargetId" maxlength="6" class="w-full bg-white/5 border border-white/10 text-white rounded-xl p-3 uppercase tracking-widest font-bold outline-none focus:border-blue-500/50 text-center" placeholder="------">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 mb-1.5 ml-1 uppercase tracking-wider">Access Duration</label>
+                    <select id="leaseTime" class="w-full bg-[#1a1a1f] border border-white/10 text-white rounded-xl p-3 outline-none focus:border-blue-500/50 appearance-none">
+                        <option value="1">1 Minute</option><option value="5">5 Minutes</option><option value="60">1 Hour</option><option value="1440">24 Hours</option><option value="0">Permanent</option>
+                    </select>
+                </div>
+                <div class="flex items-center justify-between py-1 px-1">
+                    <span class="text-sm text-gray-300">Allow download</span>
+                    <label class="switch"><input type="checkbox" id="allowReshare" checked><span class="slider"></span></label>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-8">
+                <button onclick="closeModal('shareModal')" class="flex-1 py-3 text-sm text-gray-400 font-bold hover:text-white transition-colors">Dismiss</button>
+                <button onclick="sendDocument()" class="flex-[2] px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-500 active:scale-95 transition-all">Grant Access</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appearance Modal -->
+    <div id="appearanceModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[110] p-4">
+        <div class="glass-dark rounded-3xl w-full max-w-[360px] p-6 sm:p-8 shadow-2xl border border-white/10">
+            <h3 class="text-xl font-semibold mb-6 google-font text-white text-center">Edit Appearance</h3>
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 mb-4 ml-1 uppercase tracking-wider">Theme Color</label>
+                    <div class="flex justify-between gap-2" id="colorPicker">
+                        <div class="color-dot w-7 h-7 rounded-full bg-blue-500" data-color="blue-500"></div>
+                        <div class="color-dot w-7 h-7 rounded-full bg-purple-500" data-color="purple-500"></div>
+                        <div class="color-dot w-7 h-7 rounded-full bg-emerald-500" data-color="emerald-500"></div>
+                        <div class="color-dot w-7 h-7 rounded-full bg-rose-500" data-color="rose-500"></div>
+                        <div class="color-dot w-7 h-7 rounded-full bg-amber-500" data-color="amber-500"></div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 mb-4 ml-1 uppercase tracking-wider">Icon Type</label>
+                    <div class="grid grid-cols-4 gap-3" id="iconPicker">
+                        <button class="icon-opt p-2.5 bg-white/5 border border-transparent rounded-xl hover:bg-white/10 flex items-center justify-center transition-all" data-icon="doc">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14,2H6C4.9,2,4,2.9,4,4v16c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V8L14,2z M13,9V3.5L18.5,9H13z"></path></svg>
+                        </button>
+                        <button class="icon-opt p-2.5 bg-white/5 border border-transparent rounded-xl hover:bg-white/10 flex items-center justify-center transition-all" data-icon="shield">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        </button>
+                        <button class="icon-opt p-2.5 bg-white/5 border border-transparent rounded-xl hover:bg-white/10 flex items-center justify-center transition-all" data-icon="code">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                        </button>
+                        <button class="icon-opt p-2.5 bg-white/5 border border-transparent rounded-xl hover:bg-white/10 flex items-center justify-center transition-all" data-icon="brief">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745V20a2 2 0 002 2h14a2 2 0 002-2v-6.745zM16 8V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v3m4 7h2m-6 0h2"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-10">
+                <button onclick="closeModal('appearanceModal')" class="flex-1 py-3 text-sm text-gray-400 font-bold hover:text-white transition-colors">Cancel</button>
+                <button onclick="saveAppearance()" class="flex-[2] px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-500 active:scale-95 transition-all">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logs Modal -->
+    <div id="manageSharesModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[110] p-4">
+        <div class="glass-dark rounded-3xl w-full max-w-[500px] p-6 sm:p-8 shadow-2xl flex flex-col max-h-[80vh] border border-white/10">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold google-font text-white">Share Logs</h3>
+                <button onclick="closeModal('manageSharesModal')" class="text-gray-500 hover:text-white p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div id="sharesList" class="flex-1 overflow-y-auto space-y-3 pr-1"></div>
+        </div>
+    </div>
+
+    <!-- Settings FAB -->
+    <button onclick="openModal('settingsModal')" class="fixed bottom-8 right-8 w-14 h-14 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/10 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-90 z-40 group">
+        <svg class="w-6 h-6 text-gray-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+    </button>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-[110] p-4">
+        <div class="glass-dark rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-white/10 overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-semibold google-font text-white">Vault Settings</h3>
+                <button onclick="closeModal('settingsModal')" class="text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto pr-2 space-y-8">
+                <section>
+                    <label class="block text-xs font-medium text-gray-500 mb-4">Vault Security (Required for Sync)</label>
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-4">
+                        <input type="password" id="vaultPassword" placeholder="Set Your Vault Password" class="w-full bg-white/5 border border-white/10 text-white rounded-xl p-3 outline-none focus:border-blue-500/50">
+                        <button onclick="saveVaultPassword()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-500 transition-all">Save Password</button>
+                    </div>
+                </section>
+
+                <section>
+                    <label class="block text-xs font-medium text-gray-500 mb-4">Bi-Directional Auto-Sync</label>
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-4">
+                        <input type="text" id="syncTargetId" maxlength="6" placeholder="target vault id" class="w-full bg-white/5 border border-white/10 text-white rounded-xl p-3 uppercase tracking-widest font-bold outline-none focus:border-blue-500/50">
+                        <input type="password" id="syncPassword" placeholder="Target Vault Password" class="w-full bg-white/5 border border-white/10 text-white rounded-xl p-3 outline-none focus:border-blue-500/50">
+                        <div id="syncStatusUI" class="text-[10px] text-center font-bold text-gray-600 uppercase">Status: Idle</div>
+                        <button id="syncConnectBtn" onclick="syncVaults()" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-500 transition-all flex items-center justify-center gap-2">
+                            Connect & Merge
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 glass text-white px-8 py-3.5 rounded-2xl text-sm font-bold shadow-2xl opacity-0 transition-all translate-y-4 pointer-events-none z-[200] border-blue-500/20"></div>
+
+    <script>
+        let db = [];
+        let folders = []; // Folder storage
+        let shares = [];
+        let peer = null;
+        let activeSyncConnection = null;
+        let vaultConfig = { password: '', defaultColor: 'blue-500' };
+        
+        // Editor/State Variables
+        let currentFolderId = null;
+        let docToMoveId = null;
+        let currentShareIndex = null;
+        let activeEditId = null;
+        let selectedColor = 'blue-500';
+        let selectedIcon = 'doc';
+        
+        // Firewall Bypass State
+        let isFeatherMode = false;
+        let chunkBuffers = {};
+        const CHUNK_SIZE = 10240; // 10KB Data Chunking
+
+        const LOGO_SVG_PATH = "M14,2H6C4.9,2,4,2.9,4,4v16c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V8L14,2z M13,9V3.5L18.5,9H13z";
+
+        const ICON_MAP = {
+            doc: `<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="${LOGO_SVG_PATH}"></path></svg>`,
+            shield: '<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>',
+            code: '<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>',
+            brief: '<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745V20a2 2 0 002 2h14a2 2 0 002-2v-6.745zM16 8V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v3m4 7h2m-6 0h2"></path></svg>'
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromStorage();
+            initPeer();
+            renderDocs();
+            setupEventListeners();
+            setAppFavicon();
+            setInterval(checkLeases, 2000);
+            setupHeartbeat(); // Heartbeat for port maintenance
+        });
+
+        function setAppFavicon() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath();
+            ctx.arc(16, 16, 16, 0, Math.PI * 2);
+            ctx.fill();
+            const p = new Path2D(LOGO_SVG_PATH);
+            ctx.fillStyle = 'white';
+            ctx.translate(4, 4);
+            ctx.fill(p);
+            const dataUrl = canvas.toDataURL("image/x-icon");
+            const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+            link.type = 'image/x-icon'; link.rel = 'shortcut icon'; link.href = dataUrl;
+            document.getElementsByTagName('head')[0].appendChild(link);
+            return dataUrl;
+        }
+
+        function scramble(obj) { return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); }
+        function descramble(str) { return JSON.parse(decodeURIComponent(escape(atob(str)))); }
+
+        function setupEventListeners() {
+            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+            document.getElementById('searchInput').addEventListener('input', (e) => renderDocs(e.target.value));
+            document.querySelectorAll('.color-dot').forEach(dot => {
+                dot.addEventListener('click', () => {
+                    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+                    dot.classList.add('active'); selectedColor = dot.dataset.color;
+                });
+            });
+            document.querySelectorAll('.icon-opt').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    document.querySelectorAll('.icon-opt').forEach(o => o.classList.remove('active'));
+                    opt.classList.add('active'); selectedIcon = opt.dataset.icon;
+                });
+            });
+        }
+
+        function loadFromStorage() {
+            db = JSON.parse(localStorage.getItem('docvault_data') || '[]');
+            folders = JSON.parse(localStorage.getItem('docvault_folders') || '[]');
+            shares = JSON.parse(localStorage.getItem('docvault_shares') || '[]');
+            vaultConfig = JSON.parse(localStorage.getItem('docvault_config') || '{"password": "", "defaultColor": "blue-500"}');
+            document.getElementById('vaultPassword').value = vaultConfig.password;
+        }
+
+        function saveToStorage(shouldBroadcast = true) {
+            localStorage.setItem('docvault_data', JSON.stringify(db));
+            localStorage.setItem('docvault_folders', JSON.stringify(folders));
+            localStorage.setItem('docvault_shares', JSON.stringify(shares));
+            localStorage.setItem('docvault_config', JSON.stringify(vaultConfig));
+            if (shouldBroadcast) broadcastSyncData();
+        }
+
+        function formatDisplayName(name) { return name.replace(/\.html$/i, '').replace(/_/g, ' '); }
+
+        function saveVaultPassword() {
+            vaultConfig.password = document.getElementById('vaultPassword').value;
+            saveToStorage(false); showToast("Password Saved");
+        }
+
+        // Folders Logic
+        function navigateToFolder(id) {
+            currentFolderId = id;
+            document.getElementById('searchInput').value = '';
+            renderDocs();
+        }
+
+        function createFolder() {
+            const name = document.getElementById('folderNameInput').value.trim();
+            if (!name) return showToast('Folder name required');
+            folders.push({ id: 'folder_' + Date.now() + Math.random().toString(36).substring(7), name: name });
+            saveToStorage();
+            closeModal('folderModal');
+            document.getElementById('folderNameInput').value = '';
+            renderDocs();
+            showToast('Folder created');
+        }
+
+        function deleteFolder(id) {
+            db.forEach(d => { if (d.folderId === id) d.folderId = null; });
+            folders = folders.filter(f => f.id !== id);
+            saveToStorage();
+            if (currentFolderId === id) currentFolderId = null;
+            renderDocs();
+            showToast('Folder deleted');
+        }
+
+        function openMoveModal(docId) {
+            docToMoveId = docId;
+            const select = document.getElementById('moveFolderSelect');
+            select.innerHTML = `<option value="root">Vault (Root)</option>` + 
+                folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+            openModal('moveModal');
+        }
+
+        function confirmMove() {
+            const target = document.getElementById('moveFolderSelect').value;
+            const doc = db.find(d => d.id === docToMoveId);
+            if (doc) {
+                doc.folderId = target === 'root' ? null : target;
+                saveToStorage(); renderDocs(); showToast('Moved');
+            }
+            closeModal('moveModal');
+        }
+
+        // Editor Logic
+        function saveEditorDoc() {
+            let name = document.getElementById('editorFileName').value.trim();
+            if (!name) name = 'untitled.html';
+            if (!name.endsWith('.html')) name += '.html';
+            const content = document.getElementById('editorContent').value;
+            
+            const docId = 'orig_' + Date.now() + Math.random().toString(36).substring(7);
+            db.push({
+                id: docId, rootSourceId: docId, name: name, content: content,
+                leaseExpiry: null, shareRestricted: false, themeColor: vaultConfig.defaultColor, themeIcon: 'code',
+                folderId: currentFolderId
+            });
+            saveToStorage(); renderDocs(); closeModal('editorModal');
+            document.getElementById('editorFileName').value = '';
+            document.getElementById('editorContent').value = '';
+            showToast("Document Saved");
+        }
+
+        // Network Logic
+        function initPeer() {
+            const randomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+            peer = new Peer(randomId, { host: '0.peerjs.com', port: 443, secure: true, config: { 'iceTransportPolicy': 'all', 'iceCandidatePoolSize': 10 } });
+            peer.on('open', (id) => {
+                document.getElementById('myPeerId').innerText = id;
+                document.getElementById('statusDot').className = 'w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)]';
+                document.getElementById('statusText').innerText = 'Online';
+            });
+            peer.on('connection', conn => setupConnection(conn));
+        }
+
+        function setupConnection(conn) {
+            conn.on('open', () => {
+                let pings = 0;
+                const warmup = setInterval(() => {
+                    if (pings < 3 && conn.open) { conn.send({ type: 'PRIME' }); pings++; } 
+                    else { clearInterval(warmup); }
+                }, 500);
+            });
+            conn.on('data', data => handleIncomingData(conn, data));
+        }
+
+        async function backoffSend(conn, data, attempt = 0) {
+            try { if (conn && conn.open) conn.send(data); } 
+            catch (e) {
+                if (attempt < 4) {
+                    const delay = Math.pow(2, attempt) * 1000;
+                    await new Promise(r => setTimeout(r, delay));
+                    return backoffSend(conn, data, attempt + 1);
+                }
+            }
+        }
+
+        async function sendSecure(conn, obj) {
+            const raw = scramble(obj);
+            const total = Math.ceil(raw.length / CHUNK_SIZE);
+            const tid = Math.random().toString(36).substring(7);
+            for (let i = 0; i < total; i++) {
+                await backoffSend(conn, { type: 'CHUNK', tid: tid, i: i, t: total, d: raw.substring(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE) });
+            }
+        }
+
+        function handleIncomingData(conn, data) {
+            if (data.type === 'PRIME' || data.type === 'HEART') return; 
+            if (data.type === 'CHUNK') {
+                if (!chunkBuffers[data.tid]) chunkBuffers[data.tid] = new Array(data.t).fill(null);
+                chunkBuffers[data.tid][data.i] = data.d;
+                if (chunkBuffers[data.tid].every(x => x !== null)) {
+                    const fullData = descramble(chunkBuffers[data.tid].join(''));
+                    delete chunkBuffers[data.tid];
+                    processLogic(conn, fullData);
+                }
+                return;
+            }
+            processLogic(conn, data);
+        }
+
+        function processLogic(conn, data) {
+            switch(data.type) {
+                case 'SYNC_REQUEST':
+                    if (vaultConfig.password && data.password === vaultConfig.password) {
+                        activeSyncConnection = conn; setupSyncUI(conn);
+                        sendSecure(conn, { type: 'SYNC_HANDSHAKE_RESPONSE', payload: db, foldersPayload: folders });
+                        showToast("Link Established");
+                    } else { sendSecure(conn, { type: 'SYNC_DENIED' }); }
+                    break;
+                case 'SYNC_HANDSHAKE_RESPONSE':
+                    activeSyncConnection = conn; setupSyncUI(conn);
+                    mergeVaultData(data.payload, data.foldersPayload);
+                    sendSecure(conn, { type: 'SYNC_UPDATE', payload: db, foldersPayload: folders });
+                    showToast("Vaults Merged");
+                    break;
+                case 'SYNC_UPDATE': mergeVaultData(data.payload, data.foldersPayload); break;
+                case 'SYNC_DENIED': showToast("Denied: Sync Password Wrong"); break;
+                case 'SEND_FILE': handleIncomingFile(data); break;
+                case 'REVOKE_ACCESS': handleIncomingRevoke(data.rootSourceId); break;
+            }
+        }
+
+        function setupHeartbeat() {
+            setInterval(() => {
+                if (activeSyncConnection && activeSyncConnection.open) activeSyncConnection.send({ type: 'HEART' });
+            }, 3000); 
+        }
+
+        function toggleFeatherMode() {
+            isFeatherMode = !isFeatherMode;
+            document.getElementById('featherToggle').classList.toggle('feather-active', isFeatherMode);
+            showToast(isFeatherMode ? "Feather Mode: UDP" : "Reliable Mode: TCP");
+            if (activeSyncConnection) {
+                const tid = activeSyncConnection.peer; activeSyncConnection.close();
+                setTimeout(() => connectWithSettings(tid), 1000);
+            }
+        }
+
+        function connectWithSettings(tid) {
+            const conn = peer.connect(tid, { reliable: !isFeatherMode });
+            setupConnection(conn); return conn;
+        }
+
+        function setupSyncUI(conn) {
+            document.getElementById('syncIndicator').classList.remove('hidden');
+            document.getElementById('syncStatusUI').innerText = `Linked to ${conn.peer}`;
+            document.getElementById('syncStatusUI').classList.add('text-blue-400');
+            conn.on('close', () => {
+                activeSyncConnection = null;
+                document.getElementById('syncIndicator').classList.add('hidden');
+                document.getElementById('syncStatusUI').innerText = `Status: Disconnected`;
+                document.getElementById('syncStatusUI').classList.remove('text-blue-400');
+            });
+        }
+
+        function syncVaults() {
+            const targetId = document.getElementById('syncTargetId').value.toUpperCase();
+            const password = document.getElementById('syncPassword').value;
+            if (targetId.length !== 6 || !password) return showToast("Target ID/Password Missing");
+            if (!vaultConfig.password) return showToast("Set your own password first!");
+            showToast("Connecting...");
+            const conn = connectWithSettings(targetId);
+            conn.on('open', () => sendSecure(conn, { type: 'SYNC_REQUEST', password: password }));
+        }
+
+        function broadcastSyncData() {
+            if (activeSyncConnection && activeSyncConnection.open) {
+                sendSecure(activeSyncConnection, { type: 'SYNC_UPDATE', payload: db, foldersPayload: folders });
+            }
+        }
+
+        function mergeVaultData(remoteDb, remoteFolders = []) {
+            const localSigs = new Set(db.map(item => `${item.name}_${item.content.length}`));
+            let changed = false;
+            
+            // Merge Folders First
+            const localFolderIds = new Set(folders.map(f => f.id));
+            remoteFolders.forEach(rf => {
+                if (!localFolderIds.has(rf.id)) { folders.push(rf); changed = true; }
+            });
+
+            remoteDb.forEach(remoteItem => {
+                const signature = `${remoteItem.name}_${remoteItem.content.length}`;
+                if (!localSigs.has(signature)) { db.push(remoteItem); changed = true; }
+            });
+
+            if (changed) { saveToStorage(false); renderDocs(); }
+        }
+
+        function handleFileUpload(e) {
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const docId = 'orig_' + Date.now() + Math.random().toString(36).substring(7);
+                    db.push({
+                        id: docId, rootSourceId: docId, name: file.name, content: event.target.result,
+                        leaseExpiry: null, shareRestricted: false, themeColor: vaultConfig.defaultColor, themeIcon: 'doc',
+                        folderId: currentFolderId
+                    });
+                    saveToStorage(); renderDocs();
+                };
+                reader.readAsText(file);
+            });
+            e.target.value = '';
+        }
+
+        function renderDocs(filter = '') {
+            const grid = document.getElementById('docGrid');
+            const empty = document.getElementById('emptyState');
+            const currentSearch = filter.toLowerCase();
+            
+            // Handle Breadcrumb
+            const breadcrumb = document.getElementById('breadcrumb');
+            if (currentFolderId) {
+                breadcrumb.classList.remove('hidden');
+                const f = folders.find(f => f.id === currentFolderId);
+                document.getElementById('currentFolderName').innerText = f ? f.name : 'Unknown';
+            } else { breadcrumb.classList.add('hidden'); }
+
+            const filteredDocs = db.filter(d => {
+                const inFolder = (d.folderId || null) === currentFolderId;
+                const matchesSearch = d.name.toLowerCase().includes(currentSearch);
+                return inFolder && matchesSearch;
+            });
+
+            const filteredFolders = folders.filter(f => {
+                const inRoot = currentFolderId === null;
+                const matchesSearch = f.name.toLowerCase().includes(currentSearch);
+                return inRoot && matchesSearch;
+            });
+            
+            grid.querySelectorAll('.doc-card, .folder-card').forEach(el => el.remove());
+            
+            if (filteredDocs.length === 0 && filteredFolders.length === 0) {
+                empty.classList.remove('hidden');
+            } else {
+                empty.classList.add('hidden');
+                
+                // Render Folders
+                filteredFolders.forEach((folder) => {
+                    const card = document.createElement('div');
+                    card.className = 'folder-card bg-white/5 border border-white/5 rounded-2xl overflow-hidden transition-all hover:bg-white/10 relative cursor-pointer group shadow-sm';
+                    card.onclick = (e) => { if(!e.target.closest('button')) navigateToFolder(folder.id); };
+                    card.innerHTML = `
+                        <div class="h-28 sm:h-32 bg-white/[0.02] border-b border-white/5 flex items-center justify-center relative text-gray-500 group-hover:text-blue-400 transition-colors">
+                            <svg class="w-16 h-16 opacity-50" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"></path></svg>
+                        </div>
+                        <div class="p-3 sm:p-4 flex items-center justify-between">
+                            <h4 class="font-bold text-[11px] sm:text-xs truncate text-gray-100 group-hover:text-blue-300 transition-colors">${folder.name}</h4>
+                            <button onclick="deleteFolder('${folder.id}')" class="text-gray-600 hover:text-rose-400 p-1 active:scale-90"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                        </div>
+                    `; grid.appendChild(card);
+                });
+
+                // Render Docs
+                filteredDocs.forEach((doc) => {
+                    const realIdx = db.findIndex(d => d.id === doc.id);
+                    const colorClass = doc.themeColor || 'blue-500';
+                    const iconSvg = ICON_MAP[doc.themeIcon || 'doc'];
+                    
+                    const card = document.createElement('div');
+                    card.className = 'doc-card bg-white/5 border border-white/5 rounded-2xl overflow-hidden transition-all hover:bg-white/10 relative shadow-sm';
+                    card.innerHTML = `
+                        <div class="h-28 sm:h-32 bg-white/[0.02] border-b border-white/5 flex items-center justify-center relative text-${colorClass}">
+                            <div class="opacity-30">${iconSvg}</div>
+                            <div class="actions absolute inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center gap-1 sm:gap-2 transition-opacity">
+                                <button onclick="previewDoc(${realIdx})" class="p-2 bg-white/10 rounded-lg hover:text-blue-400 text-white active:scale-90"><svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>
+                                ${!doc.shareRestricted ? `
+                                <button onclick="openShareModal(${realIdx})" class="p-2 bg-white/10 rounded-lg hover:text-blue-400 text-white active:scale-90"><svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button>
+                                <button onclick="downloadDoc(${realIdx})" class="p-2 bg-white/10 rounded-lg hover:text-blue-400 text-white active:scale-90"><svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <div class="p-3 sm:p-4">
+                            <h4 class="font-bold text-[11px] sm:text-xs truncate text-gray-100 mb-2">${formatDisplayName(doc.name)}</h4>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-1.5">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-${colorClass}"></div>
+                                    <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest">${doc.leaseExpiry ? 'Lease' : 'Owned'}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="openMoveModal('${doc.id}')" class="text-gray-600 hover:text-indigo-400 active:scale-90" title="Move"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg></button>
+                                    <button onclick="openAppearance(${realIdx})" class="text-gray-600 hover:text-blue-400 active:scale-90" title="Style"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                                    <button onclick="deleteDoc('${doc.id}')" class="text-gray-600 hover:text-rose-400 active:scale-90" title="Delete"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                                </div>
+                            </div>
+                        </div>
+                    `; grid.appendChild(card);
+                });
+            }
+        }
+
+        function openAppearance(idx) {
+            activeEditId = db[idx].id; selectedColor = db[idx].themeColor || 'blue-500'; selectedIcon = db[idx].themeIcon || 'doc';
+            document.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('active', d.dataset.color === selectedColor));
+            document.querySelectorAll('.icon-opt').forEach(o => o.classList.toggle('active', o.dataset.icon === selectedIcon));
+            openModal('appearanceModal');
+        }
+
+        function saveAppearance() {
+            const idx = db.findIndex(d => d.id === activeEditId);
+            if (idx !== -1) { 
+                db[idx].themeColor = selectedColor; db[idx].themeIcon = selectedIcon; 
+                saveToStorage(); renderDocs(); closeModal('appearanceModal'); showToast("Layout Saved"); 
+            }
+        }
+
+        function openShareModal(idx) {
+            currentShareIndex = idx; 
+            document.getElementById('shareFileName').innerText = formatDisplayName(db[idx].name); 
+            openModal('shareModal');
+        }
+
+        function sendDocument() {
+            const targetId = document.getElementById('shareTargetId').value.toUpperCase();
+            if (targetId.length !== 6) return showToast('Invalid Vault ID');
+            const doc = db[currentShareIndex];
+            const conn = connectWithSettings(targetId);
+            conn.on('open', () => {
+                sendSecure(conn, {
+                    type: 'SEND_FILE',
+                    payload: { rootSourceId: doc.rootSourceId, name: doc.name, content: doc.content },
+                    leaseMinutes: parseInt(document.getElementById('leaseTime').value),
+                    allowReshare: document.getElementById('allowReshare').checked
+                });
+                shares.push({ shareId: Date.now().toString(), targetId, rootSourceId: doc.rootSourceId, docName: doc.name });
+                saveToStorage(); showToast('Access Granted'); closeModal('shareModal');
+            });
+        }
+
+        function handleIncomingFile(data) {
+            let expiryTime = data.leaseMinutes > 0 ? Date.now() + (data.leaseMinutes * 60000) : null;
+            const newDoc = {
+                ...data.payload, id: 'shared_' + Date.now() + Math.random().toString(36).substring(7),
+                leaseExpiry: expiryTime, shareRestricted: !data.allowReshare, themeColor: 'emerald-500', themeIcon: 'shield',
+                folderId: null // Shared files always drop into the root vault initially
+            };
+            db = db.filter(d => d.rootSourceId !== newDoc.rootSourceId);
+            db.push(newDoc); saveToStorage(); renderDocs(); showToast('Imported');
+        }
+
+        function toggleManageShares() {
+            const list = document.getElementById('sharesList');
+            list.innerHTML = shares.length ? shares.map(s => `
+                <div class="bg-white/5 p-4 rounded-xl flex items-center justify-between border border-white/5">
+                    <div class="min-w-0 flex-1 pr-4">
+                        <div class="font-bold text-xs truncate text-gray-100">${formatDisplayName(s.docName)}</div>
+                        <div class="text-[9px] text-gray-500 uppercase font-black tracking-widest mt-1">ID: ${s.targetId}</div>
+                    </div>
+                    <button onclick="revokeShare('${s.shareId}', '${s.targetId}', '${s.rootSourceId}')" class="bg-red-500/10 text-red-400 px-3 py-1.5 rounded-lg text-[9px] font-black border border-red-500/10 uppercase hover:bg-red-500/20 transition-all">Kill</button>
+                </div>
+            `).join('') : '<div class="py-10 text-center text-xs text-gray-600 font-bold uppercase tracking-widest">Clear Logs</div>';
+            openModal('manageSharesModal');
+        }
+
+        function revokeShare(id, target, root) {
+            const conn = connectWithSettings(target);
+            conn.on('open', () => { sendSecure(conn, { type: 'REVOKE_ACCESS', rootSourceId: root }); setTimeout(() => conn.close(), 1000); });
+            shares = shares.filter(s => s.shareId !== id); saveToStorage(); toggleManageShares(); showToast("Access Revoked");
+        }
+
+        function handleIncomingRevoke(rootId) {
+            db = db.filter(d => d.rootSourceId !== rootId); saveToStorage(); renderDocs(); showToast("Revoked by Owner");
+        }
+
+        function checkLeases() {
+            const now = Date.now();
+            const startLen = db.length;
+            db = db.filter(d => !d.leaseExpiry || d.leaseExpiry > now);
+            if (db.length !== startLen) { saveToStorage(); renderDocs(); }
+        }
+
+        function previewDoc(idx) {
+            const doc = db[idx];
+            const win = window.open();
+            const faviconData = setAppFavicon();
+            
+            const killSwitchScript = `
+                <script>
+                    (function() {
+                        const rootId = "${doc.rootSourceId}";
+                        const expiry = ${doc.leaseExpiry || 'null'};
+                        let isBlocked = false;
+
+                        function blockUI() {
+                            if (isBlocked) return;
+                            isBlocked = true;
+                            document.documentElement.innerHTML = \`
+                                <body style="background:#0f0f0f;color:#e8eaed;margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;text-align:center;padding:20px;">
+                                    <h1 style="font-size:3rem;margin-bottom:10px;font-weight:700;">Blocked</h1>
+                                    <p style="font-size:0.9rem;opacity:0.6;max-width:350px;line-height:1.5;">You no longer have access to this file. Try again or contact the file's original owner.</p>
+                                </body>
+                            \`;
+                            window.stop();
+                        }
+
+                        function checkStatus() {
+                            const currentDb = JSON.parse(localStorage.getItem('docvault_data') || '[]');
+                            const entry = currentDb.find(d => d.rootSourceId === rootId);
+                            if (!entry) { blockUI(); return; }
+                            if (entry.leaseExpiry && Date.now() > entry.leaseExpiry) { blockUI(); return; }
+                        }
+                        setInterval(checkStatus, 500);
+
+                        function injectFav() {
+                            var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+                            link.type = 'image/x-icon'; link.rel = 'shortcut icon'; link.href = '${faviconData}';
+                            document.head.appendChild(link);
+                        }
+                        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectFav);
+                        else injectFav();
+                    })();
+                <\/script>
+            `;
+            
+            let finalContent = doc.content;
+            if (finalContent.includes('<head>')) { finalContent = finalContent.replace('<head>', '<head>' + killSwitchScript); } 
+            else if (finalContent.includes('<html>')) { finalContent = finalContent.replace('<html>', '<html><head>' + killSwitchScript + '</head>'); } 
+            else { finalContent = '<head>' + killSwitchScript + '</head>' + finalContent; }
+
+            win.document.write(finalContent);
+            win.document.close();
+        }
+
+        function downloadDoc(idx) {
+            const doc = db[idx];
+            if (doc.shareRestricted) return showToast("Restricted");
+            const blob = new Blob([doc.content], { type: 'text/html' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = doc.name; a.click(); showToast("Downloaded");
+        }
+
+        function deleteDoc(id) { db = db.filter(d => d.id !== id); saveToStorage(); renderDocs(); }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg; toast.style.opacity = '1'; toast.style.transform = 'translateY(0) translateX(-50%)';
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(16px) translateX(-50%)'; }, 2000);
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
+    </script>
+</body>
+</html>
