@@ -1770,12 +1770,19 @@
           >
             Requests
           </button>
-          <button
+<button
             onclick="window.switchSocialTab('search')"
             id="social-tab-search"
             class="flex-1 py-2 text-xs uppercase tracking-widest font-bold text-slate-500"
           >
             Search
+          </button>
+          <button
+            onclick="window.switchSocialTab('share')"
+            id="social-tab-share"
+            class="flex-1 py-2 text-xs uppercase tracking-widest font-bold text-slate-500"
+          >
+            Share
           </button>
         </div>
 
@@ -3532,9 +3539,10 @@
         // No longer throwing to prevent blocking the user
       }
 
-      window.startHostFirebase = async (
+window.startHostFirebase = async (
         isPublic = false,
-        mode = "standard"
+        mode = "standard",
+        overrideGameId = null
       ) => {
         if (!authInitialized || !fbUser) {
           window.showNotification("Connecting to servers...");
@@ -3558,8 +3566,8 @@
         document.getElementById("searching-lobby-code").innerText =
           "Generating...";
 
-        try {
-          const gameId = Math.floor(100000 + Math.random() * 900000).toString();
+try {
+          const gameId = overrideGameId || Math.floor(100000 + Math.random() * 900000).toString();
           currentGameId = gameId;
           isHost = true;
 
@@ -4262,8 +4270,8 @@
         window.switchSocialTab("friends");
       };
 
-      window.switchSocialTab = async (tab) => {
-        const tabs = ["friends", "requests", "search", "feed"];
+window.switchSocialTab = async (tab) => {
+          const tabs = ["friends", "requests", "search", "share", "feed"];
         tabs.forEach((t) => {
           const btn = document.getElementById(`social-tab-${t}`);
           if (btn) {
@@ -4458,7 +4466,7 @@
           } catch (e) {
             console.error(e);
           }
-        } else if (tab === "search") {
+} else if (tab === "search") {
           content.innerHTML = `
                     <div class="flex flex-col gap-4 py-4">
                         <div class="flex gap-2">
@@ -4470,6 +4478,21 @@
                         </div>
                     </div>
                 `;
+        } else if (tab === "share") {
+          content.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-12 gap-6 text-center">
+                <div class="w-16 h-16 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-400 border border-teal-500/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                </div>
+                <div>
+                    <h3 class="text-lg text-white font-bold mb-2 tracking-widest uppercase">Share Game Link</h3>
+                    <p class="text-slate-400 text-xs px-4">Generate a public link and share it via your device's native sharing options.</p>
+                </div>
+                <button onclick="window.shareGameLink()" class="btn-primary px-8 py-3 w-full max-w-xs mt-2 shadow-[0_0_15px_rgba(20,184,166,0.15)]">
+                    Create & Share Link
+                </button>
+            </div>
+          `;
         }
       };
 
@@ -5744,6 +5767,32 @@
           console.error(e);
           window.showNotification("Error looking up friend");
         }
+      };
+
+      window.shareGameLink = async () => {
+        // Generate synchronously so device permissions don't drop
+        const gameId = Math.floor(100000 + Math.random() * 900000).toString();
+        const url = `${window.location.origin}${window.location.pathname}?code=${gameId}`;
+        
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: 'Play Checkers',
+              text: 'Join my Checkers match!',
+              url: url
+            });
+          } catch (e) {
+            console.log('Share canceled', e);
+            return; // Abort if they closed the share sheet
+          }
+        } else {
+          navigator.clipboard.writeText(url);
+          window.showNotification("Link copied to clipboard!");
+        }
+
+        // Close modal and connect the lobby
+        closeModal("modal-social");
+        await window.startHostFirebase(false, "standard", gameId);
       };
 
       window.copySearchingLobbyLink = () => {
