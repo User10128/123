@@ -46,6 +46,42 @@
         .btn-primary:hover {
             background: rgba(20, 184, 166, 0.25);
         }
+
+        /* Print-specific styles */
+        @media print {
+            body { 
+                background-color: white !important; 
+                color: black !important;
+            }
+            /* Hide the main UI and custom cursor when printing */
+            #admin-content, #auth-loading, #custom-cursor-container { 
+                display: none !important; 
+            }
+            /* Show only the print container */
+            #print-container { 
+                display: block !important; 
+            }
+            .print-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+                width: 100%;
+            }
+            .print-item {
+                border: 1px solid #ccc;
+                padding: 12px;
+                font-size: 12px;
+                page-break-inside: avoid; /* Prevents an item from splitting across pages */
+            }
+            .print-header {
+                text-align: center;
+                font-size: 20px;
+                font-weight: bold;
+                margin-bottom: 20px;
+                border-bottom: 2px solid #000;
+                padding-bottom: 10px;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 sm:p-8 bg-[#0f172a] text-[#f8fafc]" id="admin-body">
@@ -53,14 +89,13 @@
         <div class="max-w-4xl mx-auto">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="text-3xl font-bold text-teal-400 tracking-wider">EMAIL CONTROL PANEL</h1>
-                <button onclick="window.location.href='index.html'" class="btn-primary">Back to Game</button>
+                <button onclick="try { window.location.href='index.html'; } catch(e) { console.warn('Redirect blocked in preview:', e); }" class="btn-primary">Back to Game</button>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <!-- Sent Messages Section (Removed) -->
             </div>
 
-            <!-- Poll Management Section -->
             <div class="glass-panel p-6 rounded-2xl mt-8">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-b border-teal-500/20 pb-2">
                     <h2 class="text-xl text-teal-300 font-semibold">Poll Management</h2>
@@ -97,6 +132,7 @@
                     </table>
                 </div>
             </div>
+
             <div class="glass-panel p-6 rounded-2xl mt-8">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-b border-teal-500/20 pb-2">
                     <h2 class="text-xl text-teal-300 font-semibold">Player Management</h2>
@@ -123,14 +159,21 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-4">
+                <!-- Action Buttons: Download CSV and Print -->
+                <div class="mt-4 flex gap-4 flex-wrap">
                     <button id="download-csv" class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-all">
                         Download CSV
+                    </button>
+                    <button id="print-players-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all">
+                        Print Visible Players
                     </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Container designated for printable content -->
+    <div id="print-container" style="display: none;"></div>
 
     <div id="auth-loading" class="fixed inset-0 flex items-center justify-center bg-[#0f172a] z-[100]">
         <div class="flex flex-col items-center gap-4">
@@ -188,17 +231,30 @@
                 path
             };
             console.error('Firestore Error: ', JSON.stringify(errInfo));
-            // No longer throwing to prevent blocking the user
         }
 
         let currentUser = null;
         let allPlayers = [];
         let allPolls = [];
 
+        window.addEventListener('unhandledrejection', (event) => {
+            if (event.reason && event.reason.toString().includes("Failed to set the 'href' property on 'Location'")) {
+                console.warn('Suppressed sandbox navigation error from Firebase Auth.');
+                event.preventDefault();
+            }
+        });
+
         onAuthStateChanged(auth, (user) => {
             const isAdmin = user && (user.email === 'billlokey@gmail.com' || user.email === 'email-control-panel@checkers.page');
             if (!user || !isAdmin) {
-                window.location.href = 'index.html';
+                // Show access denied instead of redirecting (which causes URL errors in sandboxed iframes)
+                const authLoading = document.getElementById('auth-loading');
+                authLoading.innerHTML = `
+                    <div class="flex flex-col items-center gap-4 bg-slate-800 p-8 rounded-2xl border border-red-500/30 shadow-2xl">
+                        <svg class="w-16 h-16 text-red-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        <p class="text-red-400 font-bold text-2xl tracking-wider uppercase">Access Denied</p>
+                    </div>
+                `;
                 return;
             }
             currentUser = user;
@@ -300,7 +356,6 @@
         };
 
         // --- PLAYERS ---
-
         async function loadPlayers() {
             const listEl = document.getElementById('player-list');
             try {
@@ -330,6 +385,9 @@
                 return (p.displayName || '').toLowerCase().includes(s) || 
                        (p.friendCode || '').toLowerCase().includes(s);
             });
+
+            // Make filtered players accessible globally for the Print feature
+            window.currentVisiblePlayers = filtered;
 
             if (filtered.length === 0) {
                 listEl.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-slate-500 italic">No players found.</td></tr>`;
@@ -379,21 +437,53 @@
             // Function removed
         }
 
-document.getElementById('download-csv').addEventListener('click', () => {
-    // 1. Updated the header label to "friend_code"
-    const csvContent = "data:text/csv;charset=utf-8," 
-        + "email,first_name,user_id\n" 
-        // 2. Changed p.uid to p.friendCode (with a fallback to '---')
-        + allPlayers.map(p => `"${p.email || 'N/A'}","${(p.displayName || 'Anonymous').replace(/"/g, '""')}","${p.friendCode || '-999'}"`).join("\n");
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "players.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-});
+        document.getElementById('download-csv').addEventListener('click', () => {
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "email,first_name,user_id\n" 
+                + allPlayers.map(p => `"${p.email || 'N/A'}","${(p.displayName || 'Anonymous').replace(/"/g, '""')}","${p.friendCode || '-999'}"`).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "players.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // PRINT FUNCTIONALITY
+        document.getElementById('print-players-btn').addEventListener('click', () => {
+            const printContainer = document.getElementById('print-container');
+            const playersToPrint = window.currentVisiblePlayers || [];
+            
+            if (playersToPrint.length === 0) {
+                alert("No visible players to print.");
+                return;
+            }
+
+            // Generate HTML layout for printing
+            let printHTML = `
+                <div class="print-header">Player Roster (Visible)</div>
+                <div class="print-grid">
+            `;
+            
+            playersToPrint.forEach(p => {
+                printHTML += `
+                    <div class="print-item">
+                        <div style="font-weight: bold; font-size: 14px; margin-bottom: 5px;">${p.displayName || 'Anonymous'}</div>
+                        <div><strong>Email:</strong> ${p.email || 'N/A'}</div>
+                        <div><strong>Code:</strong> ${p.friendCode || '---'}</div>
+                        <div><strong>Points:</strong> ${p.playerPoints || 5}</div>
+                    </div>
+                `;
+            });
+            
+            printHTML += `</div>`;
+            
+            // Set content and trigger print dialogue
+            printContainer.innerHTML = printHTML;
+            window.print();
+        });
 
     </script>
     <script>
