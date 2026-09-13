@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkers Labs Directory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .glass-panel {
+            background: rgba(13, 71, 161, 0.25); /* Cobalt blue tint */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(100, 181, 246, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body class="text-white antialiased relative">
+
+    <!-- Background Image -->
+    <div class="fixed inset-0 z-[-2] bg-cover bg-center bg-no-repeat" 
+         style="background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQT6hOcgVZxsldMe2tpkGSmB7_zhliTXeOBuy38b34-zg&s=10');">
+    </div>
+    
+    <!-- Cobalt Blue Darkening Overlay to ensure text readability and enhance frosted glass -->
+    <div class="fixed inset-0 z-[-1] bg-blue-950/40 mix-blend-multiply pointer-events-none"></div>
+
+    <!-- Single Full-Screen Box -->
+    <div class="glass-panel min-h-screen w-full flex flex-col p-8 md:p-12 box-border">
+        
+        <!-- Header -->
+        <header class="mb-12 text-center pt-8">
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-3 text-blue-50">Checkers Labs Directory</h1>
+            <p class="text-blue-200 text-lg max-w-2xl mx-auto">
+                A collection of our most usful sites and games, here for you.
+            </p>
+        </header>
+
+        <!-- Link Grid Container -->
+        <div id="directory-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 flex-grow content-start max-w-6xl mx-auto w-full">
+            <!-- Cards will be injected here by JavaScript -->
+        </div>
+
+    </div>
+
+    <script>
+        /**
+         * ==============================================================================
+         * USER CONFIGURATION: PUT YOUR LINKS HERE
+         * ==============================================================================
+         * Format: URL (Optional Name) [Optional Logo URL]
+         * Separate multiple links with commas.
+         * 
+         * Examples:
+         * - Basic: google.com
+         * - With Name: https://github.com (My Github)
+         * - With Name & Logo: https://reddit.com (Reddit) [https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-120x120.png]
+         */
+        const rawLinksList = `
+            https://checkers.page (Checkers),
+            https://checkers.page/ink (Ink Timer) [https://checkers.page/fav.png],
+            https://checkers.page/skybound (Airplane) [https://checkers.page/airplane.png],
+            https://chess.checkers.page (Chess) [https://chess.checkers.page/chessicon.png],
+            https://fish.checkers.page (Go Fish!) [https://fish.checkers.page/favicon.png],
+            https://music.checkers.page (Music) [https://music.checkers.page/favicon.png],
+            https://slate.checkers.page (Slate) [https://slate.checkers.page/favicon.png],
+            https://jump.checkers.page (Squishy Jumper) [https://checkers.page/jump.png],
+            https://ls.checkers.page (LearnSpanish!) [https://ls.checkers.page/favicon.png],
+            https://jelly.checkers.page (Jelly) [https://jelly.checkers.page/favicon.png],
+            https://checkers.page/be (Binary Earth) [https://checkers.page/be.png],
+            https://checkers.page/blob (Blob) [https://checkers.page/blob.png],
+            https://checkers.page/digitle (Digitle) [https://checkers.page/digitle.png],
+            https://checkers.page/homepage (Your Homepage) [https://checkers.page/homepage.png],
+            https://checkers.page/insights (Insights) [https://checkers.page/insights.png],
+            https://checkers.page/stack (Stack Down) [https://checkers.page/stack.png]
+        `;
+        
+        function parseLinksData(rawData) {
+            // Split by comma and filter out any empty strings
+            const items = rawData.split(',').map(item => item.trim()).filter(item => item.length > 0);
+            
+            return items.map(item => {
+                // Extract Name from parentheses (e.g., (My Site))
+                const nameMatch = item.match(/\((.*?)\)/);
+                let name = nameMatch ? nameMatch[1].trim() : null;
+
+                // Extract Logo URL from brackets (e.g., [https://img.com/logo.png])
+                const logoMatch = item.match(/\[(.*?)\]/);
+                let logo = logoMatch ? logoMatch[1].trim() : null;
+
+                // Extract the URL by removing the (name) and [logo] parts
+                let url = item.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
+                
+                // Ensure the URL has a protocol for accurate parsing and linking
+                let href = url;
+                if (!href.startsWith('http://') && !href.startsWith('https://')) {
+                    href = 'https://' + href;
+                }
+
+                // Fallback for Name: Use the domain name
+                if (!name) {
+                    try {
+                        const urlObj = new URL(href);
+                        name = urlObj.hostname.replace('www.', '');
+                        // Capitalize the first letter
+                        name = name.charAt(0).toUpperCase() + name.slice(1);
+                    } catch (e) {
+                        name = url; // Fallback to raw string if URL parsing fails
+                    }
+                }
+
+                // Fallback for Logo: Fetch favicon using Google's Favicon service
+                if (!logo) {
+                    try {
+                        const urlObj = new URL(href);
+                        logo = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=128`;
+                    } catch (e) {
+                        // Fallback transparent pixel if parsing fails completely
+                        logo = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; 
+                    }
+                }
+
+                return { href, name, logo };
+            });
+        }
+
+        function renderDirectory() {
+            const gridContainer = document.getElementById('directory-grid');
+            const parsedLinks = parseLinksData(rawLinksList);
+
+            if (parsedLinks.length === 0) {
+                gridContainer.innerHTML = `<div class="col-span-full text-center text-blue-200 py-10">No links found. Please add links to the code.</div>`;
+                return;
+            }
+
+            parsedLinks.forEach(link => {
+                // Create anchor element wrapping the card
+                const a = document.createElement('a');
+                a.href = link.href;
+                a.target = "_blank";
+                a.rel = "noopener noreferrer";
+                a.className = "flex flex-col items-center justify-center gap-4 text-center group cursor-pointer no-underline transition-transform duration-300 hover:scale-105 min-h-[140px]";
+
+                // Create Image container (for logo)
+                const imgContainer = document.createElement('div');
+                imgContainer.className = "w-16 h-16 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300";
+                
+                const img = document.createElement('img');
+                img.src = link.logo;
+                img.alt = `${link.name} Logo`;
+                img.className = "max-w-full max-h-full object-contain drop-shadow-md rounded";
+                
+                // Add fallback behavior if image fails to load
+                img.onerror = function() {
+                    this.src = `https://placehold.co/128x128/1e3a8a/ffffff?text=${link.name.charAt(0)}`;
+                };
+
+                imgContainer.appendChild(img);
+
+                // Create text label
+                const span = document.createElement('span');
+                span.className = "font-semibold text-blue-50 text-lg leading-tight group-hover:text-white drop-shadow-md break-words w-full";
+                span.textContent = link.name;
+
+                // Assemble card
+                a.appendChild(imgContainer);
+                a.appendChild(span);
+
+                // Add to grid
+                gridContainer.appendChild(a);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', renderDirectory);
+
+    </script>
+</body>
+</html>
